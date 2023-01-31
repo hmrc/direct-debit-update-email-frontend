@@ -64,7 +64,6 @@ class StartService @Inject() (
     for {
       session <- authLoginApiService.logIn(TestUser.makeTestUser(formData))
       hc = HeaderCarrierConverter.fromRequestAndSession(request.withHeaders(request.headers.remove(HeaderNames.xSessionId)), session)
-      _ = println(s"hc is ${hc.toString}\n\n\n")
       _ <- directDebitBackendService.insertRecord(directDebitRecord)(hc)
       nextUrl <- directDebitUpdateEmailBackendService.start(formData.origin, sjRequest)(hc)
     } yield (session, nextUrl)

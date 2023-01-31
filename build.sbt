@@ -30,7 +30,7 @@ lazy val microservice = Project("direct-debit-update-email-frontend", file("."))
   .settings(DefaultBuildSettings.defaultSettings(): _*)
   .settings(
     majorVersion        := 0,
-    scalaVersion        := "2.13.8",
+    scalaVersion        := "2.13.10",
     PlayKeys.playDefaultPort := 10801,
     libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
     // https://www.scala-lang.org/2021/01/12/configuring-and-suppressing-warnings.html
