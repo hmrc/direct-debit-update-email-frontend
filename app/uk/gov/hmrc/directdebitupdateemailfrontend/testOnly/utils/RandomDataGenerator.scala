@@ -31,11 +31,23 @@ object RandomDataGenerator {
    */
   def nextNumber(n: Int): String = random.alphanumeric.filter(_.isDigit).take(n).mkString
 
+  def nextAlphanumeric(n: Int): String = random.alphanumeric.take(n).mkString
+
+  def nextAlpha(n: Int): String = random.alphanumeric.filter(_.isLetter).take(n).mkString
+
   def nextEmpref(): String = {
     val nextTaxOfficeNumber = nextNumber(3)
     val nextTaxOfficeReference = s"GZ${nextNumber(5)}"
     s"$nextTaxOfficeNumber$nextTaxOfficeReference"
   }
+
+  def nextCdsRef(): String = nextNumber(7)
+
+  def nextZsdlRef(): String = nextAlphanumeric(15)
+
+  def nextVrn(): String = nextNumber(9)
+
+  def nextZpptRef(): String = s"X${nextAlpha(1)}PPT000${nextNumber(7)}"
 
   def nextDdiNumber(): DDINumber = DDINumber(nextNumber(18))
 
