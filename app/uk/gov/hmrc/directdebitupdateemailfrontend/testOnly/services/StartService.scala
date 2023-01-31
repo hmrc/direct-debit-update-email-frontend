@@ -17,7 +17,7 @@
 package uk.gov.hmrc.directdebitupdateemailfrontend.testOnly.services
 
 import com.google.inject.{Inject, Singleton}
-import ddUpdateEmail.models.journey.SjRequest
+import ddUpdateEmail.models.journey.{SjRequest, SjResponse}
 import ddUpdateEmail.models.{BackUrl, NextUrl, ReturnUrl, TaxRegime}
 import play.api.mvc.{Request, Session}
 import uk.gov.hmrc.directdebitupdateemailfrontend.testOnly.controllers.routes
@@ -37,13 +37,16 @@ class StartService @Inject() (
     directDebitUpdateEmailBackendService: DirectDebitUpdateEmailBackendService
 )(implicit ec: ExecutionContext) {
 
-  def start(formData: StartJourneyForm)(implicit request: Request[_]): Future[(Session, NextUrl)] = {
+  def start(formData: StartJourneyForm)(implicit request: Request[_]): Future[Either[SjResponse.Error, (Session, NextUrl)]] = {
     lazy val ddiNumber = RandomDataGenerator.nextDdiNumber()
 
     lazy val directDebitRecord = {
       val taxId = formData.taxRegime match {
         case TaxRegime.Paye => TaxId("empref", RandomDataGenerator.nextEmpref())
-        case other          => sys.error(s"${other.toString} not handled yet")
+        case TaxRegime.Cds  => sys.error("CDS unsupported")
+        case TaxRegime.Ppt  => TaxId("zppt", RandomDataGenerator.nextZpptRef())
+        case TaxRegime.Zsdl => TaxId("zsdl", RandomDataGenerator.nextZsdlRef())
+        case TaxRegime.VatC => TaxId("vrn", RandomDataGenerator.nextVrn())
       }
 
       DirectDebitRecord(
@@ -65,8 +68,8 @@ class StartService @Inject() (
       session <- authLoginApiService.logIn(TestUser.makeTestUser(formData))
       hc = HeaderCarrierConverter.fromRequestAndSession(request.withHeaders(request.headers.remove(HeaderNames.xSessionId)), session)
       _ <- directDebitBackendService.insertRecord(directDebitRecord)(hc)
-      nextUrl <- directDebitUpdateEmailBackendService.start(formData.origin, sjRequest)(hc)
-    } yield (session, nextUrl)
+      result <- directDebitUpdateEmailBackendService.start(formData.origin, sjRequest)(hc)
+    } yield result.map(session -> _)
   }
 
 }
