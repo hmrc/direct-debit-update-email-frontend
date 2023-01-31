@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.directdebitupdateemailfrontend.config
+package uk.gov.hmrc.directdebitupdateemailfrontend.testOnly.models
 
-import com.google.inject.AbstractModule
+import play.api.libs.json.{Json, OFormat}
 
-class Module extends AbstractModule {
+final case class TaxId(`type`: String, value: String)
 
-  override def configure(): Unit = {
+object TaxId {
 
-    bind(classOf[AppConfig]).asEagerSingleton()
-  }
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  implicit val format: OFormat[TaxId] = Json.format
+
 }

@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.directdebitupdateemailfrontend.config
+package uk.gov.hmrc.directdebitupdateemailfrontend.module
 
-import com.google.inject.AbstractModule
+import com.google.inject.{AbstractModule, Provides, Singleton}
+import play.api.i18n.{I18nSupport, MessagesApi}
 
 class Module extends AbstractModule {
 
   override def configure(): Unit = {
+    ()
+  }
 
-    bind(classOf[AppConfig]).asEagerSingleton()
+  @Provides
+  @Singleton
+  def i18nSupport(api: MessagesApi): I18nSupport = new I18nSupport {
+    override def messagesApi: MessagesApi = api
   }
 }

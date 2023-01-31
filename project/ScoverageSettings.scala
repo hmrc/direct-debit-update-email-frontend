@@ -1,7 +1,7 @@
 import sbt.Setting
 import scoverage.ScoverageKeys
 
-object CodeCoverageSettings {
+object ScoverageSettings {
 
   private val excludedPackages: Seq[String] = Seq(
     "<empty>",
@@ -10,13 +10,13 @@ object CodeCoverageSettings {
     "app.*",
     "prod.*",
     ".*Routes.*",
-    "testOnly.*",
+    "uk.gov.hmrc.directdebitupdateemailfrontend.testOnly.*",
     "testOnlyDoNotUseInAppConf.*"
   )
 
-  val settings: Seq[Setting[_]] = Seq(
+  val scoverageSettings: Seq[Setting[_]] = Seq(
     ScoverageKeys.coverageExcludedPackages := excludedPackages.mkString(";"),
-    ScoverageKeys.coverageMinimumStmtTotal := 100,
+    ScoverageKeys.coverageMinimumStmtTotal := 75, // to be bumped up when first page is built
     ScoverageKeys.coverageFailOnMinimum := true,
     ScoverageKeys.coverageHighlighting := true
   )

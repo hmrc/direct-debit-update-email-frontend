@@ -14,14 +14,19 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.directdebitupdateemailfrontend.config
+package uk.gov.hmrc.directdebitupdateemailfrontend.testOnly.models.forms
 
-import com.google.inject.AbstractModule
+import enumeratum._
 
-class Module extends AbstractModule {
+import scala.collection.immutable
 
-  override def configure(): Unit = {
+sealed trait SignInAs extends EnumEntry
 
-    bind(classOf[AppConfig]).asEagerSingleton()
-  }
+object SignInAs extends Enum[SignInAs] {
+
+  case object Individual extends SignInAs
+
+  case object Organisation extends SignInAs
+
+  override def values: immutable.IndexedSeq[SignInAs] = findValues
 }

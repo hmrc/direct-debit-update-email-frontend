@@ -14,14 +14,9 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.directdebitupdateemailfrontend.config
+package uk.gov.hmrc.directdebitupdateemailfrontend.testOnly.models.testuser
 
-import com.google.inject.AbstractModule
-
-class Module extends AbstractModule {
-
-  override def configure(): Unit = {
-
-    bind(classOf[AppConfig]).asEagerSingleton()
-  }
-}
+/**
+ * The same as CredId
+ */
+final case class AuthorityId(value: String)
