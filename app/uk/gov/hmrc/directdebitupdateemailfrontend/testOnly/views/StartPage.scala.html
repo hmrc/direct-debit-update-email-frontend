@@ -1,0 +1,226 @@
+@*
+ * Copyright 2023 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@*
+* Copyright 2023 HM Revenue & Customs
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*@
+
+@import play.api.mvc.Request
+@import uk.gov.hmrc.govukfrontend.views.html.components._
+
+@import play.api.data.Form
+@import uk.gov.hmrc.directdebitupdateemailfrontend.utils.RequestSupport
+@import ddUpdateEmail.models.Origin
+@import ddUpdateEmail.models.TaxRegime
+@import uk.gov.hmrc.directdebitupdateemailfrontend.testOnly.controllers.routes
+@import uk.gov.hmrc.directdebitupdateemailfrontend.testOnly.models.forms.SignInAs
+@import uk.gov.hmrc.directdebitupdateemailfrontend.testOnly.models.forms.StartJourneyForm
+@import uk.gov.hmrc.directdebitupdateemailfrontend.views.html.Layout
+
+@import cats.syntax.eq._
+
+
+@this(
+        layout: Layout,
+        govukButton: GovukButton,
+        formWithCSRF: FormWithCSRF,
+        govukRadios: GovukRadios,
+        requestSupport: RequestSupport,
+        govukErrorSummary: GovukErrorSummary,
+        govukInput: GovukInput
+)
+@(form: Form[StartJourneyForm])(implicit request: Request[_])
+
+@import requestSupport._
+
+@title = @{
+ "Test only starter page"
+}
+
+@signInAsContent = {
+@govukRadios(Radios(
+ fieldset = Some(Fieldset(
+  legend = Some(Legend(
+   content = Text("Signed in as"),
+   classes = "govuk-fieldset__legend--m",
+   isPageHeading = false
+  ))
+ )),
+ idPrefix = Some("signInAs"),
+ name = "signInAs",
+ errorMessage = form.error("signInAs").map(e => ErrorMessage.errorMessageWithDefaultStringsTranslated(
+  content = Text(e.message)
+ )),
+ items = Seq(
+  RadioItem(
+   content = Text("As an Organisation"),
+   value = Some(SignInAs.Organisation.entryName),
+   checked = form.data.get("signInAs").fold(true)(_ === SignInAs.Organisation.entryName)
+  ),
+  RadioItem(
+   content = Text("As an Individual"),
+   value = Some(SignInAs.Individual.entryName),
+   checked = form.data.get("signInAs").fold(false)(_ === SignInAs.Individual.entryName)
+  )
+ ),
+ classes = "govuk-radios--small"
+))
+}
+
+@originContent = {
+@govukRadios(Radios(
+ fieldset = Some(Fieldset(
+  legend = Some(Legend(
+   content = Text("Origin"),
+   classes = "govuk-fieldset__legend--m",
+   isPageHeading = false
+  ))
+ )),
+ idPrefix = Some("origin"),
+ name = "origin",
+ errorMessage = form.error("origin").map(e => ErrorMessage.errorMessageWithDefaultStringsTranslated(
+  content = Text(e.message)
+ )),
+ items = Seq(
+  RadioItem(
+   content = Text("BTA"),
+   value = Some(Origin.BTA.entryName),
+   checked = form.data.get("origin").fold(true)(_ === Origin.BTA.entryName)
+  ),
+  RadioItem(
+   content = Text("EPAYE"),
+   value = Some(Origin.EpayeService.entryName),
+   checked = form.data.exists(_._2 === Origin.EpayeService.entryName)
+  )
+ ),
+ classes = "govuk-radios--small"
+))
+}
+
+@taxRegimeContent = {
+@govukRadios(Radios(
+ fieldset = Some(Fieldset(
+  legend = Some(Legend(
+   content = Text("Tax Regime"),
+   classes = "govuk-fieldset__legend--m",
+   isPageHeading = false
+  ))
+ )),
+ idPrefix = Some("taxRegime"),
+ name = "taxRegime",
+ errorMessage = form.error("taxRegime").map(e => ErrorMessage.errorMessageWithDefaultStringsTranslated(
+  content = Text(e.message)
+ )),
+ items =  TaxRegime.values.toList.map( t =>
+  RadioItem(
+   content = Text(t.entryName),
+   value = Some(t.entryName),
+   checked = {
+    form.data.get("taxRegime").fold(t.entryName === TaxRegime.Paye.entryName)(
+      _ === t.entryName
+    )
+   }
+  )
+ ),
+ classes = "govuk-radios--small"
+))
+}
+
+@emailContent = {
+@govukInput(Input(
+ id = "email",
+ name = "email",
+ inputType = "email",
+ classes = "govuk-input--width-30",
+ spellcheck = Some(false),
+  label= Label(
+   content = Text("Email address"),
+   classes = "govuk-label--m",
+  ),
+ errorMessage = form.error("email").map(e => ErrorMessage(content = Text(e.message) )),
+ value = form("email").value.orElse(Some("email@directdebits.com"))
+))
+}
+
+@isEmailAddressBouncedRadios = @{
+ govukRadios(Radios(
+  fieldset = Some(Fieldset(
+   legend = Some(Legend(
+    content = Text("Is email bounced?"),
+    classes = "govuk-fieldset__legend--m",
+    isPageHeading = false
+   ))
+  )),
+  idPrefix = Some("isEmailBounced"),
+  name = "isEmailBounced",
+  errorMessage = form.error("isEmailBounced").map(e => ErrorMessage.errorMessageWithDefaultStringsTranslated(
+   content = Text(e.message)
+  )),
+  items = Seq(
+   RadioItem(
+    content = Text("Yes"),
+    value = Some("true"),
+    checked = form.data.get("isEmailBounced").fold(true)(_ === "true")
+   ),
+   RadioItem(
+    content = Text("No"),
+    value = Some("false"),
+    checked = form.data.get("isEmailBounced").fold(false)(_ === "false")
+   )
+  ),
+  classes = "govuk-radios--small govuk-radios--inline"
+ ))
+}
+
+@layout(pageTitle = title) {
+ @if(form.errors.nonEmpty) {
+  @govukErrorSummary(ErrorSummary(errorList = form.errors.map(e =>
+   ErrorLink(
+    href = Some(s"#${e.key}"),
+    content = Text(e.message)
+   )),
+   title = Text("There is a problem")
+  ))
+ }
+
+ <h1 class="govuk-heading-xl">@title</h1>
+ <p class="govuk-body">Set up journeys and emulate entry point behaviours.</p>
+
+ @formWithCSRF(action = routes.StartJourneyController.startJourneySubmit) {
+
+  @signInAsContent
+  @originContent
+  @taxRegimeContent
+  @emailContent
+  @isEmailAddressBouncedRadios
+
+  @govukButton(Button(content = Text("Start now")))
+ }
+
+}
+

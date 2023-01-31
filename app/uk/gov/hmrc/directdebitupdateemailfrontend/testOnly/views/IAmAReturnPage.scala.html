@@ -1,4 +1,4 @@
-/*
+@*
  * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,16 +12,19 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
+ *@
 
-package uk.gov.hmrc.directdebitupdateemailfrontend.config
+@import play.api.mvc.Request
+@import uk.gov.hmrc.directdebitupdateemailfrontend.testOnly.controllers.routes
+@import uk.gov.hmrc.directdebitupdateemailfrontend.views.html.Layout
 
-import com.google.inject.AbstractModule
+@this(layout: Layout)
 
-class Module extends AbstractModule {
+@()(implicit request: Request[_])
 
-  override def configure(): Unit = {
 
-    bind(classOf[AppConfig]).asEagerSingleton()
-  }
+@layout("I am a return page"){
+
+ <p class="govuk-body">Go back to the <a class="govuk-link" href="@{routes.StartJourneyController.startJourney.url}">start page</a>.</p>
+
 }

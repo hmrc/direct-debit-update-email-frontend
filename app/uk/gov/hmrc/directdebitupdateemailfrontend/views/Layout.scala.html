@@ -1,19 +1,92 @@
-@import uk.gov.hmrc.directdebitupdateemailfrontend.config.AppConfig
-@import uk.gov.hmrc.hmrcfrontend.views.html.helpers.HmrcLayout
+@*
+ * Copyright 2023 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import play.api.mvc.Request
+@import play.twirl.api.Html
+
+@import uk.gov.hmrc.directdebitupdateemailfrontend.messages.Messages
+@import uk.gov.hmrc.directdebitupdateemailfrontend.utils.RequestSupport
+@import uk.gov.hmrc.govukfrontend.views.html.components._
+@import uk.gov.hmrc.hmrcfrontend.views.html.helpers._
 @import views.html.helper.CSPNonce
 
 @this(
-        appConfig: AppConfig,
-        hmrcLayout: HmrcLayout
+        govukLayout: GovukLayout,
+        govukPhaseBanner : GovukPhaseBanner,
+        govukBackLink: GovukBackLink,
+        hmrcHead: HmrcHead,
+        hmrcStandardHeader: HmrcStandardHeader,
+        hmrcStandardFooter: HmrcStandardFooter,
+        hmrcScripts: HmrcScripts,
+        hmrcLanguageSelectHelper: HmrcLanguageSelectHelper,
+        hmrcReportTechnicalIssueHelper: HmrcReportTechnicalIssueHelper,
+        requestSupport: RequestSupport
 )
-@(pageTitle: Option[String] = None)(contentBlock: Html)(implicit request: Request[_], messages: Messages)
+@(pageTitle: String, hasErrors: Boolean = false, showBackLink: Boolean = true)(contentBlock: Html)(implicit request: Request[_])
 
-@hmrcLayout(
-    pageTitle = pageTitle,
-    nonce = CSPNonce.get,
-    isWelshTranslationAvailable = appConfig.welshLanguageSupportEnabled
-)(contentBlock)
 
-@{
-    //$COVERAGE-OFF$
+@import requestSupport._
+
+@scripts = {
+ <script src="@{controllers.routes.Assets.versioned("javascripts/back-link.js")}" @{CSPNonce.attr}></script>
 }
+
+@beforeContentBlock = {
+ <div class="govuk-!-display-none-print">
+  @govukPhaseBanner(PhaseBanner(
+   tag = Some(Tag(
+    content = Text(Messages.ServicePhase.beta.show)
+   )),
+   content = HtmlContent(Messages.ServicePhase.bannerText("#").show)
+  ))
+
+  @hmrcLanguageSelectHelper()
+
+  @if(showBackLink) {
+   @govukBackLink(BackLink(href = "#", classes = "js-visible", content = Text(Messages.back.show)))
+  }
+
+ </div>
+}
+
+@content = {
+ <div class="govuk-!-margin-bottom-6">@contentBlock</div>
+
+ <div class="govuk-!-display-none-print">@hmrcReportTechnicalIssueHelper()</div>
+}
+
+@serviceName = @{ Messages.`Check or change your Direct Debit email address`.show }
+
+@serviceNameAndTitle = @{ s"$pageTitle - $serviceName" }
+
+@govTitle = @{serviceNameAndTitle + " - GOV.UK"}
+@documentTitle = @{if(hasErrors) { s"${Messages.error.show} $govTitle" } else { govTitle }}
+
+@header = @{
+ hmrcStandardHeader(
+  serviceName =  Some(serviceName),
+  signOutUrl = Some("#")
+ )
+}
+
+@govukLayout(
+ pageTitle = Some(documentTitle),
+ headBlock = Some(hmrcHead(headBlock = None, nonce = CSPNonce.get)),
+ headerBlock = Some(header),
+ scriptsBlock = Some(hmrcScripts(scriptsBlock = Some(scripts), nonce = CSPNonce.get)),
+ beforeContentBlock = Some(beforeContentBlock),
+ footerBlock = Some(hmrcStandardFooter())
+)(content)
