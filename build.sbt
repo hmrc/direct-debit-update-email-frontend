@@ -33,6 +33,7 @@ lazy val microservice = Project("direct-debit-update-email-frontend", file("."))
     scalaVersion        := "2.13.10",
     PlayKeys.playDefaultPort := 10801,
     libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
+    libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always,
     // https://www.scala-lang.org/2021/01/12/configuring-and-suppressing-warnings.html
     // suppress warnings in generated routes files
     scalacOptions += "-Wconf:src=routes/.*:s",

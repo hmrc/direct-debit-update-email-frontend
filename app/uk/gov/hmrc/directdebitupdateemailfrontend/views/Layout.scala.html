@@ -35,13 +35,19 @@
         hmrcReportTechnicalIssueHelper: HmrcReportTechnicalIssueHelper,
         requestSupport: RequestSupport
 )
-@(pageTitle: String, hasErrors: Boolean = false, showBackLink: Boolean = true)(contentBlock: Html)(implicit request: Request[_])
+@(pageTitle: String,
+        hasErrors: Boolean = false,
+        showBackLink: Boolean = true,
+        backLinkUrlOverride: Option[String] = None
+)(contentBlock: Html)(implicit request: Request[_])
 
 
 @import requestSupport._
 
 @scripts = {
- <script src="@{controllers.routes.Assets.versioned("javascripts/back-link.js")}" @{CSPNonce.attr}></script>
+  @if(backLinkUrlOverride.isEmpty) {
+   <script src="@{controllers.routes.Assets.versioned("javascripts/back-link.js")}" @{CSPNonce.attr}></script>
+  }
 }
 
 @beforeContentBlock = {
@@ -55,8 +61,12 @@
 
   @hmrcLanguageSelectHelper()
 
-  @if(showBackLink) {
-   @govukBackLink(BackLink(href = "#", classes = "js-visible", content = Text(Messages.back.show)))
+  @{
+   if(showBackLink) {
+     backLinkUrlOverride.fold(
+      govukBackLink(BackLink(href = "#", classes = "js-visible", content = Text(Messages.back.show)))
+     )(url => govukBackLink(BackLink(href = url, content = Text(Messages.back.show))))
+   }
   }
 
  </div>
