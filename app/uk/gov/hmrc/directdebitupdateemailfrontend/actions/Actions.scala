@@ -14,20 +14,25 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.directdebitupdateemailfrontend.config
+package uk.gov.hmrc.directdebitupdateemailfrontend.actions
+
+import play.api.mvc._
 
 import javax.inject.{Inject, Singleton}
-import play.api.Configuration
 
 @Singleton
-class AppConfig @Inject() (config: Configuration) {
+class Actions @Inject() (
+    actionBuilder:              DefaultActionBuilder,
+    authenticatedActionRefiner: AuthenticatedActionRefiner,
+    getJourneyActionRefiner:    GetJourneyActionRefiner
+) {
 
-  val welshLanguageSupportEnabled: Boolean = config.getOptional[Boolean]("features.welsh-language-support").getOrElse(false)
+  val default: ActionBuilder[Request, AnyContent] = actionBuilder
 
-  object BaseUrl {
-    val platformHost: Option[String] = config.getOptional[String]("platform.frontend.host")
-    val ddUpdateEmailFrontendLocal: String = platformHost.getOrElse(config.get[String]("baseUrl.direct-debit-update-email-frontend-local"))
-    val gg: String = config.get[String]("baseUrl.gg")
-  }
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val authenticatedJourneyAction: ActionBuilder[AuthenticatedJourneyRequest, AnyContent] =
+    actionBuilder
+      .andThen(authenticatedActionRefiner)
+      .andThen(getJourneyActionRefiner)
 
 }

@@ -163,7 +163,7 @@
    classes = "govuk-label--m",
   ),
  errorMessage = form.error("email").map(e => ErrorMessage(content = Text(e.message) )),
- value = form("email").value.orElse(Some("email@directdebits.com"))
+ value = form("email").value.orElse(Some("bounced@email.com"))
 ))
 }
 

@@ -1,4 +1,4 @@
-@*
+/*
  * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,22 +12,16 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *@
+ */
 
-@import play.api.mvc.Request
-@import uk.gov.hmrc.directdebitupdateemailfrontend.testOnly.controllers.routes
-@import uk.gov.hmrc.directdebitupdateemailfrontend.views.html.Layout
+package uk.gov.hmrc.directdebitupdateemailfrontend
 
-@this(layout: Layout)
+import play.api.mvc.Result
 
-@()(implicit request: Request[_])
+import scala.concurrent.Future
 
-@title = @{"I am a back page"}
+package object controllers {
 
-@layout(title, showBackLink = false){
-
- <h1 class="govuk-heading-xl">@title</h1>
-
- <p class="govuk-body">Go back to the <a class="govuk-link" href="@{routes.StartJourneyController.startJourney.url}">start page</a>.</p>
+  implicit def toFuture[A](r: Result): Future[Result] = Future.successful(r)
 
 }

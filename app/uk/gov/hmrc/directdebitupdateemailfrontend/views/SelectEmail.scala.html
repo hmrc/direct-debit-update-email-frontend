@@ -1,0 +1,124 @@
+@*
+ * Copyright 2023 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import uk.gov.hmrc.directdebitupdateemailfrontend.messages.Messages
+@import uk.gov.hmrc.directdebitupdateemailfrontend.utils.RequestSupport
+@import play.api.mvc.Request
+@import play.twirl.api.Html
+@import play.api.data.Form
+@import ddUpdateEmail.models.{BackUrl, Email, TaxRegime}
+@import uk.gov.hmrc.govukfrontend.views.html.components._
+@import uk.gov.hmrc.directdebitupdateemailfrontend.controllers.routes
+@import uk.gov.hmrc.directdebitupdateemailfrontend.controllers.EmailController.ChooseEmailForm
+
+@this(
+layout: uk.gov.hmrc.directdebitupdateemailfrontend.views.html.Layout,
+govukButton: GovukButton,
+govukRadios: GovukRadios,
+govukInput: GovukInput,
+formWithCSRF: FormWithCSRF,
+govukErrorSummary: GovukErrorSummary,
+requestSupport: RequestSupport
+)
+
+@(
+        taxRegime: TaxRegime,
+        bouncedEmail: Email,
+        backUrl: BackUrl,
+        form: Form[ChooseEmailForm]
+)(implicit request: Request[_])
+
+@import requestSupport._
+
+@key = @{"selectAnEmailToUseRadio"}
+
+@newEmailKey = @{"newEmailInput"}
+
+@title = @{Messages.SelectEmail.`Check or change you email address`.show}
+
+@conditionalHtml = @{
+    govukInput(Input(
+        id = newEmailKey,
+        name = newEmailKey,
+        inputType = "email",
+        classes = "govuk-input--width-30",
+        hint = Some(Hint(content = Text(Messages.SelectEmail.`For example, myname@sample.com`.show))),
+        spellcheck = Some(false),
+        errorMessage = form.error(newEmailKey).map(e => ErrorMessage.errorMessageWithDefaultStringsTranslated(
+            content = Text(Messages.SelectEmail.getError(s"${e.key}.${e.message}").show)
+        )),
+        value = form(newEmailKey).value
+    ))
+}
+
+@layout(pageTitle = title, hasErrors = form.hasErrors, backLinkUrlOverride = Some(backUrl.value)) {
+    @if(form.errors.nonEmpty) {
+        @govukErrorSummary(
+            ErrorSummary(errorList = form.errors.map(e =>
+                ErrorLink(
+                    href = Some(s"#${e.key}"),
+                    content = Text(Messages.SelectEmail.getError(s"${e.key}.${e.message}").show)
+                )
+            ),
+                title = Text(Messages.`There is a problem`.show))
+        )
+    }
+
+  <h1 class="govuk-heading-l">@title</h1>
+
+  <p class="govuk-body">@{Messages.SelectEmail.`We cannot contact you`(taxRegime, bouncedEmail).show}</p>
+  <p class="govuk-body">@{Messages.SelectEmail.`The reason for this could be:`.show}</p>
+  <ul class="govuk-list govuk-list--bullet">
+      <li>@{Messages.SelectEmail.`Your email inbox is full:`.show}</li>
+      <li>@{Messages.SelectEmail.`Your email address is not valid or it is spelt incorrectly`.show}</li>
+      <li>@{Messages.SelectEmail.`Emails from HMRC have been marked as spam`.show}</li>
+  </ul>
+
+    @formWithCSRF(action = routes.EmailController.selectEmailSubmit) {
+        @govukRadios(
+            Radios(
+            fieldset = Some(Fieldset(
+                legend = Some(Legend(
+                    content = Text(Messages.SelectEmail.`Which email address do you want to use?`.show),
+                    classes = "govuk-fieldset__legend govuk-fieldset__legend--m",
+                    isPageHeading = false
+                ))
+            )),
+            idPrefix = Some(key),
+            name = key,
+            items = Seq(
+                RadioItem(
+                    content = Text(Messages.SelectEmail.`Use a different email address`.show),
+                    value = Some("new"),
+                    conditionalHtml = Some(conditionalHtml),
+                    checked = form.value.exists(_.differentEmail.isDefined) || form.error(newEmailKey).isDefined,
+                ),
+                RadioItem(
+                    content = Text(Messages.SelectEmail.`Test ... with a verification email`(bouncedEmail).show),
+                    value = Some(bouncedEmail.value.decryptedValue),
+                    checked = form.value.exists(_.differentEmail.isEmpty),
+                ),
+            ),
+            errorMessage = form.error(key).map(e =>
+                ErrorMessage.errorMessageWithDefaultStringsTranslated(
+                    content = Text(Messages.SelectEmail.getError(s"${e.key}.${e.message}").show)
+                )
+            )
+        ))
+        @govukButton(Button(content = Text(Messages.continue.show), attributes = Map("id" -> "continue")))
+    }
+
+}

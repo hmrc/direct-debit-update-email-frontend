@@ -5,3 +5,4 @@ GET        /assets/*file                        controllers.Assets.versioned(pat
 
 
 GET        /check-or-change-email-address       uk.gov.hmrc.directdebitupdateemailfrontend.controllers.EmailController.selectEmail
+POST       /check-or-change-email-address       uk.gov.hmrc.directdebitupdateemailfrontend.controllers.EmailController.selectEmailSubmit
