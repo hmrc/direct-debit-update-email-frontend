@@ -70,7 +70,7 @@ class AuthenticatedActionRefiner @Inject() (
     Redirect(
       appConfig.BaseUrl.gg,
       Map(
-        "continue" -> Seq(appConfig.BaseUrl.ddUpdateEmailFrontendLocal + request.uri),
+        "continue" -> Seq(appConfig.BaseUrl.ddUpdateEmailFrontend + request.uri),
         "origin" -> Seq("direct-debit-update-email-frontend")
       )
     )

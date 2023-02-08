@@ -51,6 +51,7 @@ class ItSpec
   protected lazy val configMap: Map[String, Any] = Map[String, Any](
     "microservice.services.auth.port" -> WireMockSupport.port,
     "microservice.services.direct-debit-update-email-backend.port" -> WireMockSupport.port,
+    "microservice.services.payments-email-verification.port" -> WireMockSupport.port,
     "auditing.consumer.baseUri.port" -> WireMockSupport.port,
     "auditing.enabled" -> false,
     "auditing.traceRequests" -> false

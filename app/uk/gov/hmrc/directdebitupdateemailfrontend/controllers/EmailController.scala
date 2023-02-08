@@ -19,9 +19,11 @@ package uk.gov.hmrc.directdebitupdateemailfrontend.controllers
 import cats.syntax.eq._
 import com.google.inject.{Inject, Singleton}
 import ddUpdateEmail.connectors.JourneyConnector
-import ddUpdateEmail.crypto.CryptoFormat.OperationalCryptoFormat
 import ddUpdateEmail.models.Email
 import ddUpdateEmail.models.journey.Journey
+import ddUpdateEmail.utils.Errors
+import paymentsEmailVerification.models.EmailVerificationState.{AlreadyVerified, TooManyDifferentEmailAddresses, TooManyPasscodeAttempts, TooManyPasscodeJourneysStarted}
+import paymentsEmailVerification.models.api.StartEmailVerificationJourneyResponse
 import play.api.data.{Form, Mapping}
 import play.api.data.Forms.{mapping, nonEmptyText}
 import play.api.data.validation.{Constraint, Invalid, Valid}
@@ -29,6 +31,7 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.crypto.Sensitive.SensitiveString
 import uk.gov.hmrc.directdebitupdateemailfrontend.actions.Actions
 import uk.gov.hmrc.directdebitupdateemailfrontend.controllers.EmailController.ChooseEmailForm
+import uk.gov.hmrc.directdebitupdateemailfrontend.services.EmailVerificationService
 import uk.gov.hmrc.emailaddress.EmailAddress
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import uk.gov.hmrc.directdebitupdateemailfrontend.views.html
@@ -39,11 +42,12 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 class EmailController @Inject() (
-    actions:          Actions,
-    selectEmailPage:  html.SelectEmail,
-    journeyConnector: JourneyConnector,
-    mcc:              MessagesControllerComponents
-)(implicit ec: ExecutionContext, cryptoFormat: OperationalCryptoFormat) extends FrontendController(mcc) {
+    actions:                  Actions,
+    selectEmailPage:          html.SelectEmail,
+    journeyConnector:         JourneyConnector,
+    emailVerificationService: EmailVerificationService,
+    mcc:                      MessagesControllerComponents
+)(implicit ec: ExecutionContext) extends FrontendController(mcc) {
 
   val selectEmail: Action[AnyContent] = actions.authenticatedJourneyAction { implicit request =>
     val form = existingSelectedEmail(request.journey).fold(
@@ -76,10 +80,36 @@ class EmailController @Inject() (
           ),
         { formData =>
           val selectedEmail = formData.differentEmail.map(e => Email(SensitiveString(e))).getOrElse(request.journey.bouncedEmail)
-          journeyConnector.updateSelectedEmail(request.journeyId, selectedEmail).map(updatedJourney =>
-            Ok(s"updated email stored. Updated journey is ${updatedJourney.json.toString}"))
+          journeyConnector.updateSelectedEmail(request.journeyId, selectedEmail).map(_ =>
+            Redirect(routes.EmailController.requestVerification))
         }
       )
+  }
+
+  val requestVerification: Action[AnyContent] = actions.authenticatedJourneyAction.async{ implicit request =>
+    request.journey match {
+      case j: Journey.BeforeSelectedEmail =>
+        Errors.throwServerErrorException(
+          s"Required email address to be selected but got journey in stage ${j.stage.toString}: journeyId = ${j._id.value}"
+        )
+
+      case j: Journey.AfterSelectedEmail =>
+        emailVerificationService.startEmailVerificationJourney(j.selectedEmail).map {
+          case StartEmailVerificationJourneyResponse.Success(redirectUrl) =>
+            Redirect(redirectUrl)
+          case StartEmailVerificationJourneyResponse.Error(AlreadyVerified) =>
+            Redirect(routes.EmailVerificationResultController.emailConfirmed)
+
+          case StartEmailVerificationJourneyResponse.Error(TooManyPasscodeAttempts) =>
+            Redirect(routes.EmailVerificationResultController.tooManyPasscodeAttempts)
+
+          case StartEmailVerificationJourneyResponse.Error(TooManyPasscodeJourneysStarted) =>
+            Redirect(routes.EmailVerificationResultController.tooManyPasscodeJourneysStarted)
+
+          case StartEmailVerificationJourneyResponse.Error(TooManyDifferentEmailAddresses) =>
+            Redirect(routes.EmailVerificationResultController.tooManyDifferentEmailAddresses)
+        }
+    }
   }
 
 }

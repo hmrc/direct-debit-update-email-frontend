@@ -18,11 +18,15 @@ package uk.gov.hmrc.directdebitupdateemailfrontend.controllers
 
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+import paymentsEmailVerification.models.EmailVerificationState.{AlreadyVerified, TooManyDifferentEmailAddresses, TooManyPasscodeAttempts, TooManyPasscodeJourneysStarted}
+import paymentsEmailVerification.models.api.StartEmailVerificationJourneyResponse
+import play.api.mvc.{Call, Cookie}
 import play.api.test.Helpers._
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.{ContentAssertions, ItSpec}
-import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.stubs.{AuthStub, DirectDebitUpdateEmailBackendStub}
+import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.stubs.{AuthStub, DirectDebitUpdateEmailBackendStub, EmailVerificationStub}
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.testdata.TestData
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.DocumentUtils._
+import uk.gov.hmrc.http.UpstreamErrorResponse
 
 class EmailControllerSpec extends ItSpec {
 
@@ -187,37 +191,177 @@ class EmailControllerSpec extends ItSpec {
 
     }
 
-    "return an OK response when a new email address is chosen" in {
-      AuthStub.authorise()
-      DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.Started.journeyJson())
-      DirectDebitUpdateEmailBackendStub.updateSelectedEmail(TestData.journeyId, TestData.Journeys.SelectedEmail.journeyJson())
+    "redirect to request-verification when" - {
 
-      val request = TestData.fakeRequestWithAuthorization.withMethod("POST").withFormUrlEncodedBody(
-        "selectAnEmailToUseRadio" -> "new",
-        "newEmailInput" -> TestData.selectedEmail.value.decryptedValue
-      )
-      val result = controller.selectEmailSubmit(request)
-      status(result) shouldBe OK
+      "a new email address is chosen" in {
+        AuthStub.authorise()
+        DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.Started.journeyJson())
+        DirectDebitUpdateEmailBackendStub.updateSelectedEmail(TestData.journeyId, TestData.Journeys.SelectedEmail.journeyJson())
 
-      DirectDebitUpdateEmailBackendStub.verifyUpdateSelectedEmail(TestData.journeyId, TestData.selectedEmail)
+        val request = TestData.fakeRequestWithAuthorization.withMethod("POST").withFormUrlEncodedBody(
+          "selectAnEmailToUseRadio" -> "new",
+          "newEmailInput" -> TestData.selectedEmail.value.decryptedValue
+        )
+        val result = controller.selectEmailSubmit(request)
+        status(result) shouldBe SEE_OTHER
+        redirectLocation(result) shouldBe Some(routes.EmailController.requestVerification.url)
+
+        DirectDebitUpdateEmailBackendStub.verifyUpdateSelectedEmail(TestData.journeyId, TestData.selectedEmail)
+      }
+
+      "the bounced email address is chosen" in {
+        AuthStub.authorise()
+        DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.Started.journeyJson())
+        DirectDebitUpdateEmailBackendStub.updateSelectedEmail(
+          TestData.journeyId,
+          TestData.Journeys.SelectedEmail.journeyJson(selectedEmail = TestData.bouncedEmail)
+        )
+
+        val request = TestData.fakeRequestWithAuthorization.withMethod("POST").withFormUrlEncodedBody(
+          "selectAnEmailToUseRadio" -> TestData.bouncedEmail.value.decryptedValue,
+          "newEmailInput" -> ""
+        )
+        val result = controller.selectEmailSubmit(request)
+        status(result) shouldBe SEE_OTHER
+        redirectLocation(result) shouldBe Some(routes.EmailController.requestVerification.url)
+
+        DirectDebitUpdateEmailBackendStub.verifyUpdateSelectedEmail(TestData.journeyId, TestData.bouncedEmail)
+      }
+
     }
 
-    "return an OK response when the bounced email address is chosen" in {
+  }
+
+  s"GET ${routes.EmailController.requestVerification.url}" - {
+
+    behave like authenticatedJourneyBehaviour(controller.requestVerification)
+
+      def testStartError(
+          error:            StartEmailVerificationJourneyResponse.Error,
+          expectedRedirect: Call
+      ): Unit = {
+        AuthStub.authorise()
+        DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.SelectedEmail.journeyJson())
+        EmailVerificationStub.requestEmailVerification(error)
+
+        val result = controller.requestVerification(TestData.fakeRequestWithAuthorization)
+        status(result) shouldBe SEE_OTHER
+        redirectLocation(result) shouldBe Some(expectedRedirect.url)
+        ()
+      }
+
+    "must return an error if an email address hasn't been selected yet" in {
       AuthStub.authorise()
       DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.Started.journeyJson())
-      DirectDebitUpdateEmailBackendStub.updateSelectedEmail(
-        TestData.journeyId,
-        TestData.Journeys.SelectedEmail.journeyJson(selectedEmail = TestData.bouncedEmail)
-      )
 
-      val request = TestData.fakeRequestWithAuthorization.withMethod("POST").withFormUrlEncodedBody(
-        "selectAnEmailToUseRadio" -> TestData.bouncedEmail.value.decryptedValue,
-        "newEmailInput" -> ""
-      )
-      val result = controller.selectEmailSubmit(request)
-      status(result) shouldBe OK
+      val error = intercept[UpstreamErrorResponse](await(controller.requestVerification(TestData.fakeRequestWithAuthorization)))
+      error.statusCode shouldBe INTERNAL_SERVER_ERROR
+    }
 
-      DirectDebitUpdateEmailBackendStub.verifyUpdateSelectedEmail(TestData.journeyId, TestData.bouncedEmail)
+    "must redirect to the given redirectUrl if the verification journey has successfully started" in {
+      val redirectUrl = "/redirect"
+
+      AuthStub.authorise()
+      DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.SelectedEmail.journeyJson())
+      EmailVerificationStub.requestEmailVerification(StartEmailVerificationJourneyResponse.Success(redirectUrl))
+
+      val result = controller.requestVerification(TestData.fakeRequestWithAuthorization)
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result) shouldBe Some(redirectUrl)
+
+      EmailVerificationStub.verifyRequestEmailVerification(
+        TestData.selectedEmail,
+        "http://localhost:12346/accessibility-statement/direct-debit-verify-email",
+        "Check or change your Direct Debit email address",
+        "en",
+        "http://localhost:10801"
+      )
+    }
+
+    "pass in Welsh parameters to email verification if the user is navigating the service in Welsh" in {
+      val redirectUrl = "/redirect"
+
+      AuthStub.authorise()
+      DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.SelectedEmail.journeyJson())
+      EmailVerificationStub.requestEmailVerification(StartEmailVerificationJourneyResponse.Success(redirectUrl))
+
+      val result = controller.requestVerification(
+        TestData.fakeRequestWithAuthorization.withCookies(Cookie("PLAY_LANG", "cy"))
+      )
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result) shouldBe Some(redirectUrl)
+
+      EmailVerificationStub.verifyRequestEmailVerification(
+        TestData.selectedEmail,
+        "http://localhost:12346/accessibility-statement/direct-debit-verify-email",
+        "Gwirio neu newid eich cyfeiriad e-bost ar gyfer Debyd Uniongyrchol",
+        "cy",
+        "http://localhost:10801"
+      )
+    }
+
+    "must redirect to the email confirmed page if the email has already been verified" in {
+      testStartError(
+        StartEmailVerificationJourneyResponse.Error(AlreadyVerified),
+        routes.EmailVerificationResultController.emailConfirmed
+      )
+    }
+
+    "must redirect to the too many passcode attempts page if the user has made too many passcode attempts" in {
+      testStartError(
+        StartEmailVerificationJourneyResponse.Error(TooManyPasscodeAttempts),
+        routes.EmailVerificationResultController.tooManyPasscodeAttempts
+      )
+    }
+
+    "must redirect to the too many passcode journeys started page if the user has started too many " +
+      "passcode journeys" in {
+        testStartError(
+          StartEmailVerificationJourneyResponse.Error(TooManyPasscodeJourneysStarted),
+          routes.EmailVerificationResultController.tooManyPasscodeJourneysStarted
+        )
+      }
+
+    "must redirect to the too many different email addresses page if the user has tried to verify too " +
+      "many email addresses" in {
+        testStartError(
+          StartEmailVerificationJourneyResponse.Error(TooManyDifferentEmailAddresses),
+          routes.EmailVerificationResultController.tooManyDifferentEmailAddresses
+        )
+      }
+
+  }
+
+}
+
+class EmailNotLocalControllerSpec extends ItSpec {
+
+  override lazy val configOverrides: Map[String, Any] = Map(
+    "platform.frontend.host" -> "https://platform-host"
+  )
+
+  lazy val controller = app.injector.instanceOf[EmailController]
+
+  s"GET ${routes.EmailController.requestVerification.url}" - {
+
+    "must redirect to the given redirectUrl if the verification journey has successfully started" in {
+      val redirectUrl = "/redirect"
+
+      AuthStub.authorise()
+      DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.SelectedEmail.journeyJson())
+      EmailVerificationStub.requestEmailVerification(StartEmailVerificationJourneyResponse.Success(redirectUrl))
+
+      val result = controller.requestVerification(TestData.fakeRequestWithAuthorization)
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result) shouldBe Some(redirectUrl)
+
+      EmailVerificationStub.verifyRequestEmailVerification(
+        TestData.selectedEmail,
+        "/accessibility-statement/direct-debit-verify-email",
+        "Check or change your Direct Debit email address",
+        "en",
+        ""
+      )
     }
 
   }

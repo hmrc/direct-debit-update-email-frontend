@@ -21,7 +21,8 @@ import ddUpdateEmail.models.{Email, TaxRegime}
 object Messages {
 
   val `Check or change your Direct Debit email address`: Message = Message(
-    english = "Check or change your Direct Debit email address"
+    english = "Check or change your Direct Debit email address",
+    welsh   = "Gwirio neu newid eich cyfeiriad e-bost ar gyfer Debyd Uniongyrchol"
   )
 
   val continue: Message = Message(

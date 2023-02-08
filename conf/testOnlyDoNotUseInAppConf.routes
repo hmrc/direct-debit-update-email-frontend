@@ -12,8 +12,12 @@
 # Add all the application routes to the prod.routes file
 ->         /                          prod.Routes
 
-GET   /direct-debit-verify-email-address/test-only/start     uk.gov.hmrc.directdebitupdateemailfrontend.testOnly.controllers.StartJourneyController.startJourney
-POST  /direct-debit-verify-email-address/test-only/start     uk.gov.hmrc.directdebitupdateemailfrontend.testOnly.controllers.StartJourneyController.startJourneySubmit
+GET   /direct-debit-verify-email/test-only/start     uk.gov.hmrc.directdebitupdateemailfrontend.testOnly.controllers.StartJourneyController.startJourney
+POST  /direct-debit-verify-email/test-only/start     uk.gov.hmrc.directdebitupdateemailfrontend.testOnly.controllers.StartJourneyController.startJourneySubmit
 
-GET   /direct-debit-verify-email-address/test-only/back      uk.gov.hmrc.directdebitupdateemailfrontend.testOnly.controllers.StartJourneyController.dummyBack
-GET   /direct-debit-verify-email-address/test-only/return    uk.gov.hmrc.directdebitupdateemailfrontend.testOnly.controllers.StartJourneyController.dummyReturn
+GET   /direct-debit-verify-email/test-only/back      uk.gov.hmrc.directdebitupdateemailfrontend.testOnly.controllers.StartJourneyController.dummyBack
+GET   /direct-debit-verify-email/test-only/return    uk.gov.hmrc.directdebitupdateemailfrontend.testOnly.controllers.StartJourneyController.dummyReturn
+
+
+GET   /direct-debit-verify-email/test-only/email-verification-passcodes uk.gov.hmrc.directdebitupdateemailfrontend.testOnly.controllers.EmailController.emailVerificationPasscodes
+

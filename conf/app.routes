@@ -1,8 +1,16 @@
 # microservice specific routes
 
-->         /hmrc-frontend                       hmrcfrontend.Routes
-GET        /assets/*file                        controllers.Assets.versioned(path = "/public", file: Asset)
+->         /hmrc-frontend                                  hmrcfrontend.Routes
+GET        /assets/*file                                   controllers.Assets.versioned(path = "/public", file: Asset)
 
 
-GET        /check-or-change-email-address       uk.gov.hmrc.directdebitupdateemailfrontend.controllers.EmailController.selectEmail
-POST       /check-or-change-email-address       uk.gov.hmrc.directdebitupdateemailfrontend.controllers.EmailController.selectEmailSubmit
+GET        /check-or-change-email-address                  uk.gov.hmrc.directdebitupdateemailfrontend.controllers.EmailController.selectEmail
+POST       /check-or-change-email-address                  uk.gov.hmrc.directdebitupdateemailfrontend.controllers.EmailController.selectEmailSubmit
+
+GET        /email-verification                             uk.gov.hmrc.directdebitupdateemailfrontend.controllers.EmailController.requestVerification
+GET        /callback                                       uk.gov.hmrc.directdebitupdateemailfrontend.controllers.CallbackController.callback
+
+GET       /email-address-verified                          uk.gov.hmrc.directdebitupdateemailfrontend.controllers.EmailVerificationResultController.emailConfirmed
+GET       /email-verification-code-entered-too-many-times  uk.gov.hmrc.directdebitupdateemailfrontend.controllers.EmailVerificationResultController.tooManyPasscodeAttempts
+GET       /tried-to-verify-email-address-too-many-times    uk.gov.hmrc.directdebitupdateemailfrontend.controllers.EmailVerificationResultController.tooManyPasscodeJourneysStarted
+GET       /tried-to-verify-too-many-email-addresses        uk.gov.hmrc.directdebitupdateemailfrontend.controllers.EmailVerificationResultController.tooManyDifferentEmailAddresses

@@ -24,11 +24,9 @@ import play.api.libs.json.Format
 import scala.collection.immutable
 
 sealed trait Language extends EnumEntry with Product with Serializable {
-  val toPlayLang: Lang = Lang(code)
 
-  def code: String
+  val code: String
 
-  def label: String
 }
 
 object Language extends Enum[Language] {
@@ -46,15 +44,12 @@ object Language extends Enum[Language] {
   override def values: immutable.IndexedSeq[Language] = findValues
 
   case object English extends Language {
-    override def code: String = "en"
+    override val code: String = "en"
 
-    override def label: String = "English"
   }
 
   case object Welsh extends Language {
-    override def code: String = "cy"
-
-    override def label: String = "Cymraeg"
+    override val code: String = "cy"
   }
 }
 
