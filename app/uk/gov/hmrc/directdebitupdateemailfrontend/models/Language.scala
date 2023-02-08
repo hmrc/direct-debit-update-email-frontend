@@ -27,8 +27,6 @@ sealed trait Language extends EnumEntry with Product with Serializable {
 
   val code: String
 
-  val toPlayLang: Lang = Lang(code)
-
 }
 
 object Language extends Enum[Language] {
