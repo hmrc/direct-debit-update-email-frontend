@@ -19,11 +19,9 @@ package uk.gov.hmrc.directdebitupdateemailfrontend.controllers
 import cats.syntax.eq._
 import com.google.inject.{Inject, Singleton}
 import ddUpdateEmail.connectors.JourneyConnector
-import ddUpdateEmail.models.Email
+import ddUpdateEmail.models.{Email, EmailVerificationResult, StartEmailVerificationJourneyResult}
 import ddUpdateEmail.models.journey.Journey
 import ddUpdateEmail.utils.Errors
-import paymentsEmailVerification.models.EmailVerificationState.{AlreadyVerified, TooManyDifferentEmailAddresses, TooManyPasscodeAttempts, TooManyPasscodeJourneysStarted}
-import paymentsEmailVerification.models.api.StartEmailVerificationJourneyResponse
 import play.api.data.{Form, Mapping}
 import play.api.data.Forms.{mapping, nonEmptyText}
 import play.api.data.validation.{Constraint, Invalid, Valid}
@@ -38,7 +36,7 @@ import uk.gov.hmrc.directdebitupdateemailfrontend.views.html
 import uk.gov.voa.play.form.ConditionalMappings.mandatoryIfEqual
 
 import java.util.Locale
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class EmailController @Inject() (
@@ -53,10 +51,11 @@ class EmailController @Inject() (
     val form = existingSelectedEmail(request.journey).fold(
       EmailController.chooseEmailForm()
     ) { selectedEmail =>
-        val chooseEmailFormData = if (selectedEmail === request.journey.bouncedEmail)
-          ChooseEmailForm(request.journey.bouncedEmail.value.decryptedValue, None)
-        else
-          ChooseEmailForm(request.journey.bouncedEmail.value.decryptedValue, Some(selectedEmail.value.decryptedValue))
+        val chooseEmailFormData =
+          if (selectedEmail === request.journey.bouncedEmail)
+            ChooseEmailForm(request.journey.bouncedEmail.value.decryptedValue, None)
+          else
+            ChooseEmailForm(request.journey.bouncedEmail.value.decryptedValue, Some(selectedEmail.value.decryptedValue))
 
         EmailController.chooseEmailForm().fill(chooseEmailFormData)
       }
@@ -90,23 +89,41 @@ class EmailController @Inject() (
     request.journey match {
       case j: Journey.BeforeSelectedEmail =>
         Errors.throwServerErrorException(
-          s"Required email address to be selected but got journey in stage ${j.stage.toString}: journeyId = ${j._id.value}"
+          s"Required email address to be selected but got journey in state ${j.getClass.getSimpleName}: journeyId = ${j._id.value}"
         )
 
       case j: Journey.AfterSelectedEmail =>
-        emailVerificationService.startEmailVerificationJourney(j.selectedEmail).map {
-          case StartEmailVerificationJourneyResponse.Success(redirectUrl) =>
+        val result = for {
+          startResult <- emailVerificationService.startEmailVerificationJourney(j.selectedEmail)
+          updatedJourney <- journeyConnector.updateStartEmailVerificationJourneyResult(j._id, startResult)
+          _ <- {
+            // bring the journey forward to ObtainedEmailVerificationResult if already verified or locked
+            startResult match {
+              case StartEmailVerificationJourneyResult.AlreadyVerified =>
+                journeyConnector.updateEmailVerificationResult(j._id, EmailVerificationResult.Verified)
+
+              case StartEmailVerificationJourneyResult.TooManyPasscodeAttempts =>
+                journeyConnector.updateEmailVerificationResult(j._id, EmailVerificationResult.Locked)
+
+              case _ =>
+                Future.successful(updatedJourney)
+            }
+          }
+        } yield startResult
+
+        result.map {
+          case StartEmailVerificationJourneyResult.Ok(redirectUrl) =>
             Redirect(redirectUrl)
-          case StartEmailVerificationJourneyResponse.Error(AlreadyVerified) =>
+          case StartEmailVerificationJourneyResult.AlreadyVerified =>
             Redirect(routes.EmailVerificationResultController.emailConfirmed)
 
-          case StartEmailVerificationJourneyResponse.Error(TooManyPasscodeAttempts) =>
+          case StartEmailVerificationJourneyResult.TooManyPasscodeAttempts =>
             Redirect(routes.EmailVerificationResultController.tooManyPasscodeAttempts)
 
-          case StartEmailVerificationJourneyResponse.Error(TooManyPasscodeJourneysStarted) =>
+          case StartEmailVerificationJourneyResult.TooManyPasscodeJourneysStarted =>
             Redirect(routes.EmailVerificationResultController.tooManyPasscodeJourneysStarted)
 
-          case StartEmailVerificationJourneyResponse.Error(TooManyDifferentEmailAddresses) =>
+          case StartEmailVerificationJourneyResult.TooManyDifferentEmailAddresses =>
             Redirect(routes.EmailVerificationResultController.tooManyDifferentEmailAddresses)
         }
     }

@@ -17,10 +17,10 @@
 package uk.gov.hmrc.directdebitupdateemailfrontend.services
 
 import com.google.inject.{Inject, Singleton}
-import ddUpdateEmail.models.Email
+import ddUpdateEmail.models.{Email, EmailVerificationResult, StartEmailVerificationJourneyResult}
 import paymentsEmailVerification.connectors.PaymentsEmailVerificationConnector
 import paymentsEmailVerification.models.api.{GetEmailVerificationResultRequest, StartEmailVerificationJourneyRequest, StartEmailVerificationJourneyResponse}
-import paymentsEmailVerification.models.{EmailVerificationResult, Email => PaymentsEmailVerificationEmail}
+import paymentsEmailVerification.models.{EmailVerificationState, Email => PaymentsEmailVerificationEmail, EmailVerificationResult => PaymentsEmailVerificationResult}
 import play.api.mvc.Request
 import uk.gov.hmrc.directdebitupdateemailfrontend.config.AppConfig
 import uk.gov.hmrc.directdebitupdateemailfrontend.controllers.routes
@@ -29,7 +29,7 @@ import uk.gov.hmrc.directdebitupdateemailfrontend.utils.RequestSupport
 import uk.gov.hmrc.hmrcfrontend.config.ContactFrontendConfig
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class EmailVerificationService @Inject() (
@@ -37,11 +37,11 @@ class EmailVerificationService @Inject() (
     emailVerificationConnector: PaymentsEmailVerificationConnector,
     contactFrontendConfig:      ContactFrontendConfig,
     requestSupport:             RequestSupport
-) {
+)(implicit ec: ExecutionContext) {
 
   private val isLocal: Boolean = appConfig.BaseUrl.platformHost.isEmpty
 
-  def startEmailVerificationJourney(email: Email)(implicit r: Request[_], hc: HeaderCarrier): Future[StartEmailVerificationJourneyResponse] = {
+  def startEmailVerificationJourney(email: Email)(implicit r: Request[_], hc: HeaderCarrier): Future[StartEmailVerificationJourneyResult] = {
     val lang = requestSupport.language(r)
 
     val startRequest = StartEmailVerificationJourneyRequest(
@@ -56,11 +56,28 @@ class EmailVerificationService @Inject() (
       lang.code
     )
 
-    emailVerificationConnector.startEmailVerification(startRequest)
+    emailVerificationConnector.startEmailVerification(startRequest).map(toStartEmailVerificationJourneyResult)
   }
 
   def getVerificationResult(email: Email)(implicit hc: HeaderCarrier): Future[EmailVerificationResult] =
-    emailVerificationConnector.getEmailVerificationResult(GetEmailVerificationResultRequest(PaymentsEmailVerificationEmail(email.value.decryptedValue)))
+    emailVerificationConnector.getEmailVerificationResult(GetEmailVerificationResultRequest(PaymentsEmailVerificationEmail(email.value.decryptedValue))).map(toEmailVerificationResult)
+
+  private def toStartEmailVerificationJourneyResult(s: StartEmailVerificationJourneyResponse) = s match {
+    case StartEmailVerificationJourneyResponse.Success(redirectUrl) => StartEmailVerificationJourneyResult.Ok(redirectUrl)
+
+    case StartEmailVerificationJourneyResponse.Error(reason) =>
+      reason match {
+        case EmailVerificationState.AlreadyVerified                => StartEmailVerificationJourneyResult.AlreadyVerified
+        case EmailVerificationState.TooManyPasscodeAttempts        => StartEmailVerificationJourneyResult.TooManyPasscodeAttempts
+        case EmailVerificationState.TooManyPasscodeJourneysStarted => StartEmailVerificationJourneyResult.TooManyPasscodeJourneysStarted
+        case EmailVerificationState.TooManyDifferentEmailAddresses => StartEmailVerificationJourneyResult.TooManyDifferentEmailAddresses
+      }
+  }
+
+  private def toEmailVerificationResult(e: PaymentsEmailVerificationResult): EmailVerificationResult = e match {
+    case PaymentsEmailVerificationResult.Verified => EmailVerificationResult.Verified
+    case PaymentsEmailVerificationResult.Locked   => EmailVerificationResult.Locked
+  }
 
   private object RequestEmailVerification {
     private def ddUpdateEmailFrontendUrl(s: String): String = if (isLocal) s"${appConfig.BaseUrl.ddUpdateEmailFrontend}$s" else s

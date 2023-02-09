@@ -18,7 +18,7 @@ package uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.stubs
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
-import ddUpdateEmail.models.Email
+import ddUpdateEmail.models.{Email, EmailVerificationResult, StartEmailVerificationJourneyResult}
 import ddUpdateEmail.models.journey.JourneyId
 import play.api.http.Status._
 import uk.gov.hmrc.crypto.Encrypter
@@ -31,7 +31,9 @@ object DirectDebitUpdateEmailBackendStub {
 
   private val findByLatestSessionIdUrl: String = s"$baseUrl/find-latest-by-session-id"
 
-  private def updateSelectedEmailUrl(journeyId: JourneyId): String = s"$baseUrl/${journeyId.value}/update-selected-email"
+  private def updateSelectedEmailUrl(journeyId: JourneyId): String = s"$baseUrl/${journeyId.value}/selected-email"
+  private def updateStartVerificationJourneyResultUrl(journeyId: JourneyId): String = s"$baseUrl/${journeyId.value}/start-verification-journey-result"
+  private def updateEmailVerificationResultUrl(journeyId: JourneyId): String = s"$baseUrl/${journeyId.value}/email-verification-result"
 
   def findByLatestSessionId(jsonBody: Option[String]): StubMapping = stubFor(
     get(urlPathEqualTo(findByLatestSessionIdUrl))
@@ -56,10 +58,32 @@ object DirectDebitUpdateEmailBackendStub {
       .willReturn(aResponse().withStatus(OK).withBody(responseJsonBody))
   )
 
+  def updateStartVerificationJourneyResult(journeyId: JourneyId, responseJsonBody: String) = stubFor(
+    post(urlPathEqualTo(updateStartVerificationJourneyResultUrl(journeyId)))
+      .willReturn(aResponse().withStatus(OK).withBody(responseJsonBody))
+  )
+
+  def updateEmailVerificationResult(journeyId: JourneyId, responseJsonBody: String) = stubFor(
+    post(urlPathEqualTo(updateEmailVerificationResultUrl(journeyId)))
+      .willReturn(aResponse().withStatus(OK).withBody(responseJsonBody))
+  )
+
   def verifyUpdateSelectedEmail(journeyId: JourneyId, selectedEmail: Email)(implicit encrypter: Encrypter) =
     verify(
       postRequestedFor(urlPathEqualTo(updateSelectedEmailUrl(journeyId)))
         .withRequestBody(equalToJson(s""" "${TestData.encryptString(selectedEmail.value.decryptedValue)}" """))
+    )
+
+  def verifyUpdateStartVerificationJourneyResult(journeyId: JourneyId, startResult: StartEmailVerificationJourneyResult) =
+    verify(
+      postRequestedFor(urlPathEqualTo(updateStartVerificationJourneyResultUrl(journeyId)))
+        .withRequestBody(equalToJson(TestData.Journeys.startResultJsonValue(startResult)))
+    )
+
+  def verifyUpdateEmailVerificationResult(journeyId: JourneyId, result: EmailVerificationResult) =
+    verify(
+      postRequestedFor(urlPathEqualTo(updateEmailVerificationResultUrl(journeyId)))
+        .withRequestBody(equalToJson(s""" "${result.toString}" """))
     )
 
 }

@@ -17,28 +17,89 @@
 package uk.gov.hmrc.directdebitupdateemailfrontend.controllers
 
 import com.google.inject.{Inject, Singleton}
+import ddUpdateEmail.models.{EmailVerificationResult, StartEmailVerificationJourneyResult}
+import ddUpdateEmail.models.journey.Journey.{AfterEmailVerificationJourneyStarted, AfterEmailVerificationResult, BeforeEmailVerificationJourneyStarted, BeforeEmailVerificationResult}
+import ddUpdateEmail.utils.Errors
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import uk.gov.hmrc.directdebitupdateemailfrontend.actions.Actions
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 @Singleton
 class EmailVerificationResultController @Inject() (
-    mcc: MessagesControllerComponents
+    actions: Actions,
+    mcc:     MessagesControllerComponents
 ) extends FrontendController(mcc) {
 
-  val emailConfirmed: Action[AnyContent] = Action { _ =>
-    Ok("placeholder for email confirmed page")
+  val emailConfirmed: Action[AnyContent] = actions.authenticatedJourneyAction { implicit request =>
+    request.journey match {
+      case j: BeforeEmailVerificationResult =>
+        Errors.throwServerErrorException("Cannot show email confirmed page before email verification result has been obtained. " +
+          s"Journey is in state ${j.getClass.getSimpleName}")
+
+      case j: AfterEmailVerificationResult =>
+        j.emailVerificationResult match {
+          case EmailVerificationResult.Verified =>
+            Ok("placeholder for email confirmed page")
+
+          case EmailVerificationResult.Locked =>
+            Errors.throwServerErrorException("Cannot show email confirmed page when email verification result is 'Locked'")
+        }
+    }
   }
 
-  val tooManyPasscodeAttempts: Action[AnyContent] = Action { _ =>
-    Ok("placeholder for too many passcode attempts page")
+  val tooManyPasscodeAttempts: Action[AnyContent] = actions.authenticatedJourneyAction { implicit request =>
+    request.journey match {
+      case j: BeforeEmailVerificationResult =>
+        Errors.throwServerErrorException("Cannot show tooManyPasscodeAttempts page before email verification result has been obtained. " +
+          s"Journey is in state ${j.getClass.getSimpleName}")
+
+      case j: AfterEmailVerificationResult =>
+        j.emailVerificationResult match {
+          case EmailVerificationResult.Verified =>
+            Errors.throwServerErrorException("Cannot show tooManyPasscodeAttempts page when email verification result is 'Verified'")
+
+          case EmailVerificationResult.Locked =>
+            Ok("placeholder for too many passcodes page")
+        }
+    }
   }
 
-  val tooManyPasscodeJourneysStarted: Action[AnyContent] = Action { _ =>
-    Ok("placeholder for too many passcode journeys started page")
+  val tooManyPasscodeJourneysStarted: Action[AnyContent] = actions.authenticatedJourneyAction { implicit request =>
+    request.journey match {
+      case j: BeforeEmailVerificationJourneyStarted =>
+        Errors.throwServerErrorException("Cannot show tooManyPasscodeJourneysStarted page before email verification journey has been started. " +
+          s"Journey is in state ${j.getClass.getSimpleName}")
+
+      case j: AfterEmailVerificationJourneyStarted =>
+        j.startEmailVerificationJourneyResult match {
+          case StartEmailVerificationJourneyResult.TooManyPasscodeJourneysStarted =>
+            Ok("placeholder for too many passcode journeys started page")
+
+          case other =>
+            Errors.throwServerErrorException("Cannot show tooManyPasscodeJourneysStarted when start verification journey result " +
+              s"is ${other.getClass.getSimpleName}")
+        }
+
+    }
   }
 
-  val tooManyDifferentEmailAddresses: Action[AnyContent] = Action { _ =>
-    Ok("placeholder for too many different email addresses page")
+  val tooManyDifferentEmailAddresses: Action[AnyContent] = actions.authenticatedJourneyAction { implicit request =>
+    request.journey match {
+      case j: BeforeEmailVerificationJourneyStarted =>
+        Errors.throwServerErrorException("Cannot show tooManyDifferentEmailAddresses page before email verification journey has been started. " +
+          s"Journey is in state ${j.getClass.getSimpleName}")
+
+      case j: AfterEmailVerificationJourneyStarted =>
+        j.startEmailVerificationJourneyResult match {
+          case StartEmailVerificationJourneyResult.TooManyDifferentEmailAddresses =>
+            Ok("placeholder for too many different email addresses page")
+
+          case other =>
+            Errors.throwServerErrorException("Cannot show tooManyDifferentEmailAddresses when start verification journey result " +
+              s"is ${other.getClass.getSimpleName}")
+        }
+
+    }
   }
 
 }
