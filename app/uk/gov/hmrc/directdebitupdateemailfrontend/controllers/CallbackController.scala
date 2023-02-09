@@ -17,9 +17,10 @@
 package uk.gov.hmrc.directdebitupdateemailfrontend.controllers
 
 import com.google.inject.{Inject, Singleton}
+import ddUpdateEmail.connectors.JourneyConnector
+import ddUpdateEmail.models.EmailVerificationResult
 import ddUpdateEmail.models.journey.Journey
 import ddUpdateEmail.utils.Errors
-import paymentsEmailVerification.models.EmailVerificationResult
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.directdebitupdateemailfrontend.actions.Actions
 import uk.gov.hmrc.directdebitupdateemailfrontend.services.EmailVerificationService
@@ -30,19 +31,28 @@ import scala.concurrent.ExecutionContext
 @Singleton
 class CallbackController @Inject() (
     actions:                  Actions,
+    journeyConnector:         JourneyConnector,
     emailVerificationService: EmailVerificationService,
     mcc:                      MessagesControllerComponents
 )(implicit ec: ExecutionContext) extends FrontendController(mcc) {
 
   val callback: Action[AnyContent] = actions.authenticatedJourneyAction.async { implicit request =>
     request.journey match {
-      case j: Journey.BeforeSelectedEmail =>
+      case j: Journey.BeforeEmailVerificationJourneyStarted =>
         Errors.throwServerErrorException(
-          s"Required email address to be selected but got journey in stage ${j.stage.toString}: journeyId = ${j._id.value}"
+          s"Required email address to be selected but got journey in state ${j.getClass.getSimpleName}: journeyId = ${j._id.value}"
         )
 
-      case j: Journey.AfterSelectedEmail =>
-        emailVerificationService.getVerificationResult(j.selectedEmail).map {
+      case j: Journey.AfterEmailVerificationJourneyStarted =>
+        val selectedEmail = j match {
+          case j: Journey.AfterSelectedEmail => j.selectedEmail
+        }
+        val result = for {
+          verificationResult <- emailVerificationService.getVerificationResult(selectedEmail)
+          _ <- journeyConnector.updateEmailVerificationResult(j._id, verificationResult)
+        } yield verificationResult
+
+        result.map {
           case EmailVerificationResult.Verified => Redirect(routes.EmailVerificationResultController.emailConfirmed)
           case EmailVerificationResult.Locked   => Redirect(routes.EmailVerificationResultController.tooManyPasscodeAttempts)
         }

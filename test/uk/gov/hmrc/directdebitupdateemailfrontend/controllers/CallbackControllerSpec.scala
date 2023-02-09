@@ -16,7 +16,8 @@
 
 package uk.gov.hmrc.directdebitupdateemailfrontend.controllers
 
-import paymentsEmailVerification.models.EmailVerificationResult
+import ddUpdateEmail.models.EmailVerificationResult
+import paymentsEmailVerification.models.{EmailVerificationResult => PaymentsEmailVerificationResult}
 import play.api.test.Helpers._
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.ItSpec
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.stubs.{AuthStub, DirectDebitUpdateEmailBackendStub, EmailVerificationStub}
@@ -31,9 +32,9 @@ class CallbackControllerSpec extends ItSpec {
 
     behave like authenticatedJourneyBehaviour(controller.callback)
 
-    "must return an error if an email address hasn't been selected yet" in {
+    "must return an error if an email verification journey hasn't been started yet" in {
       AuthStub.authorise()
-      DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.Started.journeyJson())
+      DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.SelectedEmail.journeyJson())
 
       val error = intercept[UpstreamErrorResponse](await(controller.callback(TestData.fakeRequestWithAuthorization)))
       error.statusCode shouldBe INTERNAL_SERVER_ERROR
@@ -41,26 +42,33 @@ class CallbackControllerSpec extends ItSpec {
 
     "redirect to the email verified page if the email has been verified" in {
       AuthStub.authorise()
-      DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.SelectedEmail.journeyJson())
-      EmailVerificationStub.getVerificationStatus(EmailVerificationResult.Verified)
+      DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.EmailVerificationJourneyStarted.journeyJson())
+      EmailVerificationStub.getVerificationStatus(PaymentsEmailVerificationResult.Verified)
+      DirectDebitUpdateEmailBackendStub.updateEmailVerificationResult(TestData.journeyId, TestData.Journeys.ObtainedEmailVerificationResult.journeyJson())
 
       val result = controller.callback(TestData.fakeRequestWithAuthorization)
       status(result) shouldBe SEE_OTHER
       redirectLocation(result) shouldBe Some(routes.EmailVerificationResultController.emailConfirmed.url)
 
       EmailVerificationStub.verifyGetEmailVerificationResult(TestData.selectedEmail)
+      DirectDebitUpdateEmailBackendStub.verifyUpdateEmailVerificationResult(TestData.journeyId, EmailVerificationResult.Verified)
     }
 
     "redirect to the too many passcode attempts if the user has attempted too many passcodes" in {
       AuthStub.authorise()
-      DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.SelectedEmail.journeyJson())
-      EmailVerificationStub.getVerificationStatus(EmailVerificationResult.Locked)
+      DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.EmailVerificationJourneyStarted.journeyJson())
+      EmailVerificationStub.getVerificationStatus(PaymentsEmailVerificationResult.Locked)
+      DirectDebitUpdateEmailBackendStub.updateEmailVerificationResult(
+        TestData.journeyId,
+        TestData.Journeys.ObtainedEmailVerificationResult.journeyJson(emailVerificationResult = EmailVerificationResult.Locked)
+      )
 
       val result = controller.callback(TestData.fakeRequestWithAuthorization)
       status(result) shouldBe SEE_OTHER
       redirectLocation(result) shouldBe Some(routes.EmailVerificationResultController.tooManyPasscodeAttempts.url)
 
       EmailVerificationStub.verifyGetEmailVerificationResult(TestData.selectedEmail)
+      DirectDebitUpdateEmailBackendStub.verifyUpdateEmailVerificationResult(TestData.journeyId, EmailVerificationResult.Locked)
     }
 
   }

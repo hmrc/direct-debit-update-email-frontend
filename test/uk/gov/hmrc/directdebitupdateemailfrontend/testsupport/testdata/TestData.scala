@@ -16,8 +16,8 @@
 
 package uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.testdata
 
-import ddUpdateEmail.models.{BackUrl, DDINumber, Email, GGCredId, Origin, ReturnUrl, TaxRegime}
-import ddUpdateEmail.models.journey.{Journey, JourneyId, SessionId, SjRequest, Stage}
+import ddUpdateEmail.models.{BackUrl, DDINumber, Email, EmailVerificationResult, GGCredId, Origin, ReturnUrl, StartEmailVerificationJourneyResult, TaxRegime}
+import ddUpdateEmail.models.journey.{Journey, JourneyId, SessionId, SjRequest}
 import play.api.test.FakeRequest
 import uk.gov.hmrc.crypto.{Encrypter, PlainText}
 import uk.gov.hmrc.crypto.Sensitive.SensitiveString
@@ -49,6 +49,8 @@ object TestData {
 
   val selectedEmail: Email = Email(SensitiveString("selected@email.com"))
 
+  val emailVerificationRedirectUrl = "/redirect"
+
   val frozenInstantString: String = "2057-11-02T16:28:55.185Z"
 
   val frozenInstant: Instant = Instant.parse(frozenInstantString)
@@ -70,8 +72,7 @@ object TestData {
           sjRequest,
           sessionId,
           taxRegime,
-          bouncedEmail,
-          Stage.AfterStarted.Started
+          bouncedEmail
         )
 
       def journeyJson(origin: String = "BTA", taxRegime: String = "paye")(implicit encrypter: Encrypter): String =
@@ -81,9 +82,6 @@ object TestData {
           |    "bouncedEmail": "${encryptString(bouncedEmail.value.decryptedValue)}",
           |    "taxRegime": "$taxRegime",
           |    "sessionId": "${sessionId.value}",
-          |    "stage":{
-          |      "Started":{}
-          |    },
           |    "createdOn": "$frozenInstantString",
           |    "origin": "$origin",
           |    "sjRequest":{
@@ -114,7 +112,6 @@ object TestData {
           sessionId,
           taxRegime,
           bouncedEmail,
-          Stage.AfterSelectedEmail.SelectedEmail,
           selectedEmail
         )
 
@@ -129,9 +126,6 @@ object TestData {
            |    "bouncedEmail": "${encryptString(bouncedEmail.value.decryptedValue)}",
            |    "taxRegime": "$taxRegime",
            |    "sessionId": "${sessionId.value}",
-           |    "stage":{
-           |      "SelectedEmail":{}
-           |    },
            |    "createdOn": "$frozenInstantString",
            |    "origin": "$origin",
            |    "sjRequest":{
@@ -146,6 +140,124 @@ object TestData {
            |  }
            |}""".stripMargin
 
+    }
+
+    object EmailVerificationJourneyStarted {
+
+      def journey(
+          origin:                              Origin                              = Origin.BTA,
+          taxRegime:                           TaxRegime                           = TaxRegime.Paye,
+          selectedEmail:                       Email                               = selectedEmail,
+          startEmailVerificationJourneyResult: StartEmailVerificationJourneyResult = StartEmailVerificationJourneyResult.Ok(emailVerificationRedirectUrl)
+      ): Journey.EmailVerificationJourneyStarted =
+        Journey.EmailVerificationJourneyStarted(
+          journeyId,
+          origin,
+          frozenInstant,
+          sjRequest,
+          sessionId,
+          taxRegime,
+          bouncedEmail,
+          selectedEmail,
+          startEmailVerificationJourneyResult
+        )
+
+      def journeyJson(
+          origin:                              String                              = "BTA",
+          taxRegime:                           String                              = "paye",
+          selectedEmail:                       Email                               = selectedEmail,
+          startEmailVerificationJourneyResult: StartEmailVerificationJourneyResult = StartEmailVerificationJourneyResult.Ok(emailVerificationRedirectUrl)
+      )(implicit encrypter: Encrypter): String = {
+        s"""{
+           |  "EmailVerificationJourneyStarted": {
+           |    "_id": "${journeyId.value}",
+           |    "bouncedEmail": "${encryptString(bouncedEmail.value.decryptedValue)}",
+           |    "taxRegime": "$taxRegime",
+           |    "sessionId": "${sessionId.value}",
+           |    "createdOn": "$frozenInstantString",
+           |    "origin": "$origin",
+           |    "sjRequest":{
+           |      "ddiNumber": "${sjRequest.ddiNumber.value}",
+           |      "backUrl": "${sjRequest.backUrl.value}",
+           |      "returnUrl": "${sjRequest.returnUrl.value}"
+           |    },
+           |    "sessionId": "${sessionId.value}",
+           |    "createdAt":{"$$date": {"$$numberLong": "${frozenInstant.toEpochMilli.toString}" } },
+           |    "lastUpdated":{"$$date": {"$$numberLong": "${frozenInstant.toEpochMilli.toString}" } },
+           |    "selectedEmail": "${encryptString(selectedEmail.value.decryptedValue)}",
+           |    "startEmailVerificationJourneyResult": ${startResultJsonValue(startEmailVerificationJourneyResult)}
+           |  }
+           |}""".stripMargin
+      }
+
+    }
+
+    object ObtainedEmailVerificationResult {
+
+      def journey(
+          origin:                  Origin                  = Origin.BTA,
+          taxRegime:               TaxRegime               = TaxRegime.Paye,
+          selectedEmail:           Email                   = selectedEmail,
+          emailVerificationResult: EmailVerificationResult = EmailVerificationResult.Verified
+      ): Journey.ObtainedEmailVerificationResult =
+        Journey.ObtainedEmailVerificationResult(
+          journeyId,
+          origin,
+          frozenInstant,
+          sjRequest,
+          sessionId,
+          taxRegime,
+          bouncedEmail,
+          selectedEmail,
+          StartEmailVerificationJourneyResult.Ok(emailVerificationRedirectUrl),
+          emailVerificationResult
+        )
+
+      def journeyJson(
+          origin:                  String                  = "BTA",
+          taxRegime:               String                  = "paye",
+          selectedEmail:           Email                   = selectedEmail,
+          emailVerificationResult: EmailVerificationResult = EmailVerificationResult.Verified
+      )(implicit encrypter: Encrypter): String = {
+        s"""{
+           |  "ObtainedEmailVerificationResult": {
+           |    "_id": "${journeyId.value}",
+           |    "bouncedEmail": "${encryptString(bouncedEmail.value.decryptedValue)}",
+           |    "taxRegime": "$taxRegime",
+           |    "sessionId": "${sessionId.value}",
+           |    "createdOn": "$frozenInstantString",
+           |    "origin": "$origin",
+           |    "sjRequest":{
+           |      "ddiNumber": "${sjRequest.ddiNumber.value}",
+           |      "backUrl": "${sjRequest.backUrl.value}",
+           |      "returnUrl": "${sjRequest.returnUrl.value}"
+           |    },
+           |    "sessionId": "${sessionId.value}",
+           |    "createdAt":{"$$date": {"$$numberLong": "${frozenInstant.toEpochMilli.toString}" } },
+           |    "lastUpdated":{"$$date": {"$$numberLong": "${frozenInstant.toEpochMilli.toString}" } },
+           |    "selectedEmail": "${encryptString(selectedEmail.value.decryptedValue)}",
+           |    "startEmailVerificationJourneyResult": ${startResultJsonValue(StartEmailVerificationJourneyResult.Ok(emailVerificationRedirectUrl))},
+           |    "emailVerificationResult": "${emailVerificationResult.entryName}"
+           |  }
+           |}""".stripMargin
+      }
+
+    }
+
+    def startResultJsonValue(startEmailVerificationJourneyResult: StartEmailVerificationJourneyResult): String = startEmailVerificationJourneyResult match {
+      case StartEmailVerificationJourneyResult.Ok(redirect) =>
+        s"""{
+           |  "Ok": {
+           |    "redirectUrl": "${redirect}"
+           |  }
+           |}
+           |""".stripMargin
+
+      case other =>
+        s"""{
+           |  "${other.toString}": {}
+           |}
+           |""".stripMargin
     }
 
   }

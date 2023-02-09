@@ -16,11 +16,12 @@
 
 package uk.gov.hmrc.directdebitupdateemailfrontend.controllers
 
+import ddUpdateEmail.models.{EmailVerificationResult, StartEmailVerificationJourneyResult}
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import paymentsEmailVerification.models.EmailVerificationState.{AlreadyVerified, TooManyDifferentEmailAddresses, TooManyPasscodeAttempts, TooManyPasscodeJourneysStarted}
 import paymentsEmailVerification.models.api.StartEmailVerificationJourneyResponse
-import play.api.mvc.{Call, Cookie}
+import play.api.mvc.Cookie
 import play.api.test.Helpers._
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.{ContentAssertions, ItSpec}
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.stubs.{AuthStub, DirectDebitUpdateEmailBackendStub, EmailVerificationStub}
@@ -236,20 +237,6 @@ class EmailControllerSpec extends ItSpec {
 
     behave like authenticatedJourneyBehaviour(controller.requestVerification)
 
-      def testStartError(
-          error:            StartEmailVerificationJourneyResponse.Error,
-          expectedRedirect: Call
-      ): Unit = {
-        AuthStub.authorise()
-        DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.SelectedEmail.journeyJson())
-        EmailVerificationStub.requestEmailVerification(error)
-
-        val result = controller.requestVerification(TestData.fakeRequestWithAuthorization)
-        status(result) shouldBe SEE_OTHER
-        redirectLocation(result) shouldBe Some(expectedRedirect.url)
-        ()
-      }
-
     "must return an error if an email address hasn't been selected yet" in {
       AuthStub.authorise()
       DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.Started.journeyJson())
@@ -259,15 +246,17 @@ class EmailControllerSpec extends ItSpec {
     }
 
     "must redirect to the given redirectUrl if the verification journey has successfully started" in {
-      val redirectUrl = "/redirect"
-
       AuthStub.authorise()
       DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.SelectedEmail.journeyJson())
-      EmailVerificationStub.requestEmailVerification(StartEmailVerificationJourneyResponse.Success(redirectUrl))
+      EmailVerificationStub.requestEmailVerification(StartEmailVerificationJourneyResponse.Success(TestData.emailVerificationRedirectUrl))
+      DirectDebitUpdateEmailBackendStub.updateStartVerificationJourneyResult(
+        TestData.journeyId,
+        TestData.Journeys.EmailVerificationJourneyStarted.journeyJson()
+      )
 
       val result = controller.requestVerification(TestData.fakeRequestWithAuthorization)
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some(redirectUrl)
+      redirectLocation(result) shouldBe Some(TestData.emailVerificationRedirectUrl)
 
       EmailVerificationStub.verifyRequestEmailVerification(
         TestData.selectedEmail,
@@ -276,20 +265,26 @@ class EmailControllerSpec extends ItSpec {
         "en",
         "http://localhost:10801"
       )
+      DirectDebitUpdateEmailBackendStub.verifyUpdateStartVerificationJourneyResult(
+        TestData.journeyId,
+        StartEmailVerificationJourneyResult.Ok(TestData.emailVerificationRedirectUrl)
+      )
     }
 
     "pass in Welsh parameters to email verification if the user is navigating the service in Welsh" in {
-      val redirectUrl = "/redirect"
-
       AuthStub.authorise()
       DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.SelectedEmail.journeyJson())
-      EmailVerificationStub.requestEmailVerification(StartEmailVerificationJourneyResponse.Success(redirectUrl))
+      EmailVerificationStub.requestEmailVerification(StartEmailVerificationJourneyResponse.Success(TestData.emailVerificationRedirectUrl))
+      DirectDebitUpdateEmailBackendStub.updateStartVerificationJourneyResult(
+        TestData.journeyId,
+        TestData.Journeys.EmailVerificationJourneyStarted.journeyJson()
+      )
 
       val result = controller.requestVerification(
         TestData.fakeRequestWithAuthorization.withCookies(Cookie("PLAY_LANG", "cy"))
       )
       status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some(redirectUrl)
+      redirectLocation(result) shouldBe Some(TestData.emailVerificationRedirectUrl)
 
       EmailVerificationStub.verifyRequestEmailVerification(
         TestData.selectedEmail,
@@ -298,35 +293,103 @@ class EmailControllerSpec extends ItSpec {
         "cy",
         "http://localhost:10801"
       )
+      DirectDebitUpdateEmailBackendStub.verifyUpdateStartVerificationJourneyResult(
+        TestData.journeyId,
+        StartEmailVerificationJourneyResult.Ok(TestData.emailVerificationRedirectUrl)
+      )
     }
 
     "must redirect to the email confirmed page if the email has already been verified" in {
-      testStartError(
-        StartEmailVerificationJourneyResponse.Error(AlreadyVerified),
-        routes.EmailVerificationResultController.emailConfirmed
+      AuthStub.authorise()
+      DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.SelectedEmail.journeyJson())
+      EmailVerificationStub.requestEmailVerification(StartEmailVerificationJourneyResponse.Error(AlreadyVerified))
+      DirectDebitUpdateEmailBackendStub.updateStartVerificationJourneyResult(
+        TestData.journeyId,
+        TestData.Journeys.EmailVerificationJourneyStarted.journeyJson(startEmailVerificationJourneyResult = StartEmailVerificationJourneyResult.AlreadyVerified)
+      )
+      DirectDebitUpdateEmailBackendStub.updateEmailVerificationResult(
+        TestData.journeyId,
+        TestData.Journeys.ObtainedEmailVerificationResult.journeyJson()
+      )
+
+      val result = controller.requestVerification(TestData.fakeRequestWithAuthorization)
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result) shouldBe Some(routes.EmailVerificationResultController.emailConfirmed.url)
+
+      DirectDebitUpdateEmailBackendStub.verifyUpdateStartVerificationJourneyResult(
+        TestData.journeyId,
+        StartEmailVerificationJourneyResult.AlreadyVerified
+      )
+      DirectDebitUpdateEmailBackendStub.verifyUpdateEmailVerificationResult(
+        TestData.journeyId,
+        EmailVerificationResult.Verified
       )
     }
 
     "must redirect to the too many passcode attempts page if the user has made too many passcode attempts" in {
-      testStartError(
-        StartEmailVerificationJourneyResponse.Error(TooManyPasscodeAttempts),
-        routes.EmailVerificationResultController.tooManyPasscodeAttempts
+      AuthStub.authorise()
+      DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.SelectedEmail.journeyJson())
+      EmailVerificationStub.requestEmailVerification(StartEmailVerificationJourneyResponse.Error(TooManyPasscodeAttempts))
+      DirectDebitUpdateEmailBackendStub.updateStartVerificationJourneyResult(
+        TestData.journeyId,
+        TestData.Journeys.EmailVerificationJourneyStarted.journeyJson(startEmailVerificationJourneyResult = StartEmailVerificationJourneyResult.TooManyPasscodeAttempts)
+      )
+      DirectDebitUpdateEmailBackendStub.updateEmailVerificationResult(
+        TestData.journeyId,
+        TestData.Journeys.ObtainedEmailVerificationResult.journeyJson(emailVerificationResult = EmailVerificationResult.Locked)
+      )
+
+      val result = controller.requestVerification(TestData.fakeRequestWithAuthorization)
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result) shouldBe Some(routes.EmailVerificationResultController.tooManyPasscodeAttempts.url)
+
+      DirectDebitUpdateEmailBackendStub.verifyUpdateStartVerificationJourneyResult(
+        TestData.journeyId,
+        StartEmailVerificationJourneyResult.TooManyPasscodeAttempts
+      )
+      DirectDebitUpdateEmailBackendStub.verifyUpdateEmailVerificationResult(
+        TestData.journeyId,
+        EmailVerificationResult.Locked
       )
     }
 
     "must redirect to the too many passcode journeys started page if the user has started too many " +
       "passcode journeys" in {
-        testStartError(
-          StartEmailVerificationJourneyResponse.Error(TooManyPasscodeJourneysStarted),
-          routes.EmailVerificationResultController.tooManyPasscodeJourneysStarted
+        AuthStub.authorise()
+        DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.SelectedEmail.journeyJson())
+        EmailVerificationStub.requestEmailVerification(StartEmailVerificationJourneyResponse.Error(TooManyPasscodeJourneysStarted))
+        DirectDebitUpdateEmailBackendStub.updateStartVerificationJourneyResult(
+          TestData.journeyId,
+          TestData.Journeys.EmailVerificationJourneyStarted.journeyJson(startEmailVerificationJourneyResult = StartEmailVerificationJourneyResult.TooManyPasscodeJourneysStarted)
+        )
+
+        val result = controller.requestVerification(TestData.fakeRequestWithAuthorization)
+        status(result) shouldBe SEE_OTHER
+        redirectLocation(result) shouldBe Some(routes.EmailVerificationResultController.tooManyPasscodeJourneysStarted.url)
+
+        DirectDebitUpdateEmailBackendStub.verifyUpdateStartVerificationJourneyResult(
+          TestData.journeyId,
+          StartEmailVerificationJourneyResult.TooManyPasscodeJourneysStarted
         )
       }
 
     "must redirect to the too many different email addresses page if the user has tried to verify too " +
       "many email addresses" in {
-        testStartError(
-          StartEmailVerificationJourneyResponse.Error(TooManyDifferentEmailAddresses),
-          routes.EmailVerificationResultController.tooManyDifferentEmailAddresses
+        AuthStub.authorise()
+        DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.SelectedEmail.journeyJson())
+        EmailVerificationStub.requestEmailVerification(StartEmailVerificationJourneyResponse.Error(TooManyDifferentEmailAddresses))
+        DirectDebitUpdateEmailBackendStub.updateStartVerificationJourneyResult(
+          TestData.journeyId,
+          TestData.Journeys.EmailVerificationJourneyStarted.journeyJson(startEmailVerificationJourneyResult = StartEmailVerificationJourneyResult.TooManyDifferentEmailAddresses)
+        )
+
+        val result = controller.requestVerification(TestData.fakeRequestWithAuthorization)
+        status(result) shouldBe SEE_OTHER
+        redirectLocation(result) shouldBe Some(routes.EmailVerificationResultController.tooManyDifferentEmailAddresses.url)
+
+        DirectDebitUpdateEmailBackendStub.verifyUpdateStartVerificationJourneyResult(
+          TestData.journeyId,
+          StartEmailVerificationJourneyResult.TooManyDifferentEmailAddresses
         )
       }
 
@@ -350,6 +413,10 @@ class EmailNotLocalControllerSpec extends ItSpec {
       AuthStub.authorise()
       DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.SelectedEmail.journeyJson())
       EmailVerificationStub.requestEmailVerification(StartEmailVerificationJourneyResponse.Success(redirectUrl))
+      DirectDebitUpdateEmailBackendStub.updateStartVerificationJourneyResult(
+        TestData.journeyId,
+        TestData.Journeys.EmailVerificationJourneyStarted.journeyJson()
+      )
 
       val result = controller.requestVerification(TestData.fakeRequestWithAuthorization)
       status(result) shouldBe SEE_OTHER
@@ -361,6 +428,10 @@ class EmailNotLocalControllerSpec extends ItSpec {
         "Check or change your Direct Debit email address",
         "en",
         ""
+      )
+      DirectDebitUpdateEmailBackendStub.verifyUpdateStartVerificationJourneyResult(
+        TestData.journeyId,
+        StartEmailVerificationJourneyResult.Ok(TestData.emailVerificationRedirectUrl)
       )
     }
 
