@@ -29,7 +29,7 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.crypto.Sensitive.SensitiveString
 import uk.gov.hmrc.directdebitupdateemailfrontend.actions.Actions
 import uk.gov.hmrc.directdebitupdateemailfrontend.controllers.EmailController.ChooseEmailForm
-import uk.gov.hmrc.directdebitupdateemailfrontend.services.EmailVerificationService
+import uk.gov.hmrc.directdebitupdateemailfrontend.services.{DirectDebitBackendService, EmailVerificationService}
 import uk.gov.hmrc.emailaddress.EmailAddress
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import uk.gov.hmrc.directdebitupdateemailfrontend.views.html
@@ -40,11 +40,12 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class EmailController @Inject() (
-    actions:                  Actions,
-    selectEmailPage:          html.SelectEmail,
-    journeyConnector:         JourneyConnector,
-    emailVerificationService: EmailVerificationService,
-    mcc:                      MessagesControllerComponents
+    actions:                   Actions,
+    selectEmailPage:           html.SelectEmail,
+    journeyConnector:          JourneyConnector,
+    emailVerificationService:  EmailVerificationService,
+    directDebitBackendService: DirectDebitBackendService,
+    mcc:                       MessagesControllerComponents
 )(implicit ec: ExecutionContext) extends FrontendController(mcc) {
 
   val selectEmail: Action[AnyContent] = actions.authenticatedJourneyAction { implicit request =>
@@ -100,7 +101,8 @@ class EmailController @Inject() (
             // bring the journey forward to ObtainedEmailVerificationResult if already verified or locked
             startResult match {
               case StartEmailVerificationJourneyResult.AlreadyVerified =>
-                journeyConnector.updateEmailVerificationResult(j._id, EmailVerificationResult.Verified)
+                directDebitBackendService.updateEmailAndBouncedFlag(j.sjRequest.ddiNumber, j.selectedEmail, isBounced = false)
+                  .flatMap(_ => journeyConnector.updateEmailVerificationResult(j._id, EmailVerificationResult.Verified))
 
               case StartEmailVerificationJourneyResult.TooManyPasscodeAttempts =>
                 journeyConnector.updateEmailVerificationResult(j._id, EmailVerificationResult.Locked)

@@ -23,17 +23,18 @@ import ddUpdateEmail.models.journey.Journey
 import ddUpdateEmail.utils.Errors
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.directdebitupdateemailfrontend.actions.Actions
-import uk.gov.hmrc.directdebitupdateemailfrontend.services.EmailVerificationService
+import uk.gov.hmrc.directdebitupdateemailfrontend.services.{DirectDebitBackendService, EmailVerificationService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class CallbackController @Inject() (
-    actions:                  Actions,
-    journeyConnector:         JourneyConnector,
-    emailVerificationService: EmailVerificationService,
-    mcc:                      MessagesControllerComponents
+    actions:                   Actions,
+    journeyConnector:          JourneyConnector,
+    emailVerificationService:  EmailVerificationService,
+    directDebitBackendService: DirectDebitBackendService,
+    mcc:                       MessagesControllerComponents
 )(implicit ec: ExecutionContext) extends FrontendController(mcc) {
 
   val callback: Action[AnyContent] = actions.authenticatedJourneyAction.async { implicit request =>
@@ -49,6 +50,12 @@ class CallbackController @Inject() (
         }
         val result = for {
           verificationResult <- emailVerificationService.getVerificationResult(selectedEmail)
+          _ <- verificationResult match {
+            case EmailVerificationResult.Verified =>
+              directDebitBackendService.updateEmailAndBouncedFlag(j.sjRequest.ddiNumber, selectedEmail, isBounced = false)
+            case EmailVerificationResult.Locked =>
+              Future.successful(())
+          }
           _ <- journeyConnector.updateEmailVerificationResult(j._id, verificationResult)
         } yield verificationResult
 
