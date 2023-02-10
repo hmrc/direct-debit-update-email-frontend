@@ -17,8 +17,10 @@
 package uk.gov.hmrc.directdebitupdateemailfrontend.controllers
 
 import ddUpdateEmail.models.{EmailVerificationResult, StartEmailVerificationJourneyResult}
+import org.jsoup.Jsoup
 import play.api.test.Helpers._
-import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.ItSpec
+import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.DocumentUtils.DocumentOps
+import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.{ContentAssertions, ItSpec}
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.stubs.{AuthStub, DirectDebitUpdateEmailBackendStub}
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.testdata.TestData
 import uk.gov.hmrc.http.UpstreamErrorResponse
@@ -59,6 +61,26 @@ class EmailVerificationResultControllerSpec extends ItSpec {
 
       val result = controller.emailConfirmed(TestData.fakeRequestWithAuthorization)
       status(result) shouldBe OK
+
+      val doc = Jsoup.parse(contentAsString(result))
+
+      ContentAssertions.commonPageChecks(
+        doc,
+        "Email address verified",
+        None,
+        hasBackLink = false
+      )
+
+      val paragraphs = doc.selectList(".govuk-body")
+      paragraphs.size shouldBe 3
+
+      paragraphs(0).html() shouldBe s"We’ll use <strong>${TestData.selectedEmail.value.decryptedValue}</strong> to contact you about your Direct Debit."
+
+      val continueButton = doc.select(".govuk-button")
+      continueButton.attr("role") shouldBe "button"
+      continueButton.attr("href") shouldBe TestData.sjRequest.returnUrl.value
+      continueButton.text() shouldBe "Continue"
+
     }
 
   }

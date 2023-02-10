@@ -18,16 +18,18 @@ package uk.gov.hmrc.directdebitupdateemailfrontend.controllers
 
 import com.google.inject.{Inject, Singleton}
 import ddUpdateEmail.models.{EmailVerificationResult, StartEmailVerificationJourneyResult}
-import ddUpdateEmail.models.journey.Journey.{AfterEmailVerificationJourneyStarted, AfterEmailVerificationResult, BeforeEmailVerificationJourneyStarted, BeforeEmailVerificationResult}
+import ddUpdateEmail.models.journey.Journey.{AfterEmailVerificationJourneyStarted, AfterEmailVerificationResult, AfterSelectedEmail, BeforeEmailVerificationJourneyStarted, BeforeEmailVerificationResult}
 import ddUpdateEmail.utils.Errors
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.directdebitupdateemailfrontend.actions.Actions
+import uk.gov.hmrc.directdebitupdateemailfrontend.views.html
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 @Singleton
 class EmailVerificationResultController @Inject() (
-    actions: Actions,
-    mcc:     MessagesControllerComponents
+    actions:            Actions,
+    emailConfirmedPage: html.EmailConfirmed,
+    mcc:                MessagesControllerComponents
 ) extends FrontendController(mcc) {
 
   val emailConfirmed: Action[AnyContent] = actions.authenticatedJourneyAction { implicit request =>
@@ -39,7 +41,11 @@ class EmailVerificationResultController @Inject() (
       case j: AfterEmailVerificationResult =>
         j.emailVerificationResult match {
           case EmailVerificationResult.Verified =>
-            Ok("placeholder for email confirmed page")
+            val selectedEmail = j match {
+              case j1: AfterSelectedEmail => j1.selectedEmail
+            }
+
+            Ok(emailConfirmedPage(selectedEmail, request.journey.sjRequest.returnUrl))
 
           case EmailVerificationResult.Locked =>
             Errors.throwServerErrorException("Cannot show email confirmed page when email verification result is 'Locked'")
