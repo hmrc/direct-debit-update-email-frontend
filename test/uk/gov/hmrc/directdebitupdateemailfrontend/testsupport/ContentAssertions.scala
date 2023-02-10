@@ -70,7 +70,8 @@ object ContentAssertions extends RichMatchers {
       expectedSubmitUrl:   Option[String],
       hasFormError:        Boolean        = false,
       language:            Language       = Language.English,
-      backLinkOverrideUrl: Option[String] = None
+      backLinkOverrideUrl: Option[String] = None,
+      hasBackLink:         Boolean        = true
   ): Unit = {
     val titlePrefix = if (hasFormError) {
       language match {
@@ -91,15 +92,17 @@ object ContentAssertions extends RichMatchers {
     ContentAssertions.languageToggleExists(page, language)
 
     val backLink = page.select(".govuk-back-link")
-    backLinkOverrideUrl match {
-      case Some(url) =>
-        backLink.hasClass("js-visible") shouldBe false
-        backLink.attr("href") shouldBe url
+    if (hasBackLink) {
+      backLinkOverrideUrl match {
+        case Some(url) =>
+          backLink.hasClass("js-visible") shouldBe false
+          backLink.attr("href") shouldBe url
 
-      case None =>
-        backLink.hasClass("js-visible") shouldBe true
-        backLink.attr("href") shouldBe "#"
-    }
+        case None =>
+          backLink.hasClass("js-visible") shouldBe true
+          backLink.attr("href") shouldBe "#"
+      }
+    } else backLink.isEmpty shouldBe true
 
     if (hasFormError) {
       val expectedText = language match {

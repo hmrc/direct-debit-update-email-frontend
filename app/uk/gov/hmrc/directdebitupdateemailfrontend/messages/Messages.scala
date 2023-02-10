@@ -139,4 +139,19 @@ object Messages {
 
   }
 
+  object EmailConfirmed {
+
+    val `Email address verified`: Message = Message(
+      english = "Email address verified"
+    )
+
+    def `We'll use ... to contact you about your Direct debit`(email: Email): Message = Message(
+      english = s"We’ll use <strong>${email.value.decryptedValue}</strong> to contact you about your Direct Debit."
+    )
+
+    val `Your email address has not been changed in other government services`: Message = Message(
+      english = "Your email address has not been changed in other government services."
+    )
+
+  }
 }
