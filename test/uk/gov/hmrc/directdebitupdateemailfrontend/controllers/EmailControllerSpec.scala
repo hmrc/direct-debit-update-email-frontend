@@ -24,7 +24,7 @@ import paymentsEmailVerification.models.api.StartEmailVerificationJourneyRespons
 import play.api.mvc.Cookie
 import play.api.test.Helpers._
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.{ContentAssertions, ItSpec}
-import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.stubs.{AuthStub, DirectDebitUpdateEmailBackendStub, EmailVerificationStub}
+import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.stubs.{AuthStub, DirectDebitBackendStub, DirectDebitUpdateEmailBackendStub, EmailVerificationStub}
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.testdata.TestData
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.DocumentUtils._
 import uk.gov.hmrc.http.UpstreamErrorResponse
@@ -307,6 +307,7 @@ class EmailControllerSpec extends ItSpec {
         TestData.journeyId,
         TestData.Journeys.EmailVerificationJourneyStarted.journeyJson(startEmailVerificationJourneyResult = StartEmailVerificationJourneyResult.AlreadyVerified)
       )
+      DirectDebitBackendStub.updateEmailAndBouncedFlag(TestData.ddiNumber)
       DirectDebitUpdateEmailBackendStub.updateEmailVerificationResult(
         TestData.journeyId,
         TestData.Journeys.ObtainedEmailVerificationResult.journeyJson()
@@ -320,11 +321,43 @@ class EmailControllerSpec extends ItSpec {
         TestData.journeyId,
         StartEmailVerificationJourneyResult.AlreadyVerified
       )
+      DirectDebitBackendStub.verifyUpdateEmailAndBouncedFlag(
+        TestData.ddiNumber,
+        TestData.selectedEmail,
+        isBounced = false
+      )
       DirectDebitUpdateEmailBackendStub.verifyUpdateEmailVerificationResult(
         TestData.journeyId,
         EmailVerificationResult.Verified
       )
     }
+
+    "must return an error if the email address is already verified and there is an error updating the " +
+      "email and bounced status flag" in {
+        AuthStub.authorise()
+        DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.SelectedEmail.journeyJson())
+        EmailVerificationStub.requestEmailVerification(StartEmailVerificationJourneyResponse.Error(AlreadyVerified))
+        DirectDebitUpdateEmailBackendStub.updateStartVerificationJourneyResult(
+          TestData.journeyId,
+          TestData.Journeys.EmailVerificationJourneyStarted.journeyJson(startEmailVerificationJourneyResult = StartEmailVerificationJourneyResult.AlreadyVerified)
+        )
+        DirectDebitBackendStub.updateEmailAndBouncedFlag(TestData.ddiNumber, INTERNAL_SERVER_ERROR)
+
+        val error = intercept[UpstreamErrorResponse](
+          await(controller.requestVerification(TestData.fakeRequestWithAuthorization))
+        )
+        error.statusCode shouldBe INTERNAL_SERVER_ERROR
+
+        DirectDebitUpdateEmailBackendStub.verifyUpdateStartVerificationJourneyResult(
+          TestData.journeyId,
+          StartEmailVerificationJourneyResult.AlreadyVerified
+        )
+        DirectDebitBackendStub.verifyUpdateEmailAndBouncedFlag(
+          TestData.ddiNumber,
+          TestData.selectedEmail,
+          isBounced = false
+        )
+      }
 
     "must redirect to the too many passcode attempts page if the user has made too many passcode attempts" in {
       AuthStub.authorise()

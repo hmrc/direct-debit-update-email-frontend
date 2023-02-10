@@ -20,7 +20,7 @@ import ddUpdateEmail.models.EmailVerificationResult
 import paymentsEmailVerification.models.{EmailVerificationResult => PaymentsEmailVerificationResult}
 import play.api.test.Helpers._
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.ItSpec
-import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.stubs.{AuthStub, DirectDebitUpdateEmailBackendStub, EmailVerificationStub}
+import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.stubs.{AuthStub, DirectDebitBackendStub, DirectDebitUpdateEmailBackendStub, EmailVerificationStub}
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.testdata.TestData
 import uk.gov.hmrc.http.UpstreamErrorResponse
 
@@ -44,6 +44,7 @@ class CallbackControllerSpec extends ItSpec {
       AuthStub.authorise()
       DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.EmailVerificationJourneyStarted.journeyJson())
       EmailVerificationStub.getVerificationStatus(PaymentsEmailVerificationResult.Verified)
+      DirectDebitBackendStub.updateEmailAndBouncedFlag(TestData.ddiNumber)
       DirectDebitUpdateEmailBackendStub.updateEmailVerificationResult(TestData.journeyId, TestData.Journeys.ObtainedEmailVerificationResult.journeyJson())
 
       val result = controller.callback(TestData.fakeRequestWithAuthorization)
@@ -51,7 +52,31 @@ class CallbackControllerSpec extends ItSpec {
       redirectLocation(result) shouldBe Some(routes.EmailVerificationResultController.emailConfirmed.url)
 
       EmailVerificationStub.verifyGetEmailVerificationResult(TestData.selectedEmail)
+      DirectDebitBackendStub.verifyUpdateEmailAndBouncedFlag(
+        TestData.ddiNumber,
+        TestData.selectedEmail,
+        isBounced = false
+      )
       DirectDebitUpdateEmailBackendStub.verifyUpdateEmailVerificationResult(TestData.journeyId, EmailVerificationResult.Verified)
+    }
+
+    "return an error if the email has been verified but there is a problem updating direct-debit-backend" in {
+      AuthStub.authorise()
+      DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.EmailVerificationJourneyStarted.journeyJson())
+      EmailVerificationStub.getVerificationStatus(PaymentsEmailVerificationResult.Verified)
+      DirectDebitBackendStub.updateEmailAndBouncedFlag(TestData.ddiNumber, INTERNAL_SERVER_ERROR)
+
+      val error = intercept[UpstreamErrorResponse](
+        await(controller.callback(TestData.fakeRequestWithAuthorization))
+      )
+      error.statusCode shouldBe INTERNAL_SERVER_ERROR
+
+      EmailVerificationStub.verifyGetEmailVerificationResult(TestData.selectedEmail)
+      DirectDebitBackendStub.verifyUpdateEmailAndBouncedFlag(
+        TestData.ddiNumber,
+        TestData.selectedEmail,
+        isBounced = false
+      )
     }
 
     "redirect to the too many passcode attempts if the user has attempted too many passcodes" in {
