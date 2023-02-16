@@ -38,7 +38,7 @@ class EmailControllerSpec extends ItSpec {
       def checkPageContents(doc: Document): Unit = {
         ContentAssertions.commonPageChecks(
           doc,
-          "Check or change you email address",
+          "Check or change your email address",
           Some(routes.EmailController.selectEmailSubmit.url),
           backLinkOverrideUrl = Some(TestData.sjRequest.backUrl.value)
         )
@@ -140,7 +140,7 @@ class EmailControllerSpec extends ItSpec {
 
           ContentAssertions.commonPageChecks(
             doc,
-            "Check or change you email address",
+            "Check or change your email address",
             Some(routes.EmailController.selectEmailSubmit.url),
             backLinkOverrideUrl = Some(TestData.sjRequest.backUrl.value),
             hasFormError        = true

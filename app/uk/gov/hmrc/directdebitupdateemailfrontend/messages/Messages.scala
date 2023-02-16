@@ -60,8 +60,8 @@ object Messages {
 
   object SelectEmail {
 
-    val `Check or change you email address`: Message = Message(
-      english = "Check or change you email address"
+    val `Check or change your email address`: Message = Message(
+      english = "Check or change your email address"
     )
 
     def `We cannot contact you`(taxRegime: TaxRegime, bouncedEmail: Email): Message = {
