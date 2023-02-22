@@ -43,7 +43,8 @@ class SignOutControllerSpec extends ItSpec {
         doc,
         expectedH1        = "For your security, we signed you out",
         expectedSubmitUrl = None,
-        hasBackLink       = false
+        hasBackLink       = false,
+        hasSignOutLink    = false
       )
       val signInButton = doc.select(".govuk-body")
       signInButton.text() shouldBe "Sign in"

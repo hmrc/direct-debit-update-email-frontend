@@ -43,14 +43,13 @@
         pageTitle: String,
         hasErrors: Boolean = false,
         showBackLink: Boolean = true,
-        backLinkUrlOverride: Option[String] = None,
-        showSignOutOverride: Option[Boolean] = None
+        backLinkUrlOverride: Option[String] = None
 )(contentBlock: Html)(implicit request: Request[_])
 
 
 @import requestSupport._
 
-@showSignOut = @{ showSignOutOverride.getOrElse(requestSupport.isLoggedIn) }
+@showSignOut = @{ requestSupport.isLoggedIn }
 
 @head = {
   @if(showSignOut) {
@@ -108,7 +107,7 @@
 @header = @{
  hmrcStandardHeader(
   serviceName =  Some(serviceName),
-  signOutUrl = Some(appConfig.BaseUrl.signOutUrl)
+  signOutUrl = if(showSignOut) Some(routes.SignOutController.signOut.url) else None
  )
 }
 
