@@ -206,4 +206,20 @@ object Messages {
 
   }
 
+  object TooManyPasscodeJourneysStarted {
+
+    val `You have tried to verify an email address too many times`: Message = Message(
+      english = "You have tried to verify an email address too many times"
+    )
+
+    def `You have tried to verify... too many times.`(email: Email): Message = Message(
+      english = s"You have tried to verify <strong>${email.value.decryptedValue}</strong> too many times."
+    )
+
+    def `You will need to verify a different email address.`(url: String): Message = Message(
+      english = s"""You will need to <a class="govuk-link" href="$url">verify a different email address</a>."""
+    )
+
+  }
+
 }
