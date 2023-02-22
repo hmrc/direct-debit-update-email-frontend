@@ -30,11 +30,12 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 class EmailVerificationResultController @Inject() (
-    actions:                  Actions,
-    emailVerificationService: EmailVerificationService,
-    emailConfirmedPage:       html.EmailConfirmed,
-    tooManyEmailAddresses:    html.TooManyEmailAddresses,
-    mcc:                      MessagesControllerComponents
+    actions:                   Actions,
+    emailVerificationService:  EmailVerificationService,
+    emailConfirmedPage:        html.EmailConfirmed,
+    tooManyEmailAddressesPage: html.TooManyEmailAddresses,
+    tooManyPasscodesPage:      html.TooManyPasscodes,
+    mcc:                       MessagesControllerComponents
 )(implicit ec: ExecutionContext) extends FrontendController(mcc) {
 
   val emailConfirmed: Action[AnyContent] = actions.authenticatedJourneyAction { implicit request =>
@@ -70,7 +71,7 @@ class EmailVerificationResultController @Inject() (
             Errors.throwServerErrorException("Cannot show tooManyPasscodeAttempts page when email verification result is 'Verified'")
 
           case EmailVerificationResult.Locked =>
-            Ok("placeholder for too many passcodes page")
+            Ok(tooManyPasscodesPage())
         }
     }
   }
@@ -107,7 +108,7 @@ class EmailVerificationResultController @Inject() (
               _.earliestCreatedAtTime.fold(
                 Errors.throwServerErrorException("Could not find earliest created at time")
               )(earliestCreatedAtTime =>
-                  Ok(tooManyEmailAddresses(earliestCreatedAtTime.plusDays(1L), j.sjRequest.backUrl)))
+                  Ok(tooManyEmailAddressesPage(earliestCreatedAtTime.plusDays(1L), j.sjRequest.backUrl)))
             }
 
           case other =>

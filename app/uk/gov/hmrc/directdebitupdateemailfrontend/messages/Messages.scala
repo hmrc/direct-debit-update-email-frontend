@@ -190,4 +190,20 @@ object Messages {
 
   }
 
+  object TooManyPasscodes {
+
+    val `Email verification code entered too many times`: Message = Message(
+      english = "Email verification code entered too many times"
+    )
+
+    val `You have entered an email verification code too many times.`: Message = Message(
+      english = "You have entered an email verification code too many times."
+    )
+
+    def `You can go back to enter a new email address`(url: String): Message = Message(
+      english = s"""You can <a class="govuk-link" href="$url">go back to enter a new email address</a>."""
+    )
+
+  }
+
 }

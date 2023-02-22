@@ -119,6 +119,24 @@ class EmailVerificationResultControllerSpec extends ItSpec {
 
       val result = controller.tooManyPasscodeAttempts(TestData.fakeRequestWithAuthorization)
       status(result) shouldBe OK
+
+      val doc = Jsoup.parse(contentAsString(result))
+      ContentAssertions.commonPageChecks(
+        doc,
+        "Email verification code entered too many times",
+        None,
+        hasBackLink = false
+      )
+
+      val paragraphs = doc.selectList("p.govuk-body")
+      paragraphs.size shouldBe 2
+
+      paragraphs(0).text() shouldBe "You have entered an email verification code too many times."
+      paragraphs(1).text() shouldBe "You can go back to enter a new email address."
+
+      val link = doc.select("p > a.govuk-link")
+      link.text() shouldBe "go back to enter a new email address"
+      link.attr("href") shouldBe routes.EmailController.selectEmail.url
     }
 
   }
