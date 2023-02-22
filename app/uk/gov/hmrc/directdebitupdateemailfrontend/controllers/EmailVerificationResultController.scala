@@ -30,12 +30,13 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 class EmailVerificationResultController @Inject() (
-    actions:                   Actions,
-    emailVerificationService:  EmailVerificationService,
-    emailConfirmedPage:        html.EmailConfirmed,
-    tooManyEmailAddressesPage: html.TooManyEmailAddresses,
-    tooManyPasscodesPage:      html.TooManyPasscodes,
-    mcc:                       MessagesControllerComponents
+    actions:                     Actions,
+    emailVerificationService:    EmailVerificationService,
+    emailConfirmedPage:          html.EmailConfirmed,
+    tooManyEmailAddressesPage:   html.TooManyEmailAddresses,
+    tooManyPasscodesPage:        html.TooManyPasscodes,
+    tooManyPasscodeJourneysPage: html.TooManyPasscodeJourneysStarted,
+    mcc:                         MessagesControllerComponents
 )(implicit ec: ExecutionContext) extends FrontendController(mcc) {
 
   val emailConfirmed: Action[AnyContent] = actions.authenticatedJourneyAction { implicit request =>
@@ -85,7 +86,10 @@ class EmailVerificationResultController @Inject() (
       case j: AfterEmailVerificationJourneyStarted =>
         j.startEmailVerificationJourneyResult match {
           case StartEmailVerificationJourneyResult.TooManyPasscodeJourneysStarted =>
-            Ok("placeholder for too many passcode journeys started page")
+            val selectedEmail = j match {
+              case j1: AfterSelectedEmail => j1.selectedEmail
+            }
+            Ok(tooManyPasscodeJourneysPage(selectedEmail))
 
           case other =>
             Errors.throwServerErrorException("Cannot show tooManyPasscodeJourneysStarted when start verification journey result " +
