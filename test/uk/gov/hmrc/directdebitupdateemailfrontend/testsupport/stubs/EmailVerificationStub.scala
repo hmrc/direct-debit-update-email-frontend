@@ -22,7 +22,7 @@ import ddUpdateEmail.models.Email
 import paymentsEmailVerification.models.EmailVerificationResult
 import paymentsEmailVerification.models.api.StartEmailVerificationJourneyResponse
 import play.api.http.Status.{CREATED, OK}
-import play.api.libs.json.Json
+import play.api.libs.json.{JsValue, Json}
 import uk.gov.hmrc.directdebitupdateemailfrontend.controllers.routes
 
 import java.time.LocalDateTime
@@ -97,10 +97,15 @@ object EmailVerificationStub {
         )
     )
 
-  def getLockoutCreatedAt: StubMapping = stubFor(
-    post(urlPathEqualTo(getLockoutCreatedAtUrl))
+  def getLockoutCreatedAt(dateTime: Option[LocalDateTime]): StubMapping = stubFor(
+    get(urlPathEqualTo(getLockoutCreatedAtUrl))
       .willReturn(
-        aResponse().withStatus(OK).withBody(Json.prettyPrint(Json.toJson(LocalDateTime.of(2023, 1, 7, 11, 13))))
+        aResponse().withStatus(OK).withBody(
+          Json.prettyPrint(dateTime.fold[JsValue](
+            Json.parse("{}")
+          )(d =>
+              Json.parse(s"""{ "earliestCreatedAtTime": ${Json.toJson(d).toString}  } """)))
+        )
       )
   )
 

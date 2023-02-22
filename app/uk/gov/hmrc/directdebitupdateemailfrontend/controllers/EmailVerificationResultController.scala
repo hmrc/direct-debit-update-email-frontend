@@ -22,15 +22,20 @@ import ddUpdateEmail.models.journey.Journey.{AfterEmailVerificationJourneyStarte
 import ddUpdateEmail.utils.Errors
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.directdebitupdateemailfrontend.actions.Actions
+import uk.gov.hmrc.directdebitupdateemailfrontend.services.EmailVerificationService
 import uk.gov.hmrc.directdebitupdateemailfrontend.views.html
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
+import scala.concurrent.ExecutionContext
+
 @Singleton
 class EmailVerificationResultController @Inject() (
-    actions:            Actions,
-    emailConfirmedPage: html.EmailConfirmed,
-    mcc:                MessagesControllerComponents
-) extends FrontendController(mcc) {
+    actions:                  Actions,
+    emailVerificationService: EmailVerificationService,
+    emailConfirmedPage:       html.EmailConfirmed,
+    tooManyEmailAddresses:    html.TooManyEmailAddresses,
+    mcc:                      MessagesControllerComponents
+)(implicit ec: ExecutionContext) extends FrontendController(mcc) {
 
   val emailConfirmed: Action[AnyContent] = actions.authenticatedJourneyAction { implicit request =>
     request.journey match {
@@ -89,7 +94,7 @@ class EmailVerificationResultController @Inject() (
     }
   }
 
-  val tooManyDifferentEmailAddresses: Action[AnyContent] = actions.authenticatedJourneyAction { implicit request =>
+  val tooManyDifferentEmailAddresses: Action[AnyContent] = actions.authenticatedJourneyAction.async { implicit request =>
     request.journey match {
       case j: BeforeEmailVerificationJourneyStarted =>
         Errors.throwServerErrorException("Cannot show tooManyDifferentEmailAddresses page before email verification journey has been started. " +
@@ -98,7 +103,12 @@ class EmailVerificationResultController @Inject() (
       case j: AfterEmailVerificationJourneyStarted =>
         j.startEmailVerificationJourneyResult match {
           case StartEmailVerificationJourneyResult.TooManyDifferentEmailAddresses =>
-            Ok("placeholder for too many different email addresses page")
+            emailVerificationService.getEarliestCreatedAtTime().map{
+              _.earliestCreatedAtTime.fold(
+                Errors.throwServerErrorException("Could not find earliest created at time")
+              )(earliestCreatedAtTime =>
+                  Ok(tooManyEmailAddresses(earliestCreatedAtTime.plusDays(1L), j.sjRequest.backUrl)))
+            }
 
           case other =>
             Errors.throwServerErrorException("Cannot show tooManyDifferentEmailAddresses when start verification journey result " +

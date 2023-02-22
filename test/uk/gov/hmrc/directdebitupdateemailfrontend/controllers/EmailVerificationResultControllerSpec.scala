@@ -21,9 +21,11 @@ import org.jsoup.Jsoup
 import play.api.test.Helpers._
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.DocumentUtils.DocumentOps
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.{ContentAssertions, ItSpec}
-import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.stubs.{AuthStub, DirectDebitUpdateEmailBackendStub}
+import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.stubs.{AuthStub, DirectDebitUpdateEmailBackendStub, EmailVerificationStub}
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.testdata.TestData
 import uk.gov.hmrc.http.UpstreamErrorResponse
+
+import java.time.LocalDateTime
 
 class EmailVerificationResultControllerSpec extends ItSpec {
 
@@ -199,16 +201,49 @@ class EmailVerificationResultControllerSpec extends ItSpec {
         }
       }
 
-    "show the page if the start email verification journey result is TooManyPasscodeJourneysStarted" in {
+    "should return an error if the lockout expiry time cannot be determined" in {
       AuthStub.authorise()
       DirectDebitUpdateEmailBackendStub.findByLatestSessionId(
         TestData.Journeys.EmailVerificationJourneyStarted.journeyJson(
           startEmailVerificationJourneyResult = StartEmailVerificationJourneyResult.TooManyDifferentEmailAddresses
         )
       )
+      EmailVerificationStub.getLockoutCreatedAt(None)
+
+      val error = intercept[UpstreamErrorResponse](
+        await(controller.tooManyDifferentEmailAddresses(TestData.fakeRequestWithAuthorization))
+      )
+      error.statusCode shouldBe INTERNAL_SERVER_ERROR
+    }
+
+    "show the page if the start email verification journey result is TooManyPasscodeJourneysStarted" in {
+      val dateTime = LocalDateTime.of(2023, 3, 12, 11, 34, 43)
+      AuthStub.authorise()
+      DirectDebitUpdateEmailBackendStub.findByLatestSessionId(
+        TestData.Journeys.EmailVerificationJourneyStarted.journeyJson(
+          startEmailVerificationJourneyResult = StartEmailVerificationJourneyResult.TooManyDifferentEmailAddresses
+        )
+      )
+      EmailVerificationStub.getLockoutCreatedAt(Some(dateTime))
 
       val result = controller.tooManyDifferentEmailAddresses(TestData.fakeRequestWithAuthorization)
       status(result) shouldBe OK
+
+      val doc = Jsoup.parse(contentAsString(result))
+      ContentAssertions.commonPageChecks(
+        doc,
+        "You have tried to verify too many email addresses",
+        None,
+        hasBackLink = false
+      )
+
+      doc.select("p.govuk-body").first.text() shouldBe "You have been locked out because you have tried to verify too many " +
+        "email addresses. Please try again on 13 March 2023 at 11:34am."
+
+      val button = doc.select(".govuk-button")
+      button.text() shouldBe "Return to tax account"
+      button.attr("href") shouldBe TestData.sjRequest.backUrl.value
+
     }
 
   }
