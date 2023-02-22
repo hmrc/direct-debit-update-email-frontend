@@ -64,6 +64,11 @@ object Messages {
 
   }
 
+  val `Sign in`: Message = Message(
+    english = "Sign in",
+    welsh   = "Mewngofnodi"
+  )
+
   object ServicePhase {
 
     val beta: Message = Message(
@@ -170,6 +175,20 @@ object Messages {
 
     val `Your email address has not been changed in other government services`: Message = Message(
       english = "Your email address has not been changed in other government services."
+    )
+
+  }
+
+  object TimeOut {
+
+    val `For your security, we signed you out`: Message = Message(
+      english = "For your security, we signed you out",
+      welsh   = "Er eich diogelwch, gwnaethom eich allgofnodi"
+    )
+
+    val `You’re about to be signed out`: Message = Message(
+      english = "You’re about to be signed out",
+      welsh   = "Rydych ar fin cael eich allgofnodi"
     )
 
   }

@@ -71,7 +71,8 @@ object ContentAssertions extends RichMatchers {
       hasFormError:        Boolean        = false,
       language:            Language       = Language.English,
       backLinkOverrideUrl: Option[String] = None,
-      hasBackLink:         Boolean        = true
+      hasBackLink:         Boolean        = true,
+      hasSignOutLink:      Boolean        = true
   ): Unit = {
     val titlePrefix = if (hasFormError) {
       language match {
@@ -103,6 +104,12 @@ object ContentAssertions extends RichMatchers {
           backLink.attr("href") shouldBe "#"
       }
     } else backLink.isEmpty shouldBe true
+
+    val signOutLink = page.select(".hmrc-sign-out-nav__link")
+    if (hasSignOutLink) {
+      signOutLink.text() shouldBe "Sign out"
+      signOutLink.attr("href") shouldBe "http://localhost:9949/auth-login-stub/session/logout"
+    }
 
     if (hasFormError) {
       val expectedText = language match {
