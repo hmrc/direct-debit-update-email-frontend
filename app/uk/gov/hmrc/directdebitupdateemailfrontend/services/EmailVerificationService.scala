@@ -19,7 +19,7 @@ package uk.gov.hmrc.directdebitupdateemailfrontend.services
 import com.google.inject.{Inject, Singleton}
 import ddUpdateEmail.models.{Email, EmailVerificationResult, StartEmailVerificationJourneyResult}
 import paymentsEmailVerification.connectors.PaymentsEmailVerificationConnector
-import paymentsEmailVerification.models.api.{GetEmailVerificationResultRequest, StartEmailVerificationJourneyRequest, StartEmailVerificationJourneyResponse}
+import paymentsEmailVerification.models.api.{GetEarliestCreatedAtTimeResponse, GetEmailVerificationResultRequest, StartEmailVerificationJourneyRequest, StartEmailVerificationJourneyResponse}
 import paymentsEmailVerification.models.{EmailVerificationState, Email => PaymentsEmailVerificationEmail, EmailVerificationResult => PaymentsEmailVerificationResult}
 import play.api.mvc.Request
 import uk.gov.hmrc.directdebitupdateemailfrontend.config.AppConfig
@@ -61,6 +61,9 @@ class EmailVerificationService @Inject() (
 
   def getVerificationResult(email: Email)(implicit hc: HeaderCarrier): Future[EmailVerificationResult] =
     emailVerificationConnector.getEmailVerificationResult(GetEmailVerificationResultRequest(PaymentsEmailVerificationEmail(email.value.decryptedValue))).map(toEmailVerificationResult)
+
+  def getEarliestCreatedAtTime()(implicit hc: HeaderCarrier): Future[GetEarliestCreatedAtTimeResponse] =
+    emailVerificationConnector.getEarliestCreatedAtTime()
 
   private def toStartEmailVerificationJourneyResult(s: StartEmailVerificationJourneyResponse) = s match {
     case StartEmailVerificationJourneyResponse.Success(redirectUrl) => StartEmailVerificationJourneyResult.Ok(redirectUrl)

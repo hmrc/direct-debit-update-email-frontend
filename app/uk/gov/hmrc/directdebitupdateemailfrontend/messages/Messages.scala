@@ -45,6 +45,25 @@ object Messages {
     welsh   = "Gwall: "
   )
 
+  object Date {
+
+    val monthName: Map[Int, Message] = Map(
+      1 -> Message(english = "January", welsh = "Ionawr"),
+      2 -> Message(english = "February", welsh = "Chwefror"),
+      3 -> Message(english = "March", welsh = "Mawrth"),
+      4 -> Message(english = "April", welsh = "Ebrill"),
+      5 -> Message(english = "May", welsh = "Mai"),
+      6 -> Message(english = "June", welsh = "Mehefin"),
+      7 -> Message(english = "July", welsh = "Gorffennaf"),
+      8 -> Message(english = "August", welsh = "Awst"),
+      9 -> Message(english = "September", welsh = "Medi"),
+      10 -> Message(english = "October", welsh = "Hydref"),
+      11 -> Message(english = "November", welsh = "Tachwedd"),
+      12 -> Message(english = "December", welsh = "Rhagfyr")
+    )
+
+  }
+
   object ServicePhase {
 
     val beta: Message = Message(
@@ -154,4 +173,21 @@ object Messages {
     )
 
   }
+
+  object TooManyEmailAddresses {
+
+    val `You have tried to verify too many email addresses`: Message = Message(
+      english = "You have tried to verify too many email addresses"
+    )
+
+    def `You have been locked out because you have tried to verify too many email addresses`(date: String, time: String): Message = Message(
+      english = s"""You have been locked out because you have tried to verify too many email addresses. Please try again on <strong>$date at $time</strong>.""",
+    )
+
+    val `Return to tax account`: Message = Message(
+      english = "Return to tax account"
+    )
+
+  }
+
 }
