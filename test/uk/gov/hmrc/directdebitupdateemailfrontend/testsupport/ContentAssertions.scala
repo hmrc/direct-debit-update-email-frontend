@@ -108,7 +108,7 @@ object ContentAssertions extends RichMatchers {
     val signOutLink = page.select(".hmrc-sign-out-nav__link")
     if (hasSignOutLink) {
       signOutLink.text() shouldBe "Sign out"
-      signOutLink.attr("href") shouldBe "/direct-debit-verify-email/sign-out"
+      signOutLink.attr("href") shouldBe "http://localhost:9949/auth-login-stub/session/logout"
     }
 
     if (hasFormError) {

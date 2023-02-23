@@ -107,7 +107,7 @@
 @header = @{
  hmrcStandardHeader(
   serviceName =  Some(serviceName),
-  signOutUrl = if(showSignOut) Some(routes.SignOutController.signOut.url) else None
+  signOutUrl = if(showSignOut) Some(appConfig.BaseUrl.signOutUrl) else None
  )
 }
 

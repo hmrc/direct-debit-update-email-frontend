@@ -17,8 +17,6 @@
 package uk.gov.hmrc.directdebitupdateemailfrontend.controllers
 
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import uk.gov.hmrc.directdebitupdateemailfrontend.actions.Actions
-import uk.gov.hmrc.directdebitupdateemailfrontend.config.AppConfig
 import uk.gov.hmrc.directdebitupdateemailfrontend.views.html.TimedOut
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
@@ -26,9 +24,7 @@ import javax.inject.{Inject, Singleton}
 
 @Singleton
 class SignOutController @Inject() (
-    actions:      Actions,
     mcc:          MessagesControllerComponents,
-    appConfig:    AppConfig,
     timedOutPage: TimedOut
 ) extends FrontendController(mcc) {
 
@@ -36,10 +32,6 @@ class SignOutController @Inject() (
     // N.B. the implicit request being passed into the page here may still have the auth
     // token in it so take care to ensure that the sign out link is not shown by mistake
     Ok(timedOutPage()).withNewSession
-  }
-
-  def signOut: Action[AnyContent] = actions.authenticatedJourneyAction { _ =>
-    Redirect(appConfig.BaseUrl.govUkUrl)
   }
 
 }

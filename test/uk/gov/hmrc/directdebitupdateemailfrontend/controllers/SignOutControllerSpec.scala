@@ -18,9 +18,8 @@ package uk.gov.hmrc.directdebitupdateemailfrontend.controllers
 
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
-import play.api.mvc.{Result, Session}
+import play.api.mvc.Result
 import play.api.test.Helpers._
-import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.stubs.{AuthStub, DirectDebitUpdateEmailBackendStub}
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.testdata.TestData
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.{ContentAssertions, ItSpec}
 
@@ -49,19 +48,6 @@ class SignOutControllerSpec extends ItSpec {
       val signInButton = doc.select(".govuk-body")
       signInButton.text() shouldBe "Sign in"
       signInButton.select("a").attr("href") shouldBe "http://localhost:9949/auth-login-stub/gg-sign-in"
-    }
-
-  }
-
-  "signOut should" - {
-
-    s"redirect to the https://www.gov.uk after clearing the session" in {
-      AuthStub.authorise()
-      DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.Started.journeyJson())
-      val result: Future[Result] = controller.signOut(TestData.fakeRequestWithAuthorization)
-      status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some("https://www.gov.uk")
-      session(result) shouldBe Session(Map.empty)
     }
 
   }
