@@ -4,7 +4,7 @@
 ### Test-Only Start Page
 A test-only start page is available via the URL: 
 ```
-/direct-debit-verify-email-address/test-only/start
+/direct-debit-verify-email/test-only/start
 ```
 In order for this page to work the internal-auth tokens in config (default=`1234567`) must have the correct permissions set
 to be able to call the start endpoints in direct-debit-update-email-backend. Locally this can be achieved by ensuring 

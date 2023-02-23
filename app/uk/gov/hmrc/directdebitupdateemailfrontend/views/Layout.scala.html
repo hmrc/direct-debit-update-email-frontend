@@ -22,6 +22,8 @@
 @import uk.gov.hmrc.govukfrontend.views.html.components._
 @import uk.gov.hmrc.hmrcfrontend.views.html.helpers._
 @import views.html.helper.CSPNonce
+@import uk.gov.hmrc.directdebitupdateemailfrontend.config.AppConfig
+@import uk.gov.hmrc.directdebitupdateemailfrontend.controllers.routes
 
 @this(
         govukLayout: GovukLayout,
@@ -33,9 +35,12 @@
         hmrcScripts: HmrcScripts,
         hmrcLanguageSelectHelper: HmrcLanguageSelectHelper,
         hmrcReportTechnicalIssueHelper: HmrcReportTechnicalIssueHelper,
-        requestSupport: RequestSupport
+        hmrcTimeoutDialogHelper: HmrcTimeoutDialogHelper,
+        requestSupport: RequestSupport,
+        appConfig: AppConfig
 )
-@(pageTitle: String,
+@(
+        pageTitle: String,
         hasErrors: Boolean = false,
         showBackLink: Boolean = true,
         backLinkUrlOverride: Option[String] = None
@@ -43,6 +48,20 @@
 
 
 @import requestSupport._
+
+@showSignOut = @{ requestSupport.isLoggedIn }
+
+@head = {
+  @if(showSignOut) {
+   @hmrcTimeoutDialogHelper(
+    title = Some(Messages.TimeOut.`You’re about to be signed out`.show),
+    signOutUrl = appConfig.BaseUrl.signOutUrl,
+    timeoutUrl = Some(routes.SignOutController.signOutFromTimeout.url),
+    countdown = Some(appConfig.authTimeoutCountdownSeconds),
+    timeout = Some(appConfig.authTimeoutSeconds)
+   )
+  }
+}
 
 @scripts = {
   @if(backLinkUrlOverride.isEmpty) {
@@ -88,13 +107,13 @@
 @header = @{
  hmrcStandardHeader(
   serviceName =  Some(serviceName),
-  signOutUrl = Some("#")
+  signOutUrl = if(showSignOut) Some(appConfig.BaseUrl.signOutUrl) else None
  )
 }
 
 @govukLayout(
  pageTitle = Some(documentTitle),
- headBlock = Some(hmrcHead(headBlock = None, nonce = CSPNonce.get)),
+ headBlock = Some(hmrcHead(headBlock = Some(head), nonce = CSPNonce.get)),
  headerBlock = Some(header),
  scriptsBlock = Some(hmrcScripts(scriptsBlock = Some(scripts), nonce = CSPNonce.get)),
  beforeContentBlock = Some(beforeContentBlock),

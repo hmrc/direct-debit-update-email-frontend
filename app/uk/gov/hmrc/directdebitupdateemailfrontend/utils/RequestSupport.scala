@@ -17,8 +17,9 @@
 package uk.gov.hmrc.directdebitupdateemailfrontend.utils
 
 import play.api.i18n._
-import play.api.mvc.RequestHeader
+import play.api.mvc.{Request, RequestHeader}
 import uk.gov.hmrc.directdebitupdateemailfrontend.models.Language
+import uk.gov.hmrc.http.SessionKeys
 
 import javax.inject.Inject
 
@@ -38,6 +39,8 @@ class RequestSupport @Inject() (i18nSupport: I18nSupport) {
   implicit def legacyMessages(implicit requestHeader: RequestHeader): Messages = {
     i18nSupport.request2Messages(requestHeader)
   }
+
+  def isLoggedIn(implicit request: Request[_]): Boolean = request.session.get(SessionKeys.authToken).isDefined
 
 }
 

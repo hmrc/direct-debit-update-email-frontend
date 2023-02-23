@@ -3,7 +3,7 @@
 ->         /hmrc-frontend                                  hmrcfrontend.Routes
 GET        /assets/*file                                   controllers.Assets.versioned(path = "/public", file: Asset)
 
-
+GET        /timed-out                                      uk.gov.hmrc.directdebitupdateemailfrontend.controllers.SignOutController.signOutFromTimeout
 GET        /check-or-change-email-address                  uk.gov.hmrc.directdebitupdateemailfrontend.controllers.EmailController.selectEmail
 POST       /check-or-change-email-address                  uk.gov.hmrc.directdebitupdateemailfrontend.controllers.EmailController.selectEmailSubmit
 

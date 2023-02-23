@@ -19,16 +19,22 @@ package uk.gov.hmrc.directdebitupdateemailfrontend.config
 import javax.inject.{Inject, Singleton}
 import play.api.Configuration
 
+import scala.concurrent.duration.FiniteDuration
+
 @Singleton
 class AppConfig @Inject() (config: Configuration) {
 
   val welshLanguageSupportEnabled: Boolean = config.getOptional[Boolean]("features.welsh-language-support").getOrElse(false)
+
+  val authTimeoutSeconds: Int = config.get[FiniteDuration]("timeout-dialog.timeout").toSeconds.toInt
+  val authTimeoutCountdownSeconds: Int = config.get[FiniteDuration]("timeout-dialog.countdown").toSeconds.toInt
 
   object BaseUrl {
     val platformHost: Option[String] = config.getOptional[String]("platform.frontend.host")
     val accessibilityStatementFrontend: String = config.get[String]("baseUrl.accessibility-statement-frontend-local")
     val ddUpdateEmailFrontend: String = platformHost.getOrElse(config.get[String]("baseUrl.direct-debit-update-email-frontend-local"))
     val gg: String = config.get[String]("baseUrl.gg")
+    val signOutUrl: String = config.get[String]("baseUrl.sign-out")
   }
 
 }
