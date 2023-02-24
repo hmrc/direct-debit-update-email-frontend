@@ -111,6 +111,9 @@ object ContentAssertions extends RichMatchers {
       signOutLink.attr("href") shouldBe "http://localhost:9949/auth-login-stub/session/logout"
     }
 
+    val betaLink = page.select(".govuk-phase-banner__text").select("a").attr("href")
+    betaLink shouldBe "http://localhost:9250/contact/beta-feedback?service=direct-debit-frontend"
+
     if (hasFormError) {
       val expectedText = language match {
         case Language.English => "Error:"
