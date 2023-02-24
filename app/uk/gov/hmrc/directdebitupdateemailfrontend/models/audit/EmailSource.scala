@@ -16,24 +16,22 @@
 
 package uk.gov.hmrc.directdebitupdateemailfrontend.models.audit
 
-import play.api.libs.json.{JsString, Writes}
+import ddUpdateEmail.utils.EnumFormat
+import enumeratum.{EnumEntry, PlayEnum}
+import play.api.libs.json.Format
 
-sealed trait EmailSource {
+import scala.collection.immutable
 
-  val value: String
+sealed trait EmailSource extends EnumEntry
 
-}
+object EmailSource extends PlayEnum[EmailSource] {
 
-object EmailSource {
+  case object New extends EmailSource
 
-  case object New extends EmailSource {
-    val value: String = "New"
-  }
+  case object Original extends EmailSource
 
-  case object Original extends EmailSource {
-    val value: String = "Original"
-  }
+  implicit val format: Format[EmailSource] = EnumFormat(EmailSource)
 
-  implicit val writes: Writes[EmailSource] = Writes(source => JsString(source.value))
+  override val values: immutable.IndexedSeq[EmailSource] = findValues
 
 }
