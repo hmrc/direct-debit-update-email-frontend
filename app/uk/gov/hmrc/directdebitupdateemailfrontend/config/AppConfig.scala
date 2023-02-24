@@ -36,7 +36,7 @@ class AppConfig @Inject() (config: Configuration) {
     val gg: String = config.get[String]("baseUrl.gg")
     val signOutUrl: String = config.get[String]("baseUrl.sign-out")
     val contactFrontend: String = platformHost.getOrElse(config.get[String]("baseUrl.contact-frontend-local"))
-    lazy val betaFeedbackUrl: String = s"${BaseUrl.contactFrontend}/contact/beta-feedback?service=direct-debit-frontend"
+    val betaFeedbackUrl: String = s"$contactFrontend/contact/beta-feedback?service=direct-debit-frontend"
   }
 
 }
