@@ -21,7 +21,7 @@ import ddUpdateEmail.models.{Email, EmailVerificationResult, StartEmailVerificat
 import paymentsEmailVerification.connectors.PaymentsEmailVerificationConnector
 import paymentsEmailVerification.models.api.{GetEarliestCreatedAtTimeResponse, GetEmailVerificationResultRequest, StartEmailVerificationJourneyRequest, StartEmailVerificationJourneyResponse}
 import paymentsEmailVerification.models.{EmailVerificationState, Email => PaymentsEmailVerificationEmail, EmailVerificationResult => PaymentsEmailVerificationResult}
-import play.api.mvc.Request
+import uk.gov.hmrc.directdebitupdateemailfrontend.actions.AuthenticatedJourneyRequest
 import uk.gov.hmrc.directdebitupdateemailfrontend.config.AppConfig
 import uk.gov.hmrc.directdebitupdateemailfrontend.controllers.routes
 import uk.gov.hmrc.directdebitupdateemailfrontend.messages.Messages
@@ -35,13 +35,14 @@ import scala.concurrent.{ExecutionContext, Future}
 class EmailVerificationService @Inject() (
     appConfig:                  AppConfig,
     emailVerificationConnector: PaymentsEmailVerificationConnector,
+    auditService:               AuditService,
     contactFrontendConfig:      ContactFrontendConfig,
     requestSupport:             RequestSupport
 )(implicit ec: ExecutionContext) {
 
   private val isLocal: Boolean = appConfig.BaseUrl.platformHost.isEmpty
 
-  def startEmailVerificationJourney(email: Email)(implicit r: Request[_], hc: HeaderCarrier): Future[StartEmailVerificationJourneyResult] = {
+  def startEmailVerificationJourney(email: Email)(implicit r: AuthenticatedJourneyRequest[_], hc: HeaderCarrier): Future[StartEmailVerificationJourneyResult] = {
     val lang = requestSupport.language(r)
 
     val startRequest = StartEmailVerificationJourneyRequest(
@@ -56,11 +57,21 @@ class EmailVerificationService @Inject() (
       lang.code
     )
 
-    emailVerificationConnector.startEmailVerification(startRequest).map(toStartEmailVerificationJourneyResult)
+    emailVerificationConnector.startEmailVerification(startRequest).map{ response =>
+      val result = toStartEmailVerificationJourneyResult(response)
+      auditService.auditEmailVerificationRequested(r.journey, r.ggCredId, email, result)
+      result
+    }
   }
 
-  def getVerificationResult(email: Email)(implicit hc: HeaderCarrier): Future[EmailVerificationResult] =
-    emailVerificationConnector.getEmailVerificationResult(GetEmailVerificationResultRequest(PaymentsEmailVerificationEmail(email.value.decryptedValue))).map(toEmailVerificationResult)
+  def getVerificationResult(email: Email)(implicit r: AuthenticatedJourneyRequest[_], hc: HeaderCarrier): Future[EmailVerificationResult] = {
+    val request = GetEmailVerificationResultRequest(PaymentsEmailVerificationEmail(email.value.decryptedValue))
+    emailVerificationConnector.getEmailVerificationResult(request).map{ response =>
+      val result = toEmailVerificationResult(response)
+      auditService.auditEmailVerificationResult(r.journey, r.ggCredId, email, result)
+      result
+    }
+  }
 
   def getEarliestCreatedAtTime()(implicit hc: HeaderCarrier): Future[GetEarliestCreatedAtTimeResponse] =
     emailVerificationConnector.getEarliestCreatedAtTime()

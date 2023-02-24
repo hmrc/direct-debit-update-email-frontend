@@ -16,15 +16,17 @@
 
 package uk.gov.hmrc.directdebitupdateemailfrontend.controllers
 
+import ddUpdateEmail.models.TaxId.{EmpRef, Vrn, Zppt, Zsdl}
 import ddUpdateEmail.models.{EmailVerificationResult, StartEmailVerificationJourneyResult}
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import paymentsEmailVerification.models.EmailVerificationState.{AlreadyVerified, TooManyDifferentEmailAddresses, TooManyPasscodeAttempts, TooManyPasscodeJourneysStarted}
 import paymentsEmailVerification.models.api.StartEmailVerificationJourneyResponse
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Cookie
 import play.api.test.Helpers._
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.{ContentAssertions, ItSpec}
-import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.stubs.{AuthStub, DirectDebitBackendStub, DirectDebitUpdateEmailBackendStub, EmailVerificationStub}
+import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.stubs.{AuditStub, AuthStub, DirectDebitBackendStub, DirectDebitUpdateEmailBackendStub, EmailVerificationStub}
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.testdata.TestData
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.DocumentUtils._
 import uk.gov.hmrc.http.UpstreamErrorResponse
@@ -245,10 +247,66 @@ class EmailControllerSpec extends ItSpec {
       error.statusCode shouldBe INTERNAL_SERVER_ERROR
     }
 
-    "must redirect to the given redirectUrl if the verification journey has successfully started" in {
+    List(
+      ("BTA", "paye", "empref", EmpRef("1234567")),
+      ("BTA", "vatc", "vrn", Vrn("123456")),
+      ("EpayeService", "ppt", "zppt", Zppt("12345")),
+      ("EpayeService", "zsdl", "zsdl", Zsdl("1234"))
+    ).foreach {
+        case (origin, taxRegimeString, taxIdType, taxId) =>
+
+          s"must redirect to the given redirectUrl if the verification journey has successfully started for " +
+            s"origin=$origin, taxRegime=$taxRegimeString and taxIdType=$taxIdType " in {
+              AuthStub.authorise()
+              DirectDebitUpdateEmailBackendStub.findByLatestSessionId(
+                TestData.Journeys.SelectedEmail.journeyJson(origin    = origin, taxRegime = taxRegimeString, taxId = Some(taxId))
+              )
+              EmailVerificationStub.requestEmailVerification(StartEmailVerificationJourneyResponse.Success(TestData.emailVerificationRedirectUrl))
+              AuditStub.audit()
+              DirectDebitUpdateEmailBackendStub.updateStartVerificationJourneyResult(
+                TestData.journeyId,
+                TestData.Journeys.EmailVerificationJourneyStarted.journeyJson()
+              )
+
+              val result = controller.requestVerification(TestData.fakeRequestWithAuthorization)
+              status(result) shouldBe SEE_OTHER
+              redirectLocation(result) shouldBe Some(TestData.emailVerificationRedirectUrl)
+
+              EmailVerificationStub.verifyRequestEmailVerification(
+                TestData.selectedEmail,
+                "http://localhost:12346/accessibility-statement/direct-debit-verify-email",
+                "Check or change your Direct Debit email address",
+                "en",
+                "http://localhost:10801"
+              )
+              AuditStub.verifyEventAudited(
+                "EmailVerificationRequested",
+                Json.parse(
+                  s"""{
+                 |  "origin": "$origin",
+                 |  "taxType": "$taxRegimeString",
+                 |  "taxId": "${taxId.value}",
+                 |  "emailAddress": "${TestData.selectedEmail.value.decryptedValue}",
+                 |  "emailSource": "New",
+                 |  "result": "Ok",
+                 |  "authProviderId": "${TestData.ggCredId.value}"
+                 |}""".stripMargin
+                ).as[JsObject]
+              )
+              DirectDebitUpdateEmailBackendStub.verifyUpdateStartVerificationJourneyResult(
+                TestData.journeyId,
+                StartEmailVerificationJourneyResult.Ok(TestData.emailVerificationRedirectUrl)
+              )
+            }
+      }
+
+    "audit correctly when there is no tax id in the journey and the selected email address is the same as the original bounced email" in {
       AuthStub.authorise()
-      DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.SelectedEmail.journeyJson())
+      DirectDebitUpdateEmailBackendStub.findByLatestSessionId(
+        TestData.Journeys.SelectedEmail.journeyJson(taxId         = None, selectedEmail = TestData.bouncedEmail)
+      )
       EmailVerificationStub.requestEmailVerification(StartEmailVerificationJourneyResponse.Success(TestData.emailVerificationRedirectUrl))
+      AuditStub.audit()
       DirectDebitUpdateEmailBackendStub.updateStartVerificationJourneyResult(
         TestData.journeyId,
         TestData.Journeys.EmailVerificationJourneyStarted.journeyJson()
@@ -259,11 +317,24 @@ class EmailControllerSpec extends ItSpec {
       redirectLocation(result) shouldBe Some(TestData.emailVerificationRedirectUrl)
 
       EmailVerificationStub.verifyRequestEmailVerification(
-        TestData.selectedEmail,
+        TestData.bouncedEmail,
         "http://localhost:12346/accessibility-statement/direct-debit-verify-email",
         "Check or change your Direct Debit email address",
         "en",
         "http://localhost:10801"
+      )
+      AuditStub.verifyEventAudited(
+        "EmailVerificationRequested",
+        Json.parse(
+          s"""{
+             |  "origin": "BTA",
+             |  "taxType": "paye",
+             |  "emailAddress": "${TestData.bouncedEmail.value.decryptedValue}",
+             |  "emailSource": "Original",
+             |  "result": "Ok",
+             |  "authProviderId": "${TestData.ggCredId.value}"
+             |}""".stripMargin
+        ).as[JsObject]
       )
       DirectDebitUpdateEmailBackendStub.verifyUpdateStartVerificationJourneyResult(
         TestData.journeyId,
@@ -275,6 +346,7 @@ class EmailControllerSpec extends ItSpec {
       AuthStub.authorise()
       DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.SelectedEmail.journeyJson())
       EmailVerificationStub.requestEmailVerification(StartEmailVerificationJourneyResponse.Success(TestData.emailVerificationRedirectUrl))
+      AuditStub.audit()
       DirectDebitUpdateEmailBackendStub.updateStartVerificationJourneyResult(
         TestData.journeyId,
         TestData.Journeys.EmailVerificationJourneyStarted.journeyJson()
@@ -293,6 +365,19 @@ class EmailControllerSpec extends ItSpec {
         "cy",
         "http://localhost:10801"
       )
+      AuditStub.verifyEventAudited(
+        "EmailVerificationRequested",
+        Json.parse(
+          s"""{
+             |  "origin": "BTA",
+             |  "taxType": "paye",
+             |  "emailAddress": "${TestData.selectedEmail.value.decryptedValue}",
+             |  "emailSource": "New",
+             |  "result": "Ok",
+             |  "authProviderId": "${TestData.ggCredId.value}"
+             |}""".stripMargin
+        ).as[JsObject]
+      )
       DirectDebitUpdateEmailBackendStub.verifyUpdateStartVerificationJourneyResult(
         TestData.journeyId,
         StartEmailVerificationJourneyResult.Ok(TestData.emailVerificationRedirectUrl)
@@ -303,6 +388,7 @@ class EmailControllerSpec extends ItSpec {
       AuthStub.authorise()
       DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.SelectedEmail.journeyJson())
       EmailVerificationStub.requestEmailVerification(StartEmailVerificationJourneyResponse.Error(AlreadyVerified))
+      AuditStub.audit()
       DirectDebitUpdateEmailBackendStub.updateStartVerificationJourneyResult(
         TestData.journeyId,
         TestData.Journeys.EmailVerificationJourneyStarted.journeyJson(startEmailVerificationJourneyResult = StartEmailVerificationJourneyResult.AlreadyVerified)
@@ -317,6 +403,19 @@ class EmailControllerSpec extends ItSpec {
       status(result) shouldBe SEE_OTHER
       redirectLocation(result) shouldBe Some(routes.EmailVerificationResultController.emailConfirmed.url)
 
+      AuditStub.verifyEventAudited(
+        "EmailVerificationRequested",
+        Json.parse(
+          s"""{
+             |  "origin": "BTA",
+             |  "taxType": "paye",
+             |  "emailAddress": "${TestData.selectedEmail.value.decryptedValue}",
+             |  "emailSource": "New",
+             |  "result": "AlreadyVerified",
+             |  "authProviderId": "${TestData.ggCredId.value}"
+             |}""".stripMargin
+        ).as[JsObject]
+      )
       DirectDebitUpdateEmailBackendStub.verifyUpdateStartVerificationJourneyResult(
         TestData.journeyId,
         StartEmailVerificationJourneyResult.AlreadyVerified
@@ -337,6 +436,7 @@ class EmailControllerSpec extends ItSpec {
         AuthStub.authorise()
         DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.SelectedEmail.journeyJson())
         EmailVerificationStub.requestEmailVerification(StartEmailVerificationJourneyResponse.Error(AlreadyVerified))
+        AuditStub.audit()
         DirectDebitUpdateEmailBackendStub.updateStartVerificationJourneyResult(
           TestData.journeyId,
           TestData.Journeys.EmailVerificationJourneyStarted.journeyJson(startEmailVerificationJourneyResult = StartEmailVerificationJourneyResult.AlreadyVerified)
@@ -348,6 +448,19 @@ class EmailControllerSpec extends ItSpec {
         )
         error.statusCode shouldBe INTERNAL_SERVER_ERROR
 
+        AuditStub.verifyEventAudited(
+          "EmailVerificationRequested",
+          Json.parse(
+            s"""{
+             |  "origin": "BTA",
+             |  "taxType": "paye",
+             |  "emailAddress": "${TestData.selectedEmail.value.decryptedValue}",
+             |  "emailSource": "New",
+             |  "result": "AlreadyVerified",
+             |  "authProviderId": "${TestData.ggCredId.value}"
+             |}""".stripMargin
+          ).as[JsObject]
+        )
         DirectDebitUpdateEmailBackendStub.verifyUpdateStartVerificationJourneyResult(
           TestData.journeyId,
           StartEmailVerificationJourneyResult.AlreadyVerified
@@ -363,6 +476,7 @@ class EmailControllerSpec extends ItSpec {
       AuthStub.authorise()
       DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.SelectedEmail.journeyJson())
       EmailVerificationStub.requestEmailVerification(StartEmailVerificationJourneyResponse.Error(TooManyPasscodeAttempts))
+      AuditStub.audit()
       DirectDebitUpdateEmailBackendStub.updateStartVerificationJourneyResult(
         TestData.journeyId,
         TestData.Journeys.EmailVerificationJourneyStarted.journeyJson(startEmailVerificationJourneyResult = StartEmailVerificationJourneyResult.TooManyPasscodeAttempts)
@@ -376,6 +490,19 @@ class EmailControllerSpec extends ItSpec {
       status(result) shouldBe SEE_OTHER
       redirectLocation(result) shouldBe Some(routes.EmailVerificationResultController.tooManyPasscodeAttempts.url)
 
+      AuditStub.verifyEventAudited(
+        "EmailVerificationRequested",
+        Json.parse(
+          s"""{
+             |  "origin": "BTA",
+             |  "taxType": "paye",
+             |  "emailAddress": "${TestData.selectedEmail.value.decryptedValue}",
+             |  "emailSource": "New",
+             |  "result": "TooManyPasscodeAttempts",
+             |  "authProviderId": "${TestData.ggCredId.value}"
+             |}""".stripMargin
+        ).as[JsObject]
+      )
       DirectDebitUpdateEmailBackendStub.verifyUpdateStartVerificationJourneyResult(
         TestData.journeyId,
         StartEmailVerificationJourneyResult.TooManyPasscodeAttempts
@@ -391,6 +518,7 @@ class EmailControllerSpec extends ItSpec {
         AuthStub.authorise()
         DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.SelectedEmail.journeyJson())
         EmailVerificationStub.requestEmailVerification(StartEmailVerificationJourneyResponse.Error(TooManyPasscodeJourneysStarted))
+        AuditStub.audit()
         DirectDebitUpdateEmailBackendStub.updateStartVerificationJourneyResult(
           TestData.journeyId,
           TestData.Journeys.EmailVerificationJourneyStarted.journeyJson(startEmailVerificationJourneyResult = StartEmailVerificationJourneyResult.TooManyPasscodeJourneysStarted)
@@ -400,6 +528,19 @@ class EmailControllerSpec extends ItSpec {
         status(result) shouldBe SEE_OTHER
         redirectLocation(result) shouldBe Some(routes.EmailVerificationResultController.tooManyPasscodeJourneysStarted.url)
 
+        AuditStub.verifyEventAudited(
+          "EmailVerificationRequested",
+          Json.parse(
+            s"""{
+             |  "origin": "BTA",
+             |  "taxType": "paye",
+             |  "emailAddress": "${TestData.selectedEmail.value.decryptedValue}",
+             |  "emailSource": "New",
+             |  "result": "TooManyPasscodeJourneysStarted",
+             |  "authProviderId": "${TestData.ggCredId.value}"
+             |}""".stripMargin
+          ).as[JsObject]
+        )
         DirectDebitUpdateEmailBackendStub.verifyUpdateStartVerificationJourneyResult(
           TestData.journeyId,
           StartEmailVerificationJourneyResult.TooManyPasscodeJourneysStarted
@@ -411,6 +552,7 @@ class EmailControllerSpec extends ItSpec {
         AuthStub.authorise()
         DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.SelectedEmail.journeyJson())
         EmailVerificationStub.requestEmailVerification(StartEmailVerificationJourneyResponse.Error(TooManyDifferentEmailAddresses))
+        AuditStub.audit()
         DirectDebitUpdateEmailBackendStub.updateStartVerificationJourneyResult(
           TestData.journeyId,
           TestData.Journeys.EmailVerificationJourneyStarted.journeyJson(startEmailVerificationJourneyResult = StartEmailVerificationJourneyResult.TooManyDifferentEmailAddresses)
@@ -420,6 +562,19 @@ class EmailControllerSpec extends ItSpec {
         status(result) shouldBe SEE_OTHER
         redirectLocation(result) shouldBe Some(routes.EmailVerificationResultController.tooManyDifferentEmailAddresses.url)
 
+        AuditStub.verifyEventAudited(
+          "EmailVerificationRequested",
+          Json.parse(
+            s"""{
+             |  "origin": "BTA",
+             |  "taxType": "paye",
+             |  "emailAddress": "${TestData.selectedEmail.value.decryptedValue}",
+             |  "emailSource": "New",
+             |  "result": "TooManyDifferentEmailAddresses",
+             |  "authProviderId": "${TestData.ggCredId.value}"
+             |}""".stripMargin
+          ).as[JsObject]
+        )
         DirectDebitUpdateEmailBackendStub.verifyUpdateStartVerificationJourneyResult(
           TestData.journeyId,
           StartEmailVerificationJourneyResult.TooManyDifferentEmailAddresses
@@ -446,6 +601,7 @@ class EmailNotLocalControllerSpec extends ItSpec {
       AuthStub.authorise()
       DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.SelectedEmail.journeyJson())
       EmailVerificationStub.requestEmailVerification(StartEmailVerificationJourneyResponse.Success(redirectUrl))
+      AuditStub.audit()
       DirectDebitUpdateEmailBackendStub.updateStartVerificationJourneyResult(
         TestData.journeyId,
         TestData.Journeys.EmailVerificationJourneyStarted.journeyJson()
@@ -461,6 +617,19 @@ class EmailNotLocalControllerSpec extends ItSpec {
         "Check or change your Direct Debit email address",
         "en",
         ""
+      )
+      AuditStub.verifyEventAudited(
+        "EmailVerificationRequested",
+        Json.parse(
+          s"""{
+             |  "origin": "BTA",
+             |  "taxType": "paye",
+             |  "emailAddress": "${TestData.selectedEmail.value.decryptedValue}",
+             |  "emailSource": "New",
+             |  "result": "Ok",
+             |  "authProviderId": "${TestData.ggCredId.value}"
+             |}""".stripMargin
+        ).as[JsObject]
       )
       DirectDebitUpdateEmailBackendStub.verifyUpdateStartVerificationJourneyResult(
         TestData.journeyId,

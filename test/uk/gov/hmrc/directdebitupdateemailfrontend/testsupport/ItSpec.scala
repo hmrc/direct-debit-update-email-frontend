@@ -25,6 +25,7 @@ import play.api.test.{DefaultTestServerFactory, RunningServer}
 import play.api.{Application, Mode}
 import play.core.server.ServerConfig
 import uk.gov.hmrc.crypto.{AesCrypto, Decrypter, Encrypter}
+import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.stubs.AuditStub
 import uk.gov.hmrc.http.HttpReadsInstances
 
 class ItSpec
@@ -33,6 +34,12 @@ class ItSpec
   with WireMockSupport
   with HttpReadsInstances
   with CommonBehaviour {
+
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    AuditStub.audit()
+    ()
+  }
 
   val testPort: Int = 19001
 
@@ -49,12 +56,14 @@ class ItSpec
 
   @SuppressWarnings(Array("org.wartremover.Warts.Any"))
   protected lazy val configMap: Map[String, Any] = Map[String, Any](
+    "logger.application" -> "INFO",
+    "logger.connector" -> "INFO",
     "microservice.services.auth.port" -> WireMockSupport.port,
     "microservice.services.direct-debit-update-email-backend.port" -> WireMockSupport.port,
     "microservice.services.direct-debit-backend.port" -> WireMockSupport.port,
     "microservice.services.payments-email-verification.port" -> WireMockSupport.port,
     "auditing.consumer.baseUri.port" -> WireMockSupport.port,
-    "auditing.enabled" -> false,
+    "auditing.enabled" -> true,
     "auditing.traceRequests" -> false
   ) ++ configOverrides
 

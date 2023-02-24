@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.testdata
 
-import ddUpdateEmail.models.{BackUrl, DDINumber, Email, EmailVerificationResult, GGCredId, Origin, ReturnUrl, StartEmailVerificationJourneyResult, TaxRegime}
+import ddUpdateEmail.models.{BackUrl, DDINumber, Email, EmailVerificationResult, GGCredId, Origin, ReturnUrl, StartEmailVerificationJourneyResult, TaxId, TaxRegime}
 import ddUpdateEmail.models.journey.{Journey, JourneyId, SessionId, SjRequest}
 import play.api.test.FakeRequest
 import uk.gov.hmrc.crypto.{Encrypter, PlainText}
@@ -62,9 +62,29 @@ object TestData {
 
   object Journeys {
 
+    private def taxIdJsonString(taxId: Option[TaxId]) =
+      taxId match {
+        case Some(taxId) =>
+          val taxType = taxId match {
+            case _: TaxId.EmpRef => "EmpRef"
+            case _: TaxId.Vrn    => "Vrn"
+            case _: TaxId.Zppt   => "Zppt"
+            case _: TaxId.Zsdl   => "Zsdl"
+          }
+          s"""
+             |    "taxId": {
+             |      "$taxType": {
+             |        "value": "${taxId.value}"
+             |      }
+             |    },
+             |""".stripMargin
+
+        case None => ""
+      }
+
     object Started {
 
-      def journey(origin: Origin = Origin.BTA, taxRegime: TaxRegime = TaxRegime.Paye): Journey.Started =
+      def journey(origin: Origin = Origin.BTA, taxRegime: TaxRegime = TaxRegime.Paye, taxId: Option[TaxId] = None): Journey.Started =
         Journey.Started(
           journeyId,
           origin,
@@ -72,15 +92,16 @@ object TestData {
           sjRequest,
           sessionId,
           taxRegime,
+          taxId,
           bouncedEmail
         )
 
-      def journeyJson(origin: String = "BTA", taxRegime: String = "paye")(implicit encrypter: Encrypter): String =
+      def journeyJson(origin: String = "BTA", taxRegime: String = "paye", taxId: Option[TaxId] = None)(implicit encrypter: Encrypter): String =
         s"""{
           |  "Started": {
           |    "_id": "${journeyId.value}",
           |    "bouncedEmail": "${encryptString(bouncedEmail.value.decryptedValue)}",
-          |    "taxRegime": "$taxRegime",
+          |    "taxRegime": "$taxRegime",${taxIdJsonString(taxId)}
           |    "sessionId": "${sessionId.value}",
           |    "createdOn": "$frozenInstantString",
           |    "origin": "$origin",
@@ -100,9 +121,10 @@ object TestData {
     object SelectedEmail {
 
       def journey(
-          origin:        Origin    = Origin.BTA,
-          taxRegime:     TaxRegime = TaxRegime.Paye,
-          selectedEmail: Email     = selectedEmail
+          origin:        Origin        = Origin.BTA,
+          taxRegime:     TaxRegime     = TaxRegime.Paye,
+          selectedEmail: Email         = selectedEmail,
+          taxId:         Option[TaxId] = None
       ): Journey.SelectedEmail =
         Journey.SelectedEmail(
           journeyId,
@@ -111,20 +133,22 @@ object TestData {
           sjRequest,
           sessionId,
           taxRegime,
+          taxId,
           bouncedEmail,
           selectedEmail
         )
 
       def journeyJson(
-          origin:        String = "BTA",
-          taxRegime:     String = "paye",
-          selectedEmail: Email  = selectedEmail
+          origin:        String        = "BTA",
+          taxRegime:     String        = "paye",
+          selectedEmail: Email         = selectedEmail,
+          taxId:         Option[TaxId] = None
       )(implicit encrypter: Encrypter): String =
         s"""{
            |  "SelectedEmail": {
            |    "_id": "${journeyId.value}",
            |    "bouncedEmail": "${encryptString(bouncedEmail.value.decryptedValue)}",
-           |    "taxRegime": "$taxRegime",
+           |    "taxRegime": "$taxRegime",${taxIdJsonString(taxId)}
            |    "sessionId": "${sessionId.value}",
            |    "createdOn": "$frozenInstantString",
            |    "origin": "$origin",
@@ -148,7 +172,8 @@ object TestData {
           origin:                              Origin                              = Origin.BTA,
           taxRegime:                           TaxRegime                           = TaxRegime.Paye,
           selectedEmail:                       Email                               = selectedEmail,
-          startEmailVerificationJourneyResult: StartEmailVerificationJourneyResult = StartEmailVerificationJourneyResult.Ok(emailVerificationRedirectUrl)
+          startEmailVerificationJourneyResult: StartEmailVerificationJourneyResult = StartEmailVerificationJourneyResult.Ok(emailVerificationRedirectUrl),
+          taxId:                               Option[TaxId]                       = None
       ): Journey.EmailVerificationJourneyStarted =
         Journey.EmailVerificationJourneyStarted(
           journeyId,
@@ -157,6 +182,7 @@ object TestData {
           sjRequest,
           sessionId,
           taxRegime,
+          taxId,
           bouncedEmail,
           selectedEmail,
           startEmailVerificationJourneyResult
@@ -166,13 +192,14 @@ object TestData {
           origin:                              String                              = "BTA",
           taxRegime:                           String                              = "paye",
           selectedEmail:                       Email                               = selectedEmail,
-          startEmailVerificationJourneyResult: StartEmailVerificationJourneyResult = StartEmailVerificationJourneyResult.Ok(emailVerificationRedirectUrl)
+          startEmailVerificationJourneyResult: StartEmailVerificationJourneyResult = StartEmailVerificationJourneyResult.Ok(emailVerificationRedirectUrl),
+          taxId:                               Option[TaxId]                       = None
       )(implicit encrypter: Encrypter): String = {
         s"""{
            |  "EmailVerificationJourneyStarted": {
            |    "_id": "${journeyId.value}",
            |    "bouncedEmail": "${encryptString(bouncedEmail.value.decryptedValue)}",
-           |    "taxRegime": "$taxRegime",
+           |    "taxRegime": "$taxRegime",${taxIdJsonString(taxId)}
            |    "sessionId": "${sessionId.value}",
            |    "createdOn": "$frozenInstantString",
            |    "origin": "$origin",
@@ -198,7 +225,8 @@ object TestData {
           origin:                  Origin                  = Origin.BTA,
           taxRegime:               TaxRegime               = TaxRegime.Paye,
           selectedEmail:           Email                   = selectedEmail,
-          emailVerificationResult: EmailVerificationResult = EmailVerificationResult.Verified
+          emailVerificationResult: EmailVerificationResult = EmailVerificationResult.Verified,
+          taxId:                   Option[TaxId]           = None
       ): Journey.ObtainedEmailVerificationResult =
         Journey.ObtainedEmailVerificationResult(
           journeyId,
@@ -207,6 +235,7 @@ object TestData {
           sjRequest,
           sessionId,
           taxRegime,
+          taxId,
           bouncedEmail,
           selectedEmail,
           StartEmailVerificationJourneyResult.Ok(emailVerificationRedirectUrl),
@@ -217,13 +246,14 @@ object TestData {
           origin:                  String                  = "BTA",
           taxRegime:               String                  = "paye",
           selectedEmail:           Email                   = selectedEmail,
-          emailVerificationResult: EmailVerificationResult = EmailVerificationResult.Verified
+          emailVerificationResult: EmailVerificationResult = EmailVerificationResult.Verified,
+          taxId:                   Option[TaxId]           = None
       )(implicit encrypter: Encrypter): String = {
         s"""{
            |  "ObtainedEmailVerificationResult": {
            |    "_id": "${journeyId.value}",
            |    "bouncedEmail": "${encryptString(bouncedEmail.value.decryptedValue)}",
-           |    "taxRegime": "$taxRegime",
+           |    "taxRegime": "$taxRegime",${taxIdJsonString(taxId)}
            |    "sessionId": "${sessionId.value}",
            |    "createdOn": "$frozenInstantString",
            |    "origin": "$origin",
