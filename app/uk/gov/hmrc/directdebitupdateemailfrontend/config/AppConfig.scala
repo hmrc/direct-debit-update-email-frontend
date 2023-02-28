@@ -28,13 +28,13 @@ class AppConfig @Inject() (config: Configuration) {
 
   val authTimeoutSeconds: Int = config.get[FiniteDuration]("timeout-dialog.timeout").toSeconds.toInt
   val authTimeoutCountdownSeconds: Int = config.get[FiniteDuration]("timeout-dialog.countdown").toSeconds.toInt
+  val signOutUrl: String = BaseUrl.platformHost.getOrElse(config.get[String]("baseUrl.sign-out")) + "/bas-gateway/sign-out-without-state?continue=https%3A%2F%2Fwww.gov.uk"
 
   object BaseUrl {
     val platformHost: Option[String] = config.getOptional[String]("platform.frontend.host")
     val accessibilityStatementFrontend: String = config.get[String]("baseUrl.accessibility-statement-frontend-local")
     val ddUpdateEmailFrontend: String = platformHost.getOrElse(config.get[String]("baseUrl.direct-debit-update-email-frontend-local"))
     val gg: String = config.get[String]("baseUrl.gg")
-    val signOutUrl: String = config.get[String]("baseUrl.sign-out")
     val contactFrontend: String = platformHost.getOrElse(config.get[String]("baseUrl.contact-frontend-local"))
     val betaFeedbackUrl: String = s"$contactFrontend/contact/beta-feedback?service=direct-debit-frontend"
   }

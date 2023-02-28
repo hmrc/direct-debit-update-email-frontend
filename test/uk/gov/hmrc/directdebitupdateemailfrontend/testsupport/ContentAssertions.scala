@@ -108,7 +108,7 @@ object ContentAssertions extends RichMatchers {
     val signOutLink = page.select(".hmrc-sign-out-nav__link")
     if (hasSignOutLink) {
       signOutLink.text() shouldBe "Sign out"
-      signOutLink.attr("href") shouldBe "http://localhost:9949/auth-login-stub/session/logout"
+      signOutLink.attr("href") shouldBe "http://localhost:9553/bas-gateway/sign-out-without-state?continue=https%3A%2F%2Fwww.gov.uk"
     }
 
     val betaLink = page.select(".govuk-phase-banner__text").select("a").attr("href")
