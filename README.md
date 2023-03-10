@@ -1,6 +1,41 @@
 
 # direct-debit-update-email-frontend
 
+This repository contains the frontend microservice for direct debit update email.
+It is built using Scala (2.13.10) and the Play framework (2.8). We use linting tools such as WartRemover and Sclariform.
+This microservice facilitates users updating their email address if it is in a bounced status in direct-debit-backend.
+
+Current tax regimes supported:
+* PAYE
+
+---
+
+## Contents:
+
+* [Running the service locally](https://github.com/hmrc/direct-debit-update-email-frontend#running-locally)
+* [Running tests](https://github.com/hmrc/direct-debit-update-email-frontend#running-tests)
+* [Test-Only Start Page](https://github.com/hmrc/direct-debit-update-email-frontend#test-only-start-page)
+
+---
+
+### Running locally
+
+You can run the service locally using sbt: `sbt run`
+
+To run with test endpoints enabled: `sbt runTestOnly`
+
+If running locally, the service runs on port `10801`
+
+---
+
+### Running tests
+
+You can run the unit/integration tests locally using sbt: `sbt test`
+
+To run a specific spec, run `sbt 'testOnly *<SpecName>'`, e.g. `sbt 'testOnly *EmailControllerSpec'`
+
+---
+
 ### Test-Only Start Page
 A test-only start page is available via the URL: 
 ```
