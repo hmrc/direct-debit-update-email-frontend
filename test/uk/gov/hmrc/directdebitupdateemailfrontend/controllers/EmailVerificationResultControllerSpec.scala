@@ -19,7 +19,9 @@ package uk.gov.hmrc.directdebitupdateemailfrontend.controllers
 import ddUpdateEmail.models.{EmailVerificationResult, StartEmailVerificationJourneyResult}
 import org.jsoup.Jsoup
 import play.api.test.Helpers._
+import uk.gov.hmrc.directdebitupdateemailfrontend.models.Language
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.DocumentUtils.DocumentOps
+import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.FakeRequestUtils.FakeRequestOps
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.{ContentAssertions, ItSpec}
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.stubs.{AuthStub, DirectDebitUpdateEmailBackendStub, EmailVerificationStub}
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.testdata.TestData
@@ -77,12 +79,43 @@ class EmailVerificationResultControllerSpec extends ItSpec {
       paragraphs.size shouldBe 3
 
       paragraphs(0).html() shouldBe s"We’ll use <strong>${TestData.selectedEmail.value.decryptedValue}</strong> to contact you about your Direct Debit."
+      paragraphs(1).text shouldBe "Your email address has not been changed in other government services."
 
       val continueButton = doc.select(".govuk-button")
       continueButton.attr("role") shouldBe "button"
       continueButton.attr("href") shouldBe TestData.sjRequest.returnUrl.value
       continueButton.text() shouldBe "Continue"
+    }
 
+    "show the page in Welsh" in {
+      AuthStub.authorise()
+      DirectDebitUpdateEmailBackendStub.findByLatestSessionId(
+        TestData.Journeys.ObtainedEmailVerificationResult.journeyJson()
+      )
+
+      val result = controller.emailConfirmed(TestData.fakeRequestWithAuthorization.withLang(Language.Welsh))
+      status(result) shouldBe OK
+
+      val doc = Jsoup.parse(contentAsString(result))
+
+      ContentAssertions.commonPageChecks(
+        doc,
+        "Cyfeiriad e-bost wedi’i ddilysu",
+        None,
+        hasBackLink = false,
+        language    = Language.Welsh
+      )
+
+      val paragraphs = doc.selectList(".govuk-body")
+      paragraphs.size shouldBe 3
+
+      paragraphs(0).html() shouldBe s"Byddwn yn defnyddio <strong>${TestData.selectedEmail.value.decryptedValue}</strong> i gysylltu â chi ynghylch eich Debyd Uniongyrchol."
+      paragraphs(1).text shouldBe "Nid yw’ch e-bost wedi cael ei newid ar gyfer gwasanaethau eraill y llywodraeth."
+
+      val continueButton = doc.select(".govuk-button")
+      continueButton.attr("role") shouldBe "button"
+      continueButton.attr("href") shouldBe TestData.sjRequest.returnUrl.value
+      continueButton.text() shouldBe "Yn eich blaen"
     }
 
   }
@@ -136,6 +169,35 @@ class EmailVerificationResultControllerSpec extends ItSpec {
 
       val link = doc.select("p > a.govuk-link")
       link.text() shouldBe "go back to enter a new email address"
+      link.attr("href") shouldBe routes.EmailController.selectEmail.url
+    }
+
+    "display the page in Welsh" in {
+      AuthStub.authorise()
+      DirectDebitUpdateEmailBackendStub.findByLatestSessionId(
+        TestData.Journeys.ObtainedEmailVerificationResult.journeyJson(emailVerificationResult = EmailVerificationResult.Locked)
+      )
+
+      val result = controller.tooManyPasscodeAttempts(TestData.fakeRequestWithAuthorization.withLang(Language.Welsh))
+      status(result) shouldBe OK
+
+      val doc = Jsoup.parse(contentAsString(result))
+      ContentAssertions.commonPageChecks(
+        doc,
+        "Cod dilysu e-bost wedi’i nodi gormod o weithiau",
+        None,
+        hasBackLink = false,
+        language    = Language.Welsh
+      )
+
+      val paragraphs = doc.selectList("p.govuk-body")
+      paragraphs.size shouldBe 2
+
+      paragraphs(0).text() shouldBe "Rydych chi wedi nodi cod dilysu e-bost gormod o weithiau."
+      paragraphs(1).text() shouldBe "Gallwch fynd yn ôl i nodi cyfeiriad e-bost newydd."
+
+      val link = doc.select("p > a.govuk-link")
+      link.text() shouldBe "fynd yn ôl i nodi cyfeiriad e-bost newydd"
       link.attr("href") shouldBe routes.EmailController.selectEmail.url
     }
 
@@ -200,6 +262,37 @@ class EmailVerificationResultControllerSpec extends ItSpec {
 
       val link = doc.select("p > a.govuk-link")
       link.text() shouldBe "verify a different email address"
+      link.attr("href") shouldBe routes.EmailController.selectEmail.url
+    }
+
+    "display the page in Welsh" in {
+      AuthStub.authorise()
+      DirectDebitUpdateEmailBackendStub.findByLatestSessionId(
+        TestData.Journeys.EmailVerificationJourneyStarted.journeyJson(
+          startEmailVerificationJourneyResult = StartEmailVerificationJourneyResult.TooManyPasscodeJourneysStarted
+        )
+      )
+
+      val result = controller.tooManyPasscodeJourneysStarted(TestData.fakeRequestWithAuthorization.withLang(Language.Welsh))
+      status(result) shouldBe OK
+
+      val doc = Jsoup.parse(contentAsString(result))
+      ContentAssertions.commonPageChecks(
+        doc,
+        "Rydych wedi ceisio dilysu cyfeiriad e-bost gormod o weithiau",
+        None,
+        hasBackLink = false,
+        language    = Language.Welsh
+      )
+
+      val paragraphs = doc.selectList("p.govuk-body")
+      paragraphs.size shouldBe 2
+
+      paragraphs(0).text() shouldBe s"Rydych wedi ceisio dilysu ${TestData.selectedEmail.value.decryptedValue} gormod o weithiau."
+      paragraphs(1).text() shouldBe "Bydd angen i chi ddilysu cyfeiriad e-bost gwahanol."
+
+      val link = doc.select("p > a.govuk-link")
+      link.text() shouldBe "ddilysu cyfeiriad e-bost gwahanol"
       link.attr("href") shouldBe routes.EmailController.selectEmail.url
     }
 
@@ -280,6 +373,54 @@ class EmailVerificationResultControllerSpec extends ItSpec {
       button.text() shouldBe "Return to tax account"
       button.attr("href") shouldBe TestData.sjRequest.backUrl.value
 
+    }
+
+    "display the page in Welsh" in {
+      List(
+        1 -> "Ionawr",
+        2 -> "Chwefror",
+        3 -> "Mawrth",
+        4 -> "Ebrill",
+        5 -> "Mai",
+        6 -> "Mehefin",
+        7 -> "Gorffennaf",
+        8 -> "Awst",
+        9 -> "Medi",
+        10 -> "Hydref",
+        11 -> "Tachwedd",
+        12 -> "Rhagfyr"
+      ).foreach {
+          case (monthInt, expectedWelshMonth) =>
+            withClue(s"For month ${monthInt.toString}: ") {
+              val dateTime = LocalDateTime.of(2023, monthInt, 12, 11, 34, 43)
+              AuthStub.authorise()
+              DirectDebitUpdateEmailBackendStub.findByLatestSessionId(
+                TestData.Journeys.EmailVerificationJourneyStarted.journeyJson(
+                  startEmailVerificationJourneyResult = StartEmailVerificationJourneyResult.TooManyDifferentEmailAddresses
+                )
+              )
+              EmailVerificationStub.getLockoutCreatedAt(Some(dateTime))
+
+              val result = controller.tooManyDifferentEmailAddresses(TestData.fakeRequestWithAuthorization.withLang(Language.Welsh))
+              status(result) shouldBe OK
+
+              val doc = Jsoup.parse(contentAsString(result))
+              ContentAssertions.commonPageChecks(
+                doc,
+                "Rydych wedi ceisio dilysu gormod o gyfeiriadau e-bost",
+                None,
+                hasBackLink = false,
+                language    = Language.Welsh
+              )
+
+              doc.select("p.govuk-body").first.text() shouldBe "Rydych chi wedi cael eich cloi allan oherwydd eich bod wedi ceisio dilysu gormod o gyfeiriadau e-bost. " +
+                s"Rhowch gynnig arall arni ar 13 $expectedWelshMonth 2023 am 11:34am."
+
+              val button = doc.select(".govuk-button")
+              button.text() shouldBe "Yn ôl i’r cyfrif treth"
+              button.attr("href") shouldBe TestData.sjRequest.backUrl.value
+            }
+        }
     }
 
   }

@@ -84,7 +84,7 @@ object ContentAssertions extends RichMatchers {
 
     val expectedServiceName = language match {
       case Language.English => "Check or change your Direct Debit email address"
-      case Language.Welsh   => sys.error("not implemented yet")
+      case Language.Welsh   => "Gwirio neu newid eich cyfeiriad e-bost ar gyfer Debyd Uniongyrchol"
     }
 
     page.title() shouldBe s"$titlePrefix$expectedH1 - $expectedServiceName - GOV.UK"
@@ -99,6 +99,11 @@ object ContentAssertions extends RichMatchers {
 
     val backLink = page.select(".govuk-back-link")
     if (hasBackLink) {
+      backLink.text shouldBe (language match {
+        case Language.English => "Back"
+        case Language.Welsh   => "Yn ôl"
+      })
+
       backLinkOverrideUrl match {
         case Some(url) =>
           backLink.hasClass("js-visible") shouldBe false
@@ -112,7 +117,10 @@ object ContentAssertions extends RichMatchers {
 
     val signOutLink = page.select(".hmrc-sign-out-nav__link")
     if (hasSignOutLink) {
-      signOutLink.text() shouldBe "Sign out"
+      signOutLink.text() shouldBe (language match {
+        case Language.English => "Sign out"
+        case Language.Welsh   => "Allgofnodi"
+      })
       signOutLink.attr("href") shouldBe "http://localhost:9553/bas-gateway/sign-out-without-state?continue=https%3A%2F%2Fwww.gov.uk"
     }
 
@@ -129,8 +137,13 @@ object ContentAssertions extends RichMatchers {
 
     val form = page.select("form")
     expectedSubmitUrl match {
-      case None         => form.isEmpty shouldBe true
-      case Some(submit) => form.attr("action") shouldBe submit
+      case None => form.isEmpty shouldBe true
+      case Some(submit) =>
+        form.attr("action") shouldBe submit
+        form.select(".govuk-button").text shouldBe (language match {
+          case Language.English => "Continue"
+          case Language.Welsh   => "Yn eich blaen"
+        })
     }
 
   }

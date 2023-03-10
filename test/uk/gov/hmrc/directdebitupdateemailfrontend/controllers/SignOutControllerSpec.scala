@@ -20,6 +20,8 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import play.api.mvc.Result
 import play.api.test.Helpers._
+import uk.gov.hmrc.directdebitupdateemailfrontend.models.Language
+import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.FakeRequestUtils.FakeRequestOps
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.testdata.TestData
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.{ContentAssertions, ItSpec}
 
@@ -47,6 +49,26 @@ class SignOutControllerSpec extends ItSpec {
       )
       val signInButton = doc.select(".govuk-body")
       signInButton.text() shouldBe "Sign in"
+      signInButton.select("a").attr("href") shouldBe "http://localhost:9949/auth-login-stub/gg-sign-in"
+    }
+
+    "return the timed out page in Welsh" in {
+
+      val result: Future[Result] = controller.signOutFromTimeout(TestData.fakeRequestWithAuthorization.withLang(Language.Welsh))
+      val pageContent: String = contentAsString(result)
+      val doc: Document = Jsoup.parse(pageContent)
+
+      status(result) shouldBe OK
+      ContentAssertions.commonPageChecks(
+        doc,
+        expectedH1        = "Er eich diogelwch, gwnaethom eich allgofnodi",
+        expectedSubmitUrl = None,
+        hasBackLink       = false,
+        hasSignOutLink    = false,
+        language          = Language.Welsh
+      )
+      val signInButton = doc.select(".govuk-body")
+      signInButton.text() shouldBe "Mewngofnodi"
       signInButton.select("a").attr("href") shouldBe "http://localhost:9949/auth-login-stub/gg-sign-in"
     }
 
