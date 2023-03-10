@@ -19,6 +19,7 @@ package uk.gov.hmrc.directdebitupdateemailfrontend.testsupport
 import org.jsoup.nodes.{Document, Element}
 import org.jsoup.select.Elements
 import org.scalatest.Assertion
+import uk.gov.hmrc.directdebitupdateemailfrontend.controllers.routes
 import uk.gov.hmrc.directdebitupdateemailfrontend.models.Language
 
 import scala.annotation.nowarn
@@ -87,7 +88,11 @@ object ContentAssertions extends RichMatchers {
     }
 
     page.title() shouldBe s"$titlePrefix$expectedH1 - $expectedServiceName - GOV.UK"
-    page.select(".hmrc-header__service-name").text() shouldBe expectedServiceName
+
+    val serviceName = page.select("a.hmrc-header__service-name")
+    serviceName.text() shouldBe expectedServiceName
+    serviceName.attr("href") shouldBe routes.EmailController.selectEmail.url
+
     page.select("h1").text() shouldBe expectedH1
 
     ContentAssertions.languageToggleExists(page, language)
