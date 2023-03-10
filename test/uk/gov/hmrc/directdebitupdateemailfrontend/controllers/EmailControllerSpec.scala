@@ -25,10 +25,12 @@ import paymentsEmailVerification.models.api.StartEmailVerificationJourneyRespons
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Cookie
 import play.api.test.Helpers._
+import uk.gov.hmrc.directdebitupdateemailfrontend.models.Language
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.{ContentAssertions, ItSpec}
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.stubs.{AuditStub, AuthStub, DirectDebitBackendStub, DirectDebitUpdateEmailBackendStub, EmailVerificationStub}
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.testdata.TestData
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.DocumentUtils._
+import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.FakeRequestUtils.FakeRequestOps
 import uk.gov.hmrc.http.UpstreamErrorResponse
 
 class EmailControllerSpec extends ItSpec {
@@ -49,6 +51,15 @@ class EmailControllerSpec extends ItSpec {
         paragraphs.size shouldBe 2
 
         paragraphs(0).text shouldBe "We cannot contact you about your Employers’ PAYE Direct Debit using bounced@email.com."
+        paragraphs(1).text shouldBe "The reason for this could be:"
+
+        val listItems = doc.selectList(".govuk-list > li")
+        listItems.size shouldBe 3
+        listItems(0).text shouldBe "Your email inbox is full"
+        listItems(1).text shouldBe "Your email address is not valid or it is spelt incorrectly"
+        listItems(2).text shouldBe "Emails from HMRC have been marked as spam"
+
+        doc.select(".govuk-fieldset__legend").text() shouldBe "Which email address do you want to use?"
 
         val radios = doc.selectList(".govuk-radios__item")
         radios.size shouldBe 2
@@ -122,6 +133,45 @@ class EmailControllerSpec extends ItSpec {
       DirectDebitUpdateEmailBackendStub.verifyFindByLatestSessionId()
     }
 
+    "must display the page in welsh" in {
+      AuthStub.authorise()
+      DirectDebitUpdateEmailBackendStub.findByLatestSessionId(
+        TestData.Journeys.SelectedEmail.journeyJson(selectedEmail = TestData.bouncedEmail)
+      )
+
+      val result = controller.selectEmail(TestData.fakeRequestWithAuthorization.withLang(Language.Welsh))
+      status(result) shouldBe OK
+      val doc = Jsoup.parse(contentAsString(result))
+
+      ContentAssertions.commonPageChecks(
+        doc,
+        "Gwirio neu newid eich cyfeiriad e-bost",
+        Some(routes.EmailController.selectEmailSubmit.url),
+        backLinkOverrideUrl = Some(TestData.sjRequest.backUrl.value),
+        language            = Language.Welsh
+      )
+
+      val paragraphs = doc.selectList("p.govuk-body")
+      paragraphs.size shouldBe 2
+
+      paragraphs(0).text shouldBe "Ni allwn gysylltu â chi am eich Debyd Uniongyrchol ar gyfer TWE y Cyflogwr gan ddefnyddio bounced@email.com."
+      paragraphs(1).text shouldBe "Gallai’r rheswm am hyn fod y naill o’r canlynol:"
+
+      val listItems = doc.selectList(".govuk-list > li")
+      listItems.size shouldBe 3
+      listItems(0).text shouldBe "Mae mewnflwch eich e-bost yn llawn"
+      listItems(1).text shouldBe "Mae cyfeiriad eich e-bost yn annilys neu heb gael ei sillafu’n gywir"
+      listItems(2).text shouldBe "Mae e-byst gan CThEF wedi’u nodi fel sbam"
+
+      doc.select(".govuk-fieldset__legend").text() shouldBe "Pa gyfeiriad e-bost ydych chi am ei ddefnyddio?"
+
+      val radios = doc.selectList(".govuk-radios__item")
+      radios.size shouldBe 2
+
+      radios(0).text() shouldBe "Defnyddio cyfeiriad e-bost gwahanol"
+      radios(1).text() shouldBe "Profi bounced@email.com gydag e-bost dilysu"
+    }
+
   }
 
   s"POST ${routes.EmailController.selectEmailSubmit.url}" - {
@@ -130,33 +180,57 @@ class EmailControllerSpec extends ItSpec {
 
     "return a form error when" - {
 
-        def test(formData: (String, String)*)(expectedErrorMessage: String, expectedErrorTarget: String): Unit = {
-          AuthStub.authorise()
-          DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.Started.journeyJson())
+        def test(formData: (String, String)*)(expectedErrorMessageEnglish: String, expectedErrorMessageWelsh: String, expectedErrorTarget: String): Unit = {
+          List(
+            Language.English,
+            Language.Welsh
+          ).foreach{ lang =>
+              withClue(s"For language ${lang.entryName}: "){
+                AuthStub.authorise()
+                DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.Started.journeyJson())
 
-          val request = TestData.fakeRequestWithAuthorization.withMethod("POST").withFormUrlEncodedBody(formData: _*)
-          val result = controller.selectEmailSubmit(request)
+                val request =
+                  TestData.fakeRequestWithAuthorization
+                    .withMethod("POST")
+                    .withFormUrlEncodedBody(formData: _*)
+                    .withLang(lang)
+                val result = controller.selectEmailSubmit(request)
 
-          status(result) shouldBe BAD_REQUEST
-          val doc = Jsoup.parse(contentAsString(result))
+                status(result) shouldBe BAD_REQUEST
+                val doc = Jsoup.parse(contentAsString(result))
 
-          ContentAssertions.commonPageChecks(
-            doc,
-            "Check or change your email address",
-            Some(routes.EmailController.selectEmailSubmit.url),
-            backLinkOverrideUrl = Some(TestData.sjRequest.backUrl.value),
-            hasFormError        = true
-          )
+                val expectedH1 = lang match {
+                  case Language.English => "Check or change your email address"
+                  case Language.Welsh   => "Gwirio neu newid eich cyfeiriad e-bost"
+                }
 
-          val errorSummary = doc.select(".govuk-error-summary")
-          val errorLink = errorSummary.select("a")
-          errorLink.text() shouldBe expectedErrorMessage
-          errorLink.attr("href") shouldBe expectedErrorTarget
-          ()
+                ContentAssertions.commonPageChecks(
+                  doc,
+                  expectedH1,
+                  Some(routes.EmailController.selectEmailSubmit.url),
+                  backLinkOverrideUrl = Some(TestData.sjRequest.backUrl.value),
+                  hasFormError        = true,
+                  language            = lang
+                )
+
+                val errorSummary = doc.select(".govuk-error-summary")
+                val errorLink = errorSummary.select("a")
+                errorLink.text() shouldBe (lang match {
+                  case Language.English => expectedErrorMessageEnglish
+                  case Language.Welsh   => expectedErrorMessageWelsh
+                })
+                errorLink.attr("href") shouldBe expectedErrorTarget
+                ()
+              }
+            }
         }
 
       "nothing is submitted" in {
-        test()("Select which email address you want to use", "#selectAnEmailToUseRadio")
+        test()(
+          "Select which email address you want to use",
+          "Dewiswch pa gyfeiriad e-bost rydych chi am ei ddefnyddio",
+          "#selectAnEmailToUseRadio"
+        )
       }
 
       "the user select to use a new email address but" - {
@@ -167,6 +241,7 @@ class EmailControllerSpec extends ItSpec {
             "newEmailInput" -> ""
           )(
               "Enter your email address in the correct format, like name@example.com",
+              "Nodwch eich cyfeiriad e-bost yn y fformat cywir, megis enw@enghraifft.com",
               "#newEmailInput"
             )
         }
@@ -177,6 +252,7 @@ class EmailControllerSpec extends ItSpec {
             "newEmailInput" -> ("a" * 257)
           )(
               "Enter an email address with 256 characters or less",
+              "Nodwch gyfeiriad e-bost gan ddefnyddio 256 o gymeriadau neu lai",
               "#newEmailInput"
             )
         }
@@ -187,6 +263,7 @@ class EmailControllerSpec extends ItSpec {
             "newEmailInput" -> "invalidEmail"
           )(
               "Enter your email address in the correct format, like name@example.com",
+              "Nodwch eich cyfeiriad e-bost yn y fformat cywir, megis enw@enghraifft.com",
               "#newEmailInput"
             )
         }

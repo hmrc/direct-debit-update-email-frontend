@@ -248,7 +248,7 @@ object Messages {
 
     val `You have tried to verify an email address too many times`: Message = Message(
       english = "You have tried to verify an email address too many times",
-      welsh   = "Rydych wedi ceisio dilysu cyfeiriad e-bost gormod o weithiau                "
+      welsh   = "Rydych wedi ceisio dilysu cyfeiriad e-bost gormod o weithiau"
     )
 
     def `You have tried to verify... too many times.`(email: Email): Message = Message(
