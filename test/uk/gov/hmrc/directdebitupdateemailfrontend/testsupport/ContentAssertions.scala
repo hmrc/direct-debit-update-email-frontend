@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.directdebitupdateemailfrontend.testsupport
 
+import cats.syntax.eq._
+
 import org.jsoup.nodes.{Document, Element}
 import org.jsoup.select.Elements
 import org.scalatest.Assertion
@@ -134,6 +136,15 @@ object ContentAssertions extends RichMatchers {
       }
       page.select(".govuk-error-message > .govuk-visually-hidden").text shouldBe expectedText
     }
+
+    val footerLinks = page.select(".govuk-footer__link").asScala.toList
+
+    val accessibilityStatementLinkText = language match {
+      case Language.English => "Accessibility statement"
+      case Language.Welsh   => "Datganiad hygyrchedd"
+    }
+    val accessibilityStatementLink = footerLinks.find(_.text().eqv(accessibilityStatementLinkText))
+    accessibilityStatementLink.map(_.attr("href")) shouldBe Some("http://localhost:12346/accessibility-statement/direct-debit-verify-email?referrerUrl=%2F")
 
     val form = page.select("form")
     expectedSubmitUrl match {
