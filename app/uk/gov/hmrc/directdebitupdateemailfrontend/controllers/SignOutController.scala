@@ -28,6 +28,10 @@ class SignOutController @Inject() (
     timedOutPage: TimedOut
 ) extends FrontendController(mcc) {
 
+  def signOut: Action[AnyContent] = Action { _ =>
+    Redirect("https://www.gov.uk")
+  }
+
   def signOutFromTimeout: Action[AnyContent] = Action { implicit request =>
     // N.B. the implicit request being passed into the page here may still have the auth
     // token in it so take care to ensure that the sign out link is not shown by mistake

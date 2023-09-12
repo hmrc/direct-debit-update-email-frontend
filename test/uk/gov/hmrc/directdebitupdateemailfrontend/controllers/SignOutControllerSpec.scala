@@ -19,6 +19,7 @@ package uk.gov.hmrc.directdebitupdateemailfrontend.controllers
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import play.api.mvc.Result
+import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.directdebitupdateemailfrontend.models.Language
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.FakeRequestUtils.FakeRequestOps
@@ -31,11 +32,22 @@ class SignOutControllerSpec extends ItSpec {
 
   private val controller: SignOutController = app.injector.instanceOf[SignOutController]
 
+  "signOut should" - {
+    val signOutUrl = "https://www.gov.uk"
+    s"redirect to $signOutUrl" in {
+      val result: Future[Result] = controller.signOut(FakeRequest())
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result) shouldBe Some(signOutUrl)
+
+    }
+  }
+
   "signOutFromTimeout should" - {
 
     "return the timed out page" in {
 
-      val result: Future[Result] = controller.signOutFromTimeout(TestData.fakeRequestWithAuthorization)
+      val request = TestData.fakeRequestWithAuthorization
+      val result: Future[Result] = controller.signOutFromTimeout(request)
       val pageContent: String = contentAsString(result)
       val doc: Document = Jsoup.parse(pageContent)
 
@@ -46,7 +58,7 @@ class SignOutControllerSpec extends ItSpec {
         expectedSubmitUrl = None,
         hasBackLink       = false,
         hasSignOutLink    = false
-      )
+      )(request)
       val signInButton = doc.select(".govuk-body")
       signInButton.text() shouldBe "Sign in"
       signInButton.select("a").attr("href") shouldBe "http://localhost:9949/auth-login-stub/gg-sign-in"
@@ -54,7 +66,8 @@ class SignOutControllerSpec extends ItSpec {
 
     "return the timed out page in Welsh" in {
 
-      val result: Future[Result] = controller.signOutFromTimeout(TestData.fakeRequestWithAuthorization.withLang(Language.Welsh))
+      val request = TestData.fakeRequestWithAuthorization.withLang(Language.Welsh)
+      val result: Future[Result] = controller.signOutFromTimeout(request)
       val pageContent: String = contentAsString(result)
       val doc: Document = Jsoup.parse(pageContent)
 
@@ -66,7 +79,7 @@ class SignOutControllerSpec extends ItSpec {
         hasBackLink       = false,
         hasSignOutLink    = false,
         language          = Language.Welsh
-      )
+      )(request)
       val signInButton = doc.select(".govuk-body")
       signInButton.text() shouldBe "Mewngofnodi"
       signInButton.select("a").attr("href") shouldBe "http://localhost:9949/auth-login-stub/gg-sign-in"

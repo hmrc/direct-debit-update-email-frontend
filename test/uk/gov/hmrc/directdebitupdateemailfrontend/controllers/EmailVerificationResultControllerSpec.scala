@@ -63,7 +63,8 @@ class EmailVerificationResultControllerSpec extends ItSpec {
         TestData.Journeys.ObtainedEmailVerificationResult.journeyJson()
       )
 
-      val result = controller.emailConfirmed(TestData.fakeRequestWithAuthorization)
+      val request = TestData.fakeRequestWithAuthorization
+      val result = controller.emailConfirmed(request)
       status(result) shouldBe OK
 
       val doc = Jsoup.parse(contentAsString(result))
@@ -73,7 +74,7 @@ class EmailVerificationResultControllerSpec extends ItSpec {
         "Email address verified",
         None,
         hasBackLink = false
-      )
+      )(request)
 
       val paragraphs = doc.selectList(".govuk-body")
       paragraphs.size shouldBe 3
@@ -93,7 +94,8 @@ class EmailVerificationResultControllerSpec extends ItSpec {
         TestData.Journeys.ObtainedEmailVerificationResult.journeyJson()
       )
 
-      val result = controller.emailConfirmed(TestData.fakeRequestWithAuthorization.withLang(Language.Welsh))
+      val request = TestData.fakeRequestWithAuthorization.withLang(Language.Welsh)
+      val result = controller.emailConfirmed(request)
       status(result) shouldBe OK
 
       val doc = Jsoup.parse(contentAsString(result))
@@ -104,7 +106,7 @@ class EmailVerificationResultControllerSpec extends ItSpec {
         None,
         hasBackLink = false,
         language    = Language.Welsh
-      )
+      )(request)
 
       val paragraphs = doc.selectList(".govuk-body")
       paragraphs.size shouldBe 3
@@ -150,7 +152,8 @@ class EmailVerificationResultControllerSpec extends ItSpec {
         TestData.Journeys.ObtainedEmailVerificationResult.journeyJson(emailVerificationResult = EmailVerificationResult.Locked)
       )
 
-      val result = controller.tooManyPasscodeAttempts(TestData.fakeRequestWithAuthorization)
+      val request = TestData.fakeRequestWithAuthorization
+      val result = controller.tooManyPasscodeAttempts(request)
       status(result) shouldBe OK
 
       val doc = Jsoup.parse(contentAsString(result))
@@ -159,7 +162,7 @@ class EmailVerificationResultControllerSpec extends ItSpec {
         "Email verification code entered too many times",
         None,
         hasBackLink = false
-      )
+      )(request)
 
       val paragraphs = doc.selectList("p.govuk-body")
       paragraphs.size shouldBe 2
@@ -178,7 +181,8 @@ class EmailVerificationResultControllerSpec extends ItSpec {
         TestData.Journeys.ObtainedEmailVerificationResult.journeyJson(emailVerificationResult = EmailVerificationResult.Locked)
       )
 
-      val result = controller.tooManyPasscodeAttempts(TestData.fakeRequestWithAuthorization.withLang(Language.Welsh))
+      val request = TestData.fakeRequestWithAuthorization.withLang(Language.Welsh)
+      val result = controller.tooManyPasscodeAttempts(request)
       status(result) shouldBe OK
 
       val doc = Jsoup.parse(contentAsString(result))
@@ -188,7 +192,7 @@ class EmailVerificationResultControllerSpec extends ItSpec {
         None,
         hasBackLink = false,
         language    = Language.Welsh
-      )
+      )(request)
 
       val paragraphs = doc.selectList("p.govuk-body")
       paragraphs.size shouldBe 2
@@ -243,7 +247,8 @@ class EmailVerificationResultControllerSpec extends ItSpec {
         )
       )
 
-      val result = controller.tooManyPasscodeJourneysStarted(TestData.fakeRequestWithAuthorization)
+      val request = TestData.fakeRequestWithAuthorization
+      val result = controller.tooManyPasscodeJourneysStarted(request)
       status(result) shouldBe OK
 
       val doc = Jsoup.parse(contentAsString(result))
@@ -252,7 +257,7 @@ class EmailVerificationResultControllerSpec extends ItSpec {
         "You have tried to verify an email address too many times",
         None,
         hasBackLink = false
-      )
+      )(request)
 
       val paragraphs = doc.selectList("p.govuk-body")
       paragraphs.size shouldBe 2
@@ -273,7 +278,8 @@ class EmailVerificationResultControllerSpec extends ItSpec {
         )
       )
 
-      val result = controller.tooManyPasscodeJourneysStarted(TestData.fakeRequestWithAuthorization.withLang(Language.Welsh))
+      val request = TestData.fakeRequestWithAuthorization.withLang(Language.Welsh)
+      val result = controller.tooManyPasscodeJourneysStarted(request)
       status(result) shouldBe OK
 
       val doc = Jsoup.parse(contentAsString(result))
@@ -283,7 +289,7 @@ class EmailVerificationResultControllerSpec extends ItSpec {
         None,
         hasBackLink = false,
         language    = Language.Welsh
-      )
+      )(request)
 
       val paragraphs = doc.selectList("p.govuk-body")
       paragraphs.size shouldBe 2
@@ -355,7 +361,8 @@ class EmailVerificationResultControllerSpec extends ItSpec {
       )
       EmailVerificationStub.getLockoutCreatedAt(Some(dateTime))
 
-      val result = controller.tooManyDifferentEmailAddresses(TestData.fakeRequestWithAuthorization)
+      val request = TestData.fakeRequestWithAuthorization
+      val result = controller.tooManyDifferentEmailAddresses(request)
       status(result) shouldBe OK
 
       val doc = Jsoup.parse(contentAsString(result))
@@ -364,7 +371,7 @@ class EmailVerificationResultControllerSpec extends ItSpec {
         "You have tried to verify too many email addresses",
         None,
         hasBackLink = false
-      )
+      )(request)
 
       doc.select("p.govuk-body").first.text() shouldBe "You have been locked out because you have tried to verify too many " +
         "email addresses. Please try again on 13 March 2023 at 11:34am."
@@ -401,7 +408,8 @@ class EmailVerificationResultControllerSpec extends ItSpec {
               )
               EmailVerificationStub.getLockoutCreatedAt(Some(dateTime))
 
-              val result = controller.tooManyDifferentEmailAddresses(TestData.fakeRequestWithAuthorization.withLang(Language.Welsh))
+              val request = TestData.fakeRequestWithAuthorization.withLang(Language.Welsh)
+              val result = controller.tooManyDifferentEmailAddresses(request)
               status(result) shouldBe OK
 
               val doc = Jsoup.parse(contentAsString(result))
@@ -411,7 +419,7 @@ class EmailVerificationResultControllerSpec extends ItSpec {
                 None,
                 hasBackLink = false,
                 language    = Language.Welsh
-              )
+              )(request)
 
               doc.select("p.govuk-body").first.text() shouldBe "Rydych chi wedi cael eich cloi allan oherwydd eich bod wedi ceisio dilysu gormod o gyfeiriadau e-bost. " +
                 s"Rhowch gynnig arall arni ar 13 $expectedWelshMonth 2023 am 11:34am."

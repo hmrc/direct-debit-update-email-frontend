@@ -23,7 +23,7 @@ import org.jsoup.nodes.Document
 import paymentsEmailVerification.models.EmailVerificationState.{AlreadyVerified, TooManyDifferentEmailAddresses, TooManyPasscodeAttempts, TooManyPasscodeJourneysStarted}
 import paymentsEmailVerification.models.api.StartEmailVerificationJourneyResponse
 import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.Cookie
+import play.api.mvc.{Cookie, Request}
 import play.api.test.Helpers._
 import uk.gov.hmrc.directdebitupdateemailfrontend.models.Language
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.{ContentAssertions, ItSpec}
@@ -39,7 +39,7 @@ class EmailControllerSpec extends ItSpec {
 
   s"GET ${routes.EmailController.selectEmail.url}" - {
 
-      def checkPageContents(doc: Document): Unit = {
+      def checkPageContents(doc: Document)(implicit request: Request[_]): Unit = {
         ContentAssertions.commonPageChecks(
           doc,
           "Check or change your email address",
@@ -75,11 +75,12 @@ class EmailControllerSpec extends ItSpec {
       AuthStub.authorise()
       DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.Started.journeyJson())
 
-      val result = controller.selectEmail(TestData.fakeRequestWithAuthorization)
+      val request = TestData.fakeRequestWithAuthorization
+      val result = controller.selectEmail(request)
       status(result) shouldBe OK
       val doc = Jsoup.parse(contentAsString(result))
 
-      checkPageContents(doc)
+      checkPageContents(doc)(request)
 
       val radios = doc.selectList(".govuk-radios__item")
       radios.size shouldBe 2
@@ -94,11 +95,12 @@ class EmailControllerSpec extends ItSpec {
       AuthStub.authorise()
       DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.SelectedEmail.journeyJson())
 
-      val result = controller.selectEmail(TestData.fakeRequestWithAuthorization)
+      val request = TestData.fakeRequestWithAuthorization
+      val result = controller.selectEmail(request)
       status(result) shouldBe OK
       val doc = Jsoup.parse(contentAsString(result))
 
-      checkPageContents(doc)
+      checkPageContents(doc)(request)
 
       val radios = doc.selectList(".govuk-radios__item")
       radios.size shouldBe 2
@@ -118,11 +120,12 @@ class EmailControllerSpec extends ItSpec {
         TestData.Journeys.SelectedEmail.journeyJson(selectedEmail = TestData.bouncedEmail)
       )
 
-      val result = controller.selectEmail(TestData.fakeRequestWithAuthorization)
+      val request = TestData.fakeRequestWithAuthorization
+      val result = controller.selectEmail(request)
       status(result) shouldBe OK
       val doc = Jsoup.parse(contentAsString(result))
 
-      checkPageContents(doc)
+      checkPageContents(doc)(request)
 
       val radios = doc.selectList(".govuk-radios__item")
       radios.size shouldBe 2
@@ -139,7 +142,8 @@ class EmailControllerSpec extends ItSpec {
         TestData.Journeys.SelectedEmail.journeyJson(selectedEmail = TestData.bouncedEmail)
       )
 
-      val result = controller.selectEmail(TestData.fakeRequestWithAuthorization.withLang(Language.Welsh))
+      val request = TestData.fakeRequestWithAuthorization.withLang(Language.Welsh)
+      val result = controller.selectEmail(request)
       status(result) shouldBe OK
       val doc = Jsoup.parse(contentAsString(result))
 
@@ -149,7 +153,7 @@ class EmailControllerSpec extends ItSpec {
         Some(routes.EmailController.selectEmailSubmit.url),
         backLinkOverrideUrl = Some(TestData.sjRequest.backUrl.value),
         language            = Language.Welsh
-      )
+      )(request)
 
       val paragraphs = doc.selectList("p.govuk-body")
       paragraphs.size shouldBe 2
@@ -211,7 +215,7 @@ class EmailControllerSpec extends ItSpec {
                   backLinkOverrideUrl = Some(TestData.sjRequest.backUrl.value),
                   hasFormError        = true,
                   language            = lang
-                )
+                )(request)
 
                 val errorSummary = doc.select(".govuk-error-summary")
                 val errorLink = errorSummary.select("a")

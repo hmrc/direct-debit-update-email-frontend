@@ -14,3 +14,5 @@ GET       /email-address-verified                          uk.gov.hmrc.directdeb
 GET       /email-verification-code-entered-too-many-times  uk.gov.hmrc.directdebitupdateemailfrontend.controllers.EmailVerificationResultController.tooManyPasscodeAttempts
 GET       /tried-to-verify-email-address-too-many-times    uk.gov.hmrc.directdebitupdateemailfrontend.controllers.EmailVerificationResultController.tooManyPasscodeJourneysStarted
 GET       /tried-to-verify-too-many-email-addresses        uk.gov.hmrc.directdebitupdateemailfrontend.controllers.EmailVerificationResultController.tooManyDifferentEmailAddresses
+
+GET       /sign-out                                        uk.gov.hmrc.directdebitupdateemailfrontend.controllers.SignOutController.signOut

@@ -17,10 +17,10 @@
 package uk.gov.hmrc.directdebitupdateemailfrontend.testsupport
 
 import cats.syntax.eq._
-
 import org.jsoup.nodes.{Document, Element}
 import org.jsoup.select.Elements
 import org.scalatest.Assertion
+import play.api.mvc.Request
 import uk.gov.hmrc.directdebitupdateemailfrontend.controllers.routes
 import uk.gov.hmrc.directdebitupdateemailfrontend.models.Language
 
@@ -76,7 +76,7 @@ object ContentAssertions extends RichMatchers {
       backLinkOverrideUrl: Option[String] = None,
       hasBackLink:         Boolean        = true,
       hasSignOutLink:      Boolean        = true
-  ): Unit = {
+  )(implicit request: Request[_]): Unit = {
     val titlePrefix = if (hasFormError) {
       language match {
         case Language.English => "Error: "
@@ -123,7 +123,8 @@ object ContentAssertions extends RichMatchers {
         case Language.English => "Sign out"
         case Language.Welsh   => "Allgofnodi"
       })
-      signOutLink.attr("href") shouldBe "http://localhost:9553/bas-gateway/sign-out-without-state?continue=https%3A%2F%2Fwww.gov.uk"
+      signOutLink.attr("href") shouldBe
+        s"http://localhost:9553/bas-gateway/sign-out-without-state?continue=${routes.SignOutController.signOut.absoluteURL()}"
     }
 
     val betaLink = page.select(".govuk-phase-banner__text").select("a").attr("href")
