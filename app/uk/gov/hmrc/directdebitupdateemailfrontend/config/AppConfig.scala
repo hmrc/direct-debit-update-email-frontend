@@ -18,7 +18,6 @@ package uk.gov.hmrc.directdebitupdateemailfrontend.config
 
 import javax.inject.{Inject, Singleton}
 import play.api.Configuration
-import play.api.mvc.Request
 import uk.gov.hmrc.directdebitupdateemailfrontend.controllers.routes
 
 import scala.concurrent.duration.FiniteDuration
@@ -30,8 +29,8 @@ class AppConfig @Inject() (config: Configuration) {
 
   val authTimeoutSeconds: Int = config.get[FiniteDuration]("timeout-dialog.timeout").toSeconds.toInt
   val authTimeoutCountdownSeconds: Int = config.get[FiniteDuration]("timeout-dialog.countdown").toSeconds.toInt
-  def signOutUrl(implicit request: Request[_]): String = BaseUrl.platformHost.getOrElse(config.get[String]("baseUrl.sign-out-local")) +
-    s"/bas-gateway/sign-out-without-state?continue=${routes.SignOutController.signOut.absoluteURL()}"
+  lazy val signOutUrl: String = BaseUrl.platformHost.getOrElse(config.get[String]("baseUrl.sign-out-local")) +
+    s"/bas-gateway/sign-out-without-state?continue=${BaseUrl.ddUpdateEmailFrontend}${routes.SignOutController.signOut.url}"
 
   object BaseUrl {
     val platformHost: Option[String] = config.getOptional[String]("platform.frontend.host")

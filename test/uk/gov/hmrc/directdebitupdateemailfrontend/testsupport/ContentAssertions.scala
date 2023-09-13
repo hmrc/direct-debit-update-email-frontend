@@ -124,7 +124,7 @@ object ContentAssertions extends RichMatchers {
         case Language.Welsh   => "Allgofnodi"
       })
       signOutLink.attr("href") shouldBe
-        s"http://localhost:9553/bas-gateway/sign-out-without-state?continue=${routes.SignOutController.signOut.absoluteURL()}"
+        s"http://localhost:9553/bas-gateway/sign-out-without-state?continue=http://localhost:10801/direct-debit-verify-email/sign-out"
     }
 
     val betaLink = page.select(".govuk-phase-banner__text").select("a").attr("href")
