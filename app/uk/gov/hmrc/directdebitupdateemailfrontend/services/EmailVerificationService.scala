@@ -94,7 +94,7 @@ class EmailVerificationService @Inject() (
   }
 
   private object RequestEmailVerification {
-    private def ddUpdateEmailFrontendUrl(s: String): String = if (isLocal) s"${appConfig.BaseUrl.ddUpdateEmailFrontend}$s" else s
+    private def ddUpdateEmailFrontendUrl(s: String): String = if (isLocal) s"${appConfig.BaseUrl.ddUpdateEmailFrontendPlatformBase}$s" else s
     val continueUrl: String = ddUpdateEmailFrontendUrl(routes.CallbackController.callback.url)
     val origin: String = "direct-debit-update-email-frontend"
     val deskproServiceName: String = contactFrontendConfig.serviceId.getOrElse(sys.error("Could not find contact frontend serviceId"))

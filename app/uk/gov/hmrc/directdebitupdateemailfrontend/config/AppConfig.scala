@@ -35,7 +35,8 @@ class AppConfig @Inject() (config: Configuration) {
   object BaseUrl {
     val platformHost: Option[String] = config.getOptional[String]("platform.frontend.host")
     val accessibilityStatementFrontend: String = config.get[String]("baseUrl.accessibility-statement-frontend-local")
-    val ddUpdateEmailFrontend: String = platformHost.getOrElse(config.get[String]("baseUrl.direct-debit-update-email-frontend-local"))
+    val ddUpdateEmailFrontend: String = config.get[String]("baseUrl.direct-debit-update-email-frontend-local")
+    val ddUpdateEmailFrontendPlatformBase: String = platformHost.getOrElse(config.get[String]("baseUrl.direct-debit-update-email-frontend-local"))
     val gg: String = config.get[String]("baseUrl.gg")
     val contactFrontend: String = platformHost.getOrElse(config.get[String]("baseUrl.contact-frontend-local"))
     val betaFeedbackUrl: String = s"$contactFrontend/contact/beta-feedback?service=direct-debit-frontend"
