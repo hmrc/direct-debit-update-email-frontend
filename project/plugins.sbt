@@ -15,3 +15,4 @@ addSbtPlugin("io.github.irundaia" % "sbt-sassify"        % "1.5.2")
 addSbtPlugin("org.wartremover"    % "sbt-wartremover"    % "3.0.7")
 addSbtPlugin("com.timushev.sbt"   % "sbt-updates"        % "0.6.3")
 addSbtPlugin("org.scalariform"    % "sbt-scalariform"    % "1.8.3")
+addDependencyTreePlugin
