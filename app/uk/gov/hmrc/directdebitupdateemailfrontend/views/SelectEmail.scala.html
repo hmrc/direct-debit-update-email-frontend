@@ -55,6 +55,10 @@ requestSupport: RequestSupport
         name = newEmailKey,
         inputType = "email",
         classes = "govuk-input--width-30",
+        label = Label(
+            content = Text(Messages.SelectEmail.`Email address`.show)
+        ),
+        autocomplete = Some("email"),
         hint = Some(Hint(content = Text(Messages.SelectEmail.`For example, myname@sample.com`.show))),
         spellcheck = Some(false),
         errorMessage = form.error(newEmailKey).map(e => ErrorMessage.errorMessageWithDefaultStringsTranslated(
