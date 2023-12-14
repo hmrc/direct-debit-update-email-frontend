@@ -135,6 +135,11 @@ object Messages {
       welsh   = "Defnyddio cyfeiriad e-bost gwahanol"
     )
 
+    val `Email address`: Message = Message(
+      english = "Email address",
+      welsh   = "Cyfeiriad e-bost"
+    )
+
     val `For example, myname@sample.com`: Message = Message(
       english = "For example, myname@sample.com",
       welsh   = "Er enghraifft, fyenw@enghraifft.cymru"
