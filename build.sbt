@@ -1,6 +1,4 @@
 import uk.gov.hmrc.DefaultBuildSettings
-import uk.gov.hmrc.DefaultBuildSettings.integrationTestSettings
-
 
 lazy val scalaCompilerOptions = Seq(
     "-Xfatal-warnings",
@@ -30,10 +28,9 @@ lazy val microservice = Project("direct-debit-update-email-frontend", file("."))
   .settings(DefaultBuildSettings.defaultSettings(): _*)
   .settings(
     majorVersion        := 0,
-    scalaVersion        := "2.13.10",
+    scalaVersion        := "2.13.12",
     PlayKeys.playDefaultPort := 10801,
     libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
-    libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always,
     // https://www.scala-lang.org/2021/01/12/configuring-and-suppressing-warnings.html
     // suppress warnings in generated routes files
     scalacOptions += "-Wconf:src=routes/.*:s",
