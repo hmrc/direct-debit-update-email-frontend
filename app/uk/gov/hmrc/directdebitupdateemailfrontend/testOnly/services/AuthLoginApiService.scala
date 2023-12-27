@@ -47,7 +47,7 @@ class AuthLoginApiService @Inject() (
       "credId" -> testUser.authorityId.value,
       "affinityGroup" -> testUser.affinityGroup.toString,
       "confidenceLevel" -> testUser.confidenceLevel,
-      "credentialStrength" -> "weak",
+      "credentialStrength" -> "strong",
       "credentialRole" -> "User",
       "usersName" -> JsNull,
       "enrolments" -> Json.arr(),
