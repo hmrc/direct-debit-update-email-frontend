@@ -108,13 +108,13 @@ requestSupport: RequestSupport
                     content = Text(Messages.SelectEmail.`Use a different email address`.show),
                     value = Some("new"),
                     conditionalHtml = Some(conditionalHtml),
-                    checked = form.value.exists(_.differentEmail.isDefined) || form.error(newEmailKey).isDefined,
+                    checked = form.value.exists(_.differentEmail.isDefined) || form.error(newEmailKey).isDefined
                 ),
                 RadioItem(
                     content = Text(Messages.SelectEmail.`Test ... with a verification email`(bouncedEmail).show),
                     value = Some(bouncedEmail.value.decryptedValue),
-                    checked = form.value.exists(_.differentEmail.isEmpty),
-                ),
+                    checked = form.value.exists(_.differentEmail.isEmpty)
+                )
             ),
             errorMessage = form.error(key).map(e =>
                 ErrorMessage.errorMessageWithDefaultStringsTranslated(

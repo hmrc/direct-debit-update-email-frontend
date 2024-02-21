@@ -10,7 +10,7 @@ object SbtUpdatesSettings {
     (Compile / compile) := ((Compile / compile) dependsOn dependencyUpdates).value,
     dependencyUpdatesFilter -= moduleFilter("org.scala-lang"),
     dependencyUpdatesFilter -= moduleFilter("com.typesafe.play"),
-    dependencyUpdatesFilter -= moduleFilter("com.beachape", "enumeratum-play"),
+    dependencyUpdatesFilter -= moduleFilter("com.beachape", "enumeratum-play")
   )
 
 }

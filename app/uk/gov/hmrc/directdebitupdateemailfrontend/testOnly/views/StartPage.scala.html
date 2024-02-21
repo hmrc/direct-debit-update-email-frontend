@@ -160,7 +160,7 @@
  spellcheck = Some(false),
   label= Label(
    content = Text("Email address"),
-   classes = "govuk-label--m",
+   classes = "govuk-label--m"
   ),
  errorMessage = form.error("email").map(e => ErrorMessage(content = Text(e.message) )),
  value = form("email").value.orElse(Some("bounced@email.com"))

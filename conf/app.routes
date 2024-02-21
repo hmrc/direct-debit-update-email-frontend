@@ -16,3 +16,4 @@ GET       /tried-to-verify-email-address-too-many-times    uk.gov.hmrc.directdeb
 GET       /tried-to-verify-too-many-email-addresses        uk.gov.hmrc.directdebitupdateemailfrontend.controllers.EmailVerificationResultController.tooManyDifferentEmailAddresses
 
 GET       /sign-out                                        uk.gov.hmrc.directdebitupdateemailfrontend.controllers.SignOutController.signOut
+GET       /page-unavailable                                uk.gov.hmrc.directdebitupdateemailfrontend.controllers.PageUnavailableController.pageUnavailable
