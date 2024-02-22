@@ -52,7 +52,7 @@ class GetJourneyActionRefiner @Inject() (
       case Some(journey) =>
         Right(new AuthenticatedJourneyRequest(request, journey, request.ggCredId))
       case None =>
-        logger.error(s"No journey found for sessionId: ${hc.sessionId.map(_.value).getOrElse("-")}")
+        logger.warn(s"No journey found for sessionId: ${hc.sessionId.map(_.value).getOrElse("-")}")
         Left(Redirect(routes.PageUnavailableController.pageUnavailable))
     }
   }

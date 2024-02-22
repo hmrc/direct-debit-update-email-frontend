@@ -38,7 +38,6 @@ class EmailControllerSpec extends ItSpec {
   lazy val controller = app.injector.instanceOf[EmailController]
 
   s"GET ${routes.EmailController.selectEmail.url}" - {
-
       def checkPageContents(doc: Document)(implicit request: Request[_]): Unit = {
         ContentAssertions.commonPageChecks(
           doc,
@@ -134,6 +133,16 @@ class EmailControllerSpec extends ItSpec {
       radios(1).select(".govuk-radios__input").hasAttr("checked") shouldBe true
 
       DirectDebitUpdateEmailBackendStub.verifyFindByLatestSessionId()
+    }
+
+    "if no journey can be found redirect to the page unavailable page and location" in {
+      AuthStub.authorise()
+      DirectDebitUpdateEmailBackendStub.findByLatestSessionId(None)
+      val request = TestData.fakeRequestWithAuthorization
+      val result = controller.selectEmail(request)
+
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result) shouldBe Some("/direct-debit-verify-email/page-unavailable")
     }
 
     "must display the page in welsh" in {
