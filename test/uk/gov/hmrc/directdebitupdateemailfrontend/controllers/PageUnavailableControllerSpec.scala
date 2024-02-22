@@ -52,8 +52,7 @@ class PageUnavailableControllerSpec extends ItSpec with LogCapturing {
       paragraphs(1).text() shouldBe "Go to your tax account to check or change your Direct Debit email address."
       val link = doc.select("p > a.govuk-link")
       link.text() shouldBe "Go to your tax account"
-
-      link.attr("href") should contain("/business-account")
+      link.attr("href").contains("/business-account") shouldBe true
     }
   }
 }

@@ -135,16 +135,6 @@ class EmailControllerSpec extends ItSpec {
       DirectDebitUpdateEmailBackendStub.verifyFindByLatestSessionId()
     }
 
-    "if no journey can be found redirect to the page unavailable page and location" in {
-      AuthStub.authorise()
-      DirectDebitUpdateEmailBackendStub.findByLatestSessionId(None)
-      val request = TestData.fakeRequestWithAuthorization
-      val result = controller.selectEmail(request)
-
-      status(result) shouldBe SEE_OTHER
-      redirectLocation(result) shouldBe Some("/direct-debit-verify-email/page-unavailable")
-    }
-
     "must display the page in welsh" in {
       AuthStub.authorise()
       DirectDebitUpdateEmailBackendStub.findByLatestSessionId(

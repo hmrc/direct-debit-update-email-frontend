@@ -21,7 +21,6 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.stubs.{AuthStub, DirectDebitUpdateEmailBackendStub}
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.testdata.TestData
-import uk.gov.hmrc.http.UpstreamErrorResponse
 
 trait CommonBehaviour { this: ItSpec =>
 
@@ -38,16 +37,14 @@ trait CommonBehaviour { this: ItSpec =>
       )
     }
 
-    "must return an error if no journey can be found" in {
+    "must redirect if no journey can be found" in {
       AuthStub.authorise()
       DirectDebitUpdateEmailBackendStub.findByLatestSessionId(None)
 
       val result = action(TestData.fakeRequestWithAuthorization)
-      val exception = intercept[UpstreamErrorResponse](await(result))
 
-      exception.statusCode shouldBe INTERNAL_SERVER_ERROR
-      exception.message should include(s"No journey found for sessionId: ${TestData.sessionId.value}")
-
+      status(result) shouldBe SEE_OTHER
+      redirectLocation(result) shouldBe Some("/direct-debit-verify-email/page-unavailable")
       DirectDebitUpdateEmailBackendStub.verifyFindByLatestSessionId()
     }
   }
