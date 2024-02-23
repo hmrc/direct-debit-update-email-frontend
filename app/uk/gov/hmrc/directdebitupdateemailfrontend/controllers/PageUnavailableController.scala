@@ -31,7 +31,7 @@ class PageUnavailableController @Inject() (
 ) extends FrontendController(mcc) {
 
   def pageUnavailable: Action[AnyContent] = Action { implicit request =>
-    Ok(pageUnavailablePage(appConfig.Urls.businessTaxAccountUrl)).withNewSession //[OPS-11673] kick-out so new session needed
+    Ok(pageUnavailablePage(appConfig.Urls.businessTaxAccountUrl))
   }
 
 }
