@@ -20,7 +20,7 @@ object AppDependencies {
   val test = Seq(
     // format: OFF
     "uk.gov.hmrc"     %% "bootstrap-test-play-30" % bootstrapVersion,
-    "org.jsoup"       %  "jsoup"                  % "1.17.2",
+    "org.jsoup"       %  "jsoup"                  % "1.17.2"
   // format: ON
   ).map(_ % Test)
 }

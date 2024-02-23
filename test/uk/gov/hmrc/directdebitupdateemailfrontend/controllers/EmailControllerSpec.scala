@@ -38,7 +38,6 @@ class EmailControllerSpec extends ItSpec {
   lazy val controller = app.injector.instanceOf[EmailController]
 
   s"GET ${routes.EmailController.selectEmail.url}" - {
-
       def checkPageContents(doc: Document)(implicit request: Request[_]): Unit = {
         ContentAssertions.commonPageChecks(
           doc,

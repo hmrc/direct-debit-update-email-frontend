@@ -268,4 +268,23 @@ object Messages {
 
   }
 
+  object PageUnavailable {
+
+    val `Sorry, the page is unavailable`: Message = Message(
+      english = "Sorry, the page is unavailable",
+      welsh   = "Mae’n ddrwg gennym, nid yw’r dudalen ar gael"
+    )
+
+    val `The page is unavailable.`: Message = Message(
+      english = "The page is unavailable.",
+      welsh   = "Nid yw’r dudalen ar gael."
+    )
+
+    def `Go to your tax account to check or change your Direct Debit email address.`(url: String): Message = Message(
+      english = s"""<a class="govuk-link" href="$url">Go to your tax account</a> to check or change your Direct Debit email address.""",
+      welsh   = s"""<a class="govuk-link" href="$url">Ewch i’ch cyfrif treth</a> i wirio neu i newid eich cyfeiriad e-bost ar gyfer Debyd Uniongyrchol."""
+    )
+
+  }
+
 }

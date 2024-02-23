@@ -19,9 +19,11 @@ package uk.gov.hmrc.directdebitupdateemailfrontend.actions
 import ddUpdateEmail.connectors.JourneyConnector
 import ddUpdateEmail.models.GGCredId
 import ddUpdateEmail.models.journey.{Journey, JourneyId}
-import ddUpdateEmail.utils.Errors
+import play.api.Logging
 import play.api.mvc.{ActionRefiner, Request, Result}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendHeaderCarrierProvider
+import play.api.mvc.Results.Redirect
+import uk.gov.hmrc.directdebitupdateemailfrontend.controllers.routes
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -35,10 +37,12 @@ class AuthenticatedJourneyRequest[A](
 }
 
 @Singleton
-class GetJourneyActionRefiner @Inject() (journeyConnector: JourneyConnector)(
+class GetJourneyActionRefiner @Inject() (
+    journeyConnector: JourneyConnector
+)(
     implicit
     ec: ExecutionContext
-) extends ActionRefiner[AuthenticatedRequest, AuthenticatedJourneyRequest] with FrontendHeaderCarrierProvider {
+) extends ActionRefiner[AuthenticatedRequest, AuthenticatedJourneyRequest] with FrontendHeaderCarrierProvider with Logging {
 
   override protected def refine[A](request: AuthenticatedRequest[A]): Future[Either[Result, AuthenticatedJourneyRequest[A]]] = {
     implicit val r: Request[A] = request
@@ -48,7 +52,8 @@ class GetJourneyActionRefiner @Inject() (journeyConnector: JourneyConnector)(
       case Some(journey) =>
         Right(new AuthenticatedJourneyRequest(request, journey, request.ggCredId))
       case None =>
-        Errors.throwServerErrorException(s"No journey found for sessionId: ${hc.sessionId.map(_.value).getOrElse("-")}")
+        logger.warn(s"No journey found for sessionId: ${hc.sessionId.map(_.value).getOrElse("-")}")
+        Left(Redirect(routes.PageUnavailableController.pageUnavailable))
     }
   }
 

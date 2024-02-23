@@ -39,6 +39,11 @@ class AppConfig @Inject() (config: Configuration) {
     val gg: String = config.get[String]("baseUrl.gg")
     val contactFrontend: String = platformHost.getOrElse(config.get[String]("baseUrl.contact-frontend-local"))
     val betaFeedbackUrl: String = s"$contactFrontend/contact/beta-feedback?service=direct-debit-frontend"
+    val businessTaxAccountFrontend: String = platformHost.getOrElse(config.get[String]("baseUrl.business-tax-account-frontend"))
+  }
+
+  object Urls {
+    val businessTaxAccountUrl: String = s"${BaseUrl.businessTaxAccountFrontend}/business-account"
   }
 
 }
