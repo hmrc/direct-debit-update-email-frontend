@@ -17,7 +17,7 @@
 package uk.gov.hmrc.directdebitupdateemailfrontend.controllers
 
 import ddUpdateEmail.models.TaxId.{EmpRef, Vrn, Zppt, Zsdl}
-import ddUpdateEmail.models.{EmailVerificationResult, StartEmailVerificationJourneyResult}
+import ddUpdateEmail.models.{Email, EmailVerificationResult, StartEmailVerificationJourneyResult}
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import paymentsEmailVerification.models.EmailVerificationState.{AlreadyVerified, TooManyDifferentEmailAddresses, TooManyPasscodeAttempts, TooManyPasscodeJourneysStarted}
@@ -25,6 +25,7 @@ import paymentsEmailVerification.models.api.StartEmailVerificationJourneyRespons
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Cookie, Request}
 import play.api.test.Helpers._
+import uk.gov.hmrc.crypto.Sensitive.SensitiveString
 import uk.gov.hmrc.directdebitupdateemailfrontend.models.Language
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.{ContentAssertions, ItSpec}
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.stubs.{AuditStub, AuthStub, DirectDebitBackendStub, DirectDebitUpdateEmailBackendStub, EmailVerificationStub}
@@ -260,7 +261,7 @@ class EmailControllerSpec extends ItSpec {
             )
         }
 
-        "the email address is not in the correct format" in {
+        "the email address has no @ sign" in {
           test(
             "selectAnEmailToUseRadio" -> "new",
             "newEmailInput" -> "invalidEmail"
@@ -270,6 +271,51 @@ class EmailControllerSpec extends ItSpec {
               "#newEmailInput"
             )
         }
+
+        "the email address has an empty username" in {
+          test(
+            "selectAnEmailToUseRadio" -> "new",
+            "newEmailInput" -> "@domain.com"
+          )(
+              "Enter your email address in the correct format, like name@example.com",
+              "Nodwch eich cyfeiriad e-bost yn y fformat cywir, megis enw@enghraifft.com",
+              "#newEmailInput"
+            )
+        }
+
+        "the email address has an empty domain" in {
+          test(
+            "selectAnEmailToUseRadio" -> "new",
+            "newEmailInput" -> "username@"
+          )(
+              "Enter your email address in the correct format, like name@example.com",
+              "Nodwch eich cyfeiriad e-bost yn y fformat cywir, megis enw@enghraifft.com",
+              "#newEmailInput"
+            )
+        }
+
+        "the email address has special characters in the domain" in {
+          test(
+            "selectAnEmailToUseRadio" -> "new",
+            "newEmailInput" -> "username@1£5"
+          )(
+              "Enter your email address in the correct format, like name@example.com",
+              "Nodwch eich cyfeiriad e-bost yn y fformat cywir, megis enw@enghraifft.com",
+              "#newEmailInput"
+            )
+        }
+
+        "the email address has disallowed characters in the username" in {
+          test(
+            "selectAnEmailToUseRadio" -> "new",
+            "newEmailInput" -> "鍾username@domain.com"
+          )(
+              "Enter your email address in the correct format, like name@example.com",
+              "Nodwch eich cyfeiriad e-bost yn y fformat cywir, megis enw@enghraifft.com",
+              "#newEmailInput"
+            )
+        }
+
       }
 
     }
@@ -277,19 +323,21 @@ class EmailControllerSpec extends ItSpec {
     "redirect to request-verification when" - {
 
       "a new email address is chosen" in {
+        val email = "abc.!#$%&’'*+/=?^_`{|}~-${}abc@email.com"
+
         AuthStub.authorise()
         DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.Started.journeyJson())
         DirectDebitUpdateEmailBackendStub.updateSelectedEmail(TestData.journeyId, TestData.Journeys.SelectedEmail.journeyJson())
 
         val request = TestData.fakeRequestWithAuthorization.withMethod("POST").withFormUrlEncodedBody(
           "selectAnEmailToUseRadio" -> "new",
-          "newEmailInput" -> TestData.selectedEmail.value.decryptedValue
+          "newEmailInput" -> email
         )
         val result = controller.selectEmailSubmit(request)
         status(result) shouldBe SEE_OTHER
         redirectLocation(result) shouldBe Some(routes.EmailController.requestVerification.url)
 
-        DirectDebitUpdateEmailBackendStub.verifyUpdateSelectedEmail(TestData.journeyId, TestData.selectedEmail)
+        DirectDebitUpdateEmailBackendStub.verifyUpdateSelectedEmail(TestData.journeyId, Email(SensitiveString(email)))
       }
 
       "the bounced email address is chosen" in {

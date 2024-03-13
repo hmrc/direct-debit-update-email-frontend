@@ -19,10 +19,9 @@ package uk.gov.hmrc.directdebitupdateemailfrontend.testOnly.models.forms
 import ddUpdateEmail.models.{Email, Origin, TaxRegime}
 import play.api.data.Forms.{boolean, mapping, text}
 import play.api.data._
-import play.api.data.validation.{Constraint, Invalid, Valid}
 import uk.gov.hmrc.crypto.Sensitive.SensitiveString
+import uk.gov.hmrc.directdebitupdateemailfrontend.controllers.EmailController
 import uk.gov.hmrc.directdebitupdateemailfrontend.utils.EnumFormatter
-import uk.gov.hmrc.emailaddress.EmailAddress
 
 import java.util.Locale
 
@@ -65,13 +64,8 @@ object StartJourneyForm {
 
     val emailAddressMapping: Mapping[Email] = text
       .transform[String](email => email.toLowerCase(Locale.UK), _.toLowerCase(Locale.UK))
-      .verifying(
-        Constraint[String]((email: String) =>
-          if (email.isEmpty) Invalid("Enter an email address")
-          else if (email.length > 256) Invalid("Email address must be 256 characters or less")
-          else if (EmailAddress.isValid(email)) Valid
-          else Invalid("Invalid email address format"))
-      ).transform(s => Email(SensitiveString(s)), _.value.decryptedValue)
+      .verifying(EmailController.emailConstraint)
+      .transform(s => Email(SensitiveString(s)), _.value.decryptedValue)
 
     Form(
       mapping(
