@@ -72,8 +72,8 @@ object Messages {
   object ServicePhase {
 
     val beta: Message = Message(
-      english = "beta",
-      welsh   = "beta"
+      english = "Beta",
+      welsh   = "Beta"
     )
 
     def bannerText(link: String): Message = Message(

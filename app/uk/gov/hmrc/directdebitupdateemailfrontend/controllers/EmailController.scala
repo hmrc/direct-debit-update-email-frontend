@@ -30,7 +30,6 @@ import uk.gov.hmrc.crypto.Sensitive.SensitiveString
 import uk.gov.hmrc.directdebitupdateemailfrontend.actions.Actions
 import uk.gov.hmrc.directdebitupdateemailfrontend.controllers.EmailController.ChooseEmailForm
 import uk.gov.hmrc.directdebitupdateemailfrontend.services.{DirectDebitBackendService, EmailVerificationService}
-import uk.gov.hmrc.emailaddress.EmailAddress
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import uk.gov.hmrc.directdebitupdateemailfrontend.views.html
 import uk.gov.voa.play.form.ConditionalMappings.mandatoryIfEqual
@@ -144,13 +143,16 @@ object EmailController {
     )(ChooseEmailForm.apply)(ChooseEmailForm.unapply)
   )
 
+  private val emailRegex = "^([a-zA-Z0-9.!#$%&’'*+/=?^_`{|}~-]+)@([a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*)$".r
+
+  val emailConstraint: Constraint[String] =
+    Constraint[String]((email: String) =>
+      if (email.length > 256) Invalid("error.tooManyChar")
+      else if (emailRegex.matches(email)) Valid
+      else Invalid("error.invalidFormat"))
+
   val differentEmailAddressMapping: Mapping[String] = nonEmptyText
     .transform[String](email => email.toLowerCase(Locale.UK), _.toLowerCase(Locale.UK))
-    .verifying(
-      Constraint[String]((email: String) =>
-        if (email.length > 256) Invalid("error.tooManyChar")
-        else if (EmailAddress.isValid(email)) Valid
-        else Invalid("error.invalidFormat"))
-    )
+    .verifying(emailConstraint)
 
 }
