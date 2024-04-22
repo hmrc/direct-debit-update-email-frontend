@@ -91,7 +91,7 @@ object ContentAssertions extends RichMatchers {
 
     page.title() shouldBe s"$titlePrefix$expectedH1 - $expectedServiceName - GOV.UK"
 
-    val serviceName = page.select("a.hmrc-header__service-name")
+    val serviceName = page.select("a.govuk-header__service-name")
     serviceName.text() shouldBe expectedServiceName
     serviceName.attr("href") shouldBe routes.EmailController.selectEmail.url
 
