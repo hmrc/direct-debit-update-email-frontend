@@ -27,11 +27,11 @@ import play.api.mvc.{Cookie, Request}
 import play.api.test.Helpers._
 import uk.gov.hmrc.crypto.Sensitive.SensitiveString
 import uk.gov.hmrc.directdebitupdateemailfrontend.models.Language
-import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.{ContentAssertions, ItSpec}
-import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.stubs.{AuditStub, AuthStub, DirectDebitBackendStub, DirectDebitUpdateEmailBackendStub, EmailVerificationStub}
-import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.testdata.TestData
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.DocumentUtils._
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.FakeRequestUtils.FakeRequestOps
+import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.stubs._
+import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.testdata.TestData
+import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.{ContentAssertions, ItSpec}
 import uk.gov.hmrc.http.UpstreamErrorResponse
 
 class EmailControllerSpec extends ItSpec {

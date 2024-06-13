@@ -45,7 +45,7 @@ In order for this page to work the internal-auth tokens in config (default=`1234
 to be able to call the start endpoints in direct-debit-update-email-backend. Locally this can be achieved by ensuring 
 the internal-auth service is running via:
 ```bash
-sm --start INTERNAL_AUTH -r
+sm2 --start INTERNAL_AUTH 
 ```
 and then running the following curl command:
 ```bash

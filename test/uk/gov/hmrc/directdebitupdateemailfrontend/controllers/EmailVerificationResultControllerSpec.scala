@@ -22,9 +22,9 @@ import play.api.test.Helpers._
 import uk.gov.hmrc.directdebitupdateemailfrontend.models.Language
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.DocumentUtils.DocumentOps
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.FakeRequestUtils.FakeRequestOps
-import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.{ContentAssertions, ItSpec}
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.stubs.{AuthStub, DirectDebitUpdateEmailBackendStub, EmailVerificationStub}
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.testdata.TestData
+import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.{ContentAssertions, ItSpec}
 import uk.gov.hmrc.http.UpstreamErrorResponse
 
 import java.time.LocalDateTime

@@ -16,11 +16,11 @@
 
 package uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.testdata
 
-import ddUpdateEmail.models.{BackUrl, DDINumber, Email, EmailVerificationResult, GGCredId, Origin, ReturnUrl, StartEmailVerificationJourneyResult, TaxId, TaxRegime}
 import ddUpdateEmail.models.journey.{Journey, JourneyId, SessionId, SjRequest}
+import ddUpdateEmail.models._
 import play.api.test.FakeRequest
-import uk.gov.hmrc.crypto.{Encrypter, PlainText}
 import uk.gov.hmrc.crypto.Sensitive.SensitiveString
+import uk.gov.hmrc.crypto.{Encrypter, PlainText}
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.FakeRequestUtils._
 
 import java.time.Instant

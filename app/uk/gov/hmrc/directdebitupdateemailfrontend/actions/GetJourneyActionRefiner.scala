@@ -20,10 +20,10 @@ import ddUpdateEmail.connectors.JourneyConnector
 import ddUpdateEmail.models.GGCredId
 import ddUpdateEmail.models.journey.{Journey, JourneyId}
 import play.api.Logging
-import play.api.mvc.{ActionRefiner, Request, Result}
-import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendHeaderCarrierProvider
 import play.api.mvc.Results.Redirect
+import play.api.mvc.{ActionRefiner, Request, Result}
 import uk.gov.hmrc.directdebitupdateemailfrontend.controllers.routes
+import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendHeaderCarrierProvider
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}

@@ -20,11 +20,10 @@ import com.google.inject.{Inject, Singleton}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.directdebitupdateemailfrontend.testOnly.models.forms.StartJourneyForm
 import uk.gov.hmrc.directdebitupdateemailfrontend.testOnly.services.StartService
-import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import uk.gov.hmrc.directdebitupdateemailfrontend.testOnly.views.html._
+import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class StartJourneyController @Inject() (

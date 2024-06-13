@@ -20,10 +20,10 @@ import com.google.inject.{Inject, Singleton}
 import ddUpdateEmail.models.GGCredId
 import ddUpdateEmail.utils.Errors
 import play.api.mvc.Results.Redirect
-import play.api.mvc.{ActionRefiner, MessagesControllerComponents, Request, Result, WrappedRequest}
+import play.api.mvc._
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
-import uk.gov.hmrc.auth.core.{AuthConnector, AuthProviders, AuthorisationException, AuthorisedFunctions, NoActiveSession}
+import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.directdebitupdateemailfrontend.config.AppConfig
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendHeaderCarrierProvider
 

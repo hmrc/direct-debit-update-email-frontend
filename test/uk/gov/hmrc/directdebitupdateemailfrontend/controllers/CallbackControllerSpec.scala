@@ -22,7 +22,7 @@ import paymentsEmailVerification.models.{EmailVerificationResult => PaymentsEmai
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers._
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.ItSpec
-import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.stubs.{AuditStub, AuthStub, DirectDebitBackendStub, DirectDebitUpdateEmailBackendStub, EmailVerificationStub}
+import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.stubs._
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.testdata.TestData
 import uk.gov.hmrc.http.UpstreamErrorResponse
 

@@ -17,8 +17,8 @@
 package uk.gov.hmrc.directdebitupdateemailfrontend.controllers
 
 import com.google.inject.{Inject, Singleton}
-import ddUpdateEmail.models.{EmailVerificationResult, StartEmailVerificationJourneyResult}
 import ddUpdateEmail.models.journey.Journey.{AfterEmailVerificationJourneyStarted, AfterEmailVerificationResult, AfterSelectedEmail, BeforeEmailVerificationJourneyStarted, BeforeEmailVerificationResult}
+import ddUpdateEmail.models.{EmailVerificationResult, StartEmailVerificationJourneyResult}
 import ddUpdateEmail.utils.Errors
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.directdebitupdateemailfrontend.actions.Actions

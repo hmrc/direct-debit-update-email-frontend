@@ -18,11 +18,11 @@ package uk.gov.hmrc.directdebitupdateemailfrontend.controllers
 
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
-import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.DocumentUtils.DocumentOps
 import play.api.mvc.Result
 import play.api.test.FakeRequest
-import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.{ContentAssertions, ItSpec}
 import play.api.test.Helpers._
+import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.DocumentUtils.DocumentOps
+import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.{ContentAssertions, ItSpec}
 import uk.gov.hmrc.play.bootstrap.tools.LogCapturing
 
 import scala.concurrent.Future

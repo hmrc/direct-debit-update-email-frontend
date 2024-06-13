@@ -20,15 +20,16 @@ import com.google.inject.Inject
 import ddUpdateEmail.models.Origin
 import ddUpdateEmail.models.journey.SjRequest
 import play.api.Configuration
-import play.api.libs.json.Writes
-import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, HttpClient, HttpReads, HttpResponse}
-import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import play.api.libs.json.Json
 import uk.gov.hmrc.http.HttpReads.Implicits._
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, HttpResponse, StringContextOps}
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class DirectDebitUpdateEmailBackendConnector @Inject() (
-    httpClient: HttpClient,
+    httpClient: HttpClientV2,
     config:     Configuration
 )(implicit ec: ExecutionContext) extends ServicesConfig(config) {
 
@@ -46,13 +47,11 @@ class DirectDebitUpdateEmailBackendConnector @Inject() (
       case Origin.EpayeService => epayeStartUrl -> epayeInternalAuthToken
     }
 
-    val headers = Seq(HeaderNames.authorisation -> internalAuthToken)
-    httpClient.POST[SjRequest, HttpResponse](url, sjRequest, headers)(
-      implicitly[Writes[SjRequest]],
-      implicitly[HttpReads[HttpResponse]],
-      implicitly[HeaderCarrier].copy(authorization = None),
-      ec
-    )
+    val headers = HeaderNames.authorisation -> internalAuthToken
+    httpClient.post(url"$url")
+      .withBody(Json.toJson(sjRequest))
+      .setHeader(headers)
+      .execute[HttpResponse]
   }
 
 }

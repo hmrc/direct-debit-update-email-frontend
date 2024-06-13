@@ -18,8 +18,8 @@ package uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.stubs
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
-import ddUpdateEmail.models.{Email, EmailVerificationResult, StartEmailVerificationJourneyResult}
 import ddUpdateEmail.models.journey.JourneyId
+import ddUpdateEmail.models.{Email, EmailVerificationResult, StartEmailVerificationJourneyResult}
 import play.api.http.Status._
 import uk.gov.hmrc.crypto.Encrypter
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.testdata.TestData
