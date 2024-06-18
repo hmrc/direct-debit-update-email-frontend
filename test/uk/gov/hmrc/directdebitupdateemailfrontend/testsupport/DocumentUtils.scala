@@ -17,6 +17,7 @@
 package uk.gov.hmrc.directdebitupdateemailfrontend.testsupport
 
 import org.jsoup.nodes.{Document, Element}
+
 import scala.jdk.CollectionConverters._
 
 object DocumentUtils {

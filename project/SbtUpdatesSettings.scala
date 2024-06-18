@@ -1,7 +1,7 @@
 import com.timushev.sbt.updates.UpdatesKeys.dependencyUpdates
 import com.timushev.sbt.updates.UpdatesPlugin.autoImport.{dependencyUpdatesFailBuild, dependencyUpdatesFilter, moduleFilterRemoveValue}
-import sbt.Keys._
-import sbt._
+import sbt.*
+import sbt.Keys.*
 
 object SbtUpdatesSettings {
 

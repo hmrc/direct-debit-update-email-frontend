@@ -19,16 +19,18 @@ package uk.gov.hmrc.directdebitupdateemailfrontend.testOnly.connectors
 import com.google.inject.{Inject, Singleton}
 import ddUpdateEmail.crypto.CryptoFormat
 import play.api.Configuration
+import play.api.libs.json.Json
 import uk.gov.hmrc.directdebitupdateemailfrontend.testOnly.models.DirectDebitRecord
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
-import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.http.HttpReads.Implicits._
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class DirectDebitBackendConnector @Inject() (
-    httpClient: HttpClient,
+    httpClient: HttpClientV2,
     config:     Configuration
 )(implicit ex: ExecutionContext) extends ServicesConfig(config) {
 
@@ -38,7 +40,8 @@ class DirectDebitBackendConnector @Inject() (
 
   private val insertRecordUrl: String = s"$baseUrl/direct-debit-backend/test-only/bounced-email/status"
 
-  def insertRecord(directDebitRecord: DirectDebitRecord)(implicit hc: HeaderCarrier): Future[HttpResponse] =
-    httpClient.POST[DirectDebitRecord, HttpResponse](insertRecordUrl, directDebitRecord)
+  def insertRecord(directDebitRecord: DirectDebitRecord)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
+    httpClient.post(url"$insertRecordUrl").withBody(Json.toJson(directDebitRecord)).execute[HttpResponse]
+  }
 
 }

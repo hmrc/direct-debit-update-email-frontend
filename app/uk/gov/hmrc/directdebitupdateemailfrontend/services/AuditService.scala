@@ -18,7 +18,7 @@ package uk.gov.hmrc.directdebitupdateemailfrontend.services
 
 import cats.syntax.eq._
 import ddUpdateEmail.models.journey.Journey
-import ddUpdateEmail.models.{Email, EmailVerificationResult, GGCredId, Origin, StartEmailVerificationJourneyResult}
+import ddUpdateEmail.models._
 import play.api.libs.json._
 import uk.gov.hmrc.directdebitupdateemailfrontend.models.audit.{AuditDetail, EmailSource, EmailVerificationRequestedAuditDetail, EmailVerificationResultAuditDetail}
 import uk.gov.hmrc.http.HeaderCarrier

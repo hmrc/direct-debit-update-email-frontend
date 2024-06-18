@@ -17,7 +17,7 @@
 package uk.gov.hmrc.directdebitupdateemailfrontend.utils
 
 import play.api.i18n._
-import play.api.mvc.{Request, RequestHeader}
+import play.api.mvc.RequestHeader
 import uk.gov.hmrc.directdebitupdateemailfrontend.models.Language
 import uk.gov.hmrc.http.SessionKeys
 
@@ -40,7 +40,7 @@ class RequestSupport @Inject() (i18nSupport: I18nSupport) {
     i18nSupport.request2Messages(requestHeader)
   }
 
-  def isLoggedIn(implicit request: Request[_]): Boolean = request.session.get(SessionKeys.authToken).isDefined
+  def isLoggedIn(implicit request: RequestHeader): Boolean = request.session.get(SessionKeys.authToken).isDefined
 
 }
 

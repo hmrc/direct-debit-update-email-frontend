@@ -21,9 +21,9 @@ import ddUpdateEmail.models.journey.{SjRequest, SjResponse}
 import ddUpdateEmail.models.{BackUrl, NextUrl, ReturnUrl, TaxRegime}
 import play.api.mvc.{Request, Session}
 import uk.gov.hmrc.directdebitupdateemailfrontend.testOnly.controllers.routes
-import uk.gov.hmrc.directdebitupdateemailfrontend.testOnly.models.{DirectDebitRecord, TaxId}
 import uk.gov.hmrc.directdebitupdateemailfrontend.testOnly.models.forms.StartJourneyForm
 import uk.gov.hmrc.directdebitupdateemailfrontend.testOnly.models.testuser.TestUser
+import uk.gov.hmrc.directdebitupdateemailfrontend.testOnly.models.{DirectDebitRecord, TaxId}
 import uk.gov.hmrc.directdebitupdateemailfrontend.testOnly.utils.RandomDataGenerator
 import uk.gov.hmrc.http.HeaderNames
 import uk.gov.hmrc.play.http.HeaderCarrierConverter

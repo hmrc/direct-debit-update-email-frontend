@@ -14,7 +14,7 @@
  * limitations under the License.
  *@
 
-@import play.api.mvc.Request
+@import play.api.mvc.RequestHeader
 @import play.twirl.api.Html
 
 @import uk.gov.hmrc.directdebitupdateemailfrontend.messages.Messages
@@ -44,7 +44,7 @@
         hasErrors: Boolean = false,
         showBackLink: Boolean = true,
         backLinkUrlOverride: Option[String] = None
-)(contentBlock: Html)(implicit request: Request[_])
+)(contentBlock: Html)(implicit request: RequestHeader)
 
 
 @import requestSupport._

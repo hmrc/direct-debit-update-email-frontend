@@ -16,10 +16,10 @@
 
 package uk.gov.hmrc.directdebitupdateemailfrontend.config
 
-import javax.inject.{Inject, Singleton}
 import play.api.Configuration
 import uk.gov.hmrc.directdebitupdateemailfrontend.controllers.routes
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.duration.FiniteDuration
 
 @Singleton

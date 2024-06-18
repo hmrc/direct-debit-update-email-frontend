@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.directdebitupdateemailfrontend.testOnly.controllers
 
+import com.google.inject.{Inject, Singleton}
 import ddUpdateEmail.crypto.CryptoFormat
 import play.api.libs.json.Json
 import play.api.mvc._
@@ -23,7 +24,6 @@ import uk.gov.hmrc.directdebitupdateemailfrontend.actions.Actions
 import uk.gov.hmrc.directdebitupdateemailfrontend.testOnly.connectors.EmailVerificationConnector
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
-import com.google.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton

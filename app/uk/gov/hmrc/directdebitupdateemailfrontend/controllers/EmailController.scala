@@ -19,19 +19,19 @@ package uk.gov.hmrc.directdebitupdateemailfrontend.controllers
 import cats.syntax.eq._
 import com.google.inject.{Inject, Singleton}
 import ddUpdateEmail.connectors.JourneyConnector
-import ddUpdateEmail.models.{Email, EmailVerificationResult, StartEmailVerificationJourneyResult}
 import ddUpdateEmail.models.journey.Journey
+import ddUpdateEmail.models.{Email, EmailVerificationResult, StartEmailVerificationJourneyResult}
 import ddUpdateEmail.utils.Errors
-import play.api.data.{Form, Mapping}
 import play.api.data.Forms.{mapping, nonEmptyText}
 import play.api.data.validation.{Constraint, Invalid, Valid}
+import play.api.data.{Form, Mapping}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.crypto.Sensitive.SensitiveString
 import uk.gov.hmrc.directdebitupdateemailfrontend.actions.Actions
 import uk.gov.hmrc.directdebitupdateemailfrontend.controllers.EmailController.ChooseEmailForm
 import uk.gov.hmrc.directdebitupdateemailfrontend.services.{DirectDebitBackendService, EmailVerificationService}
-import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import uk.gov.hmrc.directdebitupdateemailfrontend.views.html
+import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import uk.gov.voa.play.form.ConditionalMappings.mandatoryIfEqual
 
 import java.util.Locale

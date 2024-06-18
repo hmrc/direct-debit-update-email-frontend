@@ -17,7 +17,6 @@
 package uk.gov.hmrc.directdebitupdateemailfrontend.testOnly.services
 
 import cats.syntax.eq._
-
 import com.google.inject.{Inject, Singleton}
 import ddUpdateEmail.models.journey.{SjRequest, SjResponse}
 import ddUpdateEmail.models.{NextUrl, Origin}
