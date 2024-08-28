@@ -2,7 +2,7 @@ import sbt.*
 
 object AppDependencies {
 
-  private val bootstrapVersion = "9.3.0"
+  private val bootstrapVersion = "9.4.0"
 
   val compile = Seq(
     // format: OFF
@@ -11,8 +11,8 @@ object AppDependencies {
     "uk.gov.hmrc"     %% "play-conditional-form-mapping-play-30"         % "3.2.0",
     "com.beachape"    %% "enumeratum-play"                               % "1.8.0",
     "org.typelevel"   %% "cats-core"                                     % "2.12.0",
-    "uk.gov.hmrc"     %% "direct-debit-update-email-backend-cor-journey" % "0.18.0",
-    "uk.gov.hmrc"     %% "payments-email-verification-cor-play-30"       % "3.0.0"
+    "uk.gov.hmrc"     %% "direct-debit-update-email-backend-cor-journey" % "0.19.0",
+    "uk.gov.hmrc"     %% "payments-email-verification-cor-play-30"       % "3.1.0"
   // format: ON
   )
 
