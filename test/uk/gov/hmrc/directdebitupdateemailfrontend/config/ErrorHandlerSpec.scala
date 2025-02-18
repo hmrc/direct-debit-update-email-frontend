@@ -26,14 +26,12 @@ import play.api.test.Helpers.{await, defaultAwaitTimeout}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class ErrorHandlerSpec extends AnyWordSpec
-  with Matchers
-  with GuiceOneAppPerSuite {
+class ErrorHandlerSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuite {
 
   override def fakeApplication(): Application =
     new GuiceApplicationBuilder()
       .configure(
-        "metrics.jvm" -> false,
+        "metrics.jvm"     -> false,
         "metrics.enabled" -> false
       )
       .build()

@@ -30,12 +30,13 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class CallbackController @Inject() (
-    actions:                   Actions,
-    journeyConnector:          JourneyConnector,
-    emailVerificationService:  EmailVerificationService,
-    directDebitBackendService: DirectDebitBackendService,
-    mcc:                       MessagesControllerComponents
-)(implicit ec: ExecutionContext) extends FrontendController(mcc) {
+  actions:                   Actions,
+  journeyConnector:          JourneyConnector,
+  emailVerificationService:  EmailVerificationService,
+  directDebitBackendService: DirectDebitBackendService,
+  mcc:                       MessagesControllerComponents
+)(using ExecutionContext)
+    extends FrontendController(mcc) {
 
   val callback: Action[AnyContent] = actions.authenticatedJourneyAction.async { implicit request =>
     request.journey match {
@@ -48,20 +49,25 @@ class CallbackController @Inject() (
         val selectedEmail = j match {
           case j: Journey.AfterSelectedEmail => j.selectedEmail
         }
-        val result = for {
+        val result        = for {
           verificationResult <- emailVerificationService.getVerificationResult(selectedEmail)
-          _ <- verificationResult match {
-            case EmailVerificationResult.Verified =>
-              directDebitBackendService.updateEmailAndBouncedFlag(j.sjRequest.ddiNumber, selectedEmail, isBounced = false)
-            case EmailVerificationResult.Locked =>
-              Future.successful(())
-          }
-          _ <- journeyConnector.updateEmailVerificationResult(j._id, verificationResult)
+          _                  <- verificationResult match {
+                                  case EmailVerificationResult.Verified =>
+                                    directDebitBackendService.updateEmailAndBouncedFlag(
+                                      j.sjRequest.ddiNumber,
+                                      selectedEmail,
+                                      isBounced = false
+                                    )
+                                  case EmailVerificationResult.Locked   =>
+                                    Future.successful(())
+                                }
+          _                  <- journeyConnector.updateEmailVerificationResult(j._id, verificationResult)
         } yield verificationResult
 
         result.map {
           case EmailVerificationResult.Verified => Redirect(routes.EmailVerificationResultController.emailConfirmed)
-          case EmailVerificationResult.Locked   => Redirect(routes.EmailVerificationResultController.tooManyPasscodeAttempts)
+          case EmailVerificationResult.Locked   =>
+            Redirect(routes.EmailVerificationResultController.tooManyPasscodeAttempts)
         }
 
     }

@@ -2,39 +2,27 @@ import uk.gov.hmrc.DefaultBuildSettings
 
 lazy val scalaCompilerOptions = Seq(
     "-Xfatal-warnings",
-    "-Xlint:-missing-interpolator,_",
-    "-Xlint:adapted-args",
-    "-Ywarn-unused:implicits",
-    "-Ywarn-unused:imports",
-    "-Ywarn-unused:locals",
-    "-Ywarn-unused:params",
-    "-Ywarn-unused:patvars",
-    "-Ywarn-unused:privates",
-    "-Ywarn-value-discard",
-    "-Ywarn-dead-code",
+    "-Wvalue-discard",
     "-deprecation",
     "-feature",
     "-unchecked",
     "-language:implicitConversions",
+    "-language:strictEquality",
     // required in place of silencer plugin
-    "-Wconf:cat=unused-imports&src=html/.*:s",
+    "-Wconf:msg=unused-imports&src=html/.*:s",
     "-Wconf:src=routes/.*:s"
 )
 
 lazy val microservice = Project("direct-debit-update-email-frontend", file("."))
   .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)
   .disablePlugins(JUnitXmlReportPlugin) //Required to prevent https://github.com/scalatest/scalatest/issues/1427
-  .settings(DefaultBuildSettings.scalaSettings: _*)
-  .settings(DefaultBuildSettings.defaultSettings(): _*)
+  .settings(DefaultBuildSettings.scalaSettings *)
+  .settings(DefaultBuildSettings.defaultSettings() *)
   .settings(
-    majorVersion        := 0,
-    scalaVersion        := "2.13.15",
+    majorVersion        := 1,
+    scalaVersion        := "3.3.4",
     PlayKeys.playDefaultPort := 10801,
     libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
-    // https://www.scala-lang.org/2021/01/12/configuring-and-suppressing-warnings.html
-    // suppress warnings in generated routes files
-    scalacOptions += "-Wconf:src=routes/.*:s",
-    scalacOptions += "-Wconf:cat=unused-imports&src=html/.*:s",
     scalacOptions ++= scalaCompilerOptions,
     pipelineStages := Seq(gzip)
   )
@@ -48,10 +36,11 @@ lazy val microservice = Project("direct-debit-update-email-frontend", file("."))
       }
   )
   .settings(TwirlKeys.templateImports := Seq.empty)
-  .settings(ScalariformSettings.scalariformSettings: _*)
-  .settings(WartRemoverSettings.wartRemoverSettings: _*)
-  .settings(ScoverageSettings.scoverageSettings: _*)
+  .settings(WartRemoverSettings.wartRemoverSettings *)
+  .settings(ScoverageSettings.scoverageSettings *)
   .settings(
       Compile / doc / scalacOptions := Seq() //this will allow to have warnings in `doc` task
   )
-  .settings(SbtUpdatesSettings.sbtUpdatesSettings: _*)
+  .settings(SbtUpdatesSettings.sbtUpdatesSettings *)
+  .settings(scalafmtOnCompile := true)
+

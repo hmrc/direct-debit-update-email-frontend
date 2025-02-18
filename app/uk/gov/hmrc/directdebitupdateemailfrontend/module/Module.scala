@@ -21,9 +21,8 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 
 class Module extends AbstractModule {
 
-  override def configure(): Unit = {
+  override def configure(): Unit =
     ()
-  }
 
   @Provides
   @Singleton

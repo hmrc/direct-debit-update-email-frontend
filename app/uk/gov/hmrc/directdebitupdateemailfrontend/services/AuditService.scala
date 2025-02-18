@@ -41,35 +41,35 @@ class AuditService @Inject() (auditConnector: AuditConnector)(implicit ec: Execu
     val _ = auditConnector.sendExtendedEvent(
       ExtendedDataEvent(
         auditSource = auditSource,
-        auditType   = a.auditType,
-        eventId     = UUID.randomUUID().toString,
-        tags        = hc.toAuditTags(),
-        detail      = Json.toJson(a)
+        auditType = a.auditType,
+        eventId = UUID.randomUUID().toString,
+        tags = hc.toAuditTags(),
+        detail = Json.toJson(a)
       )
     )
   }
 
   def auditEmailVerificationRequested(
-      journey:  Journey,
-      ggCredId: GGCredId,
-      email:    Email,
-      result:   StartEmailVerificationJourneyResult
+    journey:  Journey,
+    ggCredId: GGCredId,
+    email:    Email,
+    result:   StartEmailVerificationJourneyResult
   )(implicit headerCarrier: HeaderCarrier): Unit =
     audit(toEmailVerificationRequested(journey, ggCredId, email, result))
 
   def auditEmailVerificationResult(
-      journey:  Journey,
-      ggCredId: GGCredId,
-      email:    Email,
-      result:   EmailVerificationResult
+    journey:  Journey,
+    ggCredId: GGCredId,
+    email:    Email,
+    result:   EmailVerificationResult
   )(implicit headerCarrier: HeaderCarrier): Unit =
     audit(toEmailVerificationResult(journey, ggCredId, email: Email, result))
 
   private def toEmailVerificationRequested(
-      journey:  Journey,
-      ggCredId: GGCredId,
-      email:    Email,
-      result:   StartEmailVerificationJourneyResult
+    journey:  Journey,
+    ggCredId: GGCredId,
+    email:    Email,
+    result:   StartEmailVerificationJourneyResult
   ): EmailVerificationRequestedAuditDetail = {
     val resultString =
       result match {
@@ -81,21 +81,21 @@ class AuditService @Inject() (auditConnector: AuditConnector)(implicit ec: Execu
       }
 
     EmailVerificationRequestedAuditDetail(
-      origin         = toAuditString(journey.origin),
-      taxType        = journey.taxRegime.entryName,
-      taxId          = journey.taxId.map(_.value),
-      emailAddress   = email.value.decryptedValue,
-      emailSource    = deriveEmailSource(journey, email),
-      result         = resultString,
+      origin = toAuditString(journey.origin),
+      taxType = journey.taxRegime.entryName,
+      taxId = journey.taxId.map(_.value),
+      emailAddress = email.value.decryptedValue,
+      emailSource = deriveEmailSource(journey, email),
+      result = resultString,
       authProviderId = ggCredId.value
     )
   }
 
   private def toEmailVerificationResult(
-      journey:  Journey,
-      ggCredId: GGCredId,
-      email:    Email,
-      result:   EmailVerificationResult
+    journey:  Journey,
+    ggCredId: GGCredId,
+    email:    Email,
+    result:   EmailVerificationResult
   ): EmailVerificationResultAuditDetail = {
     val resultString = result match {
       case EmailVerificationResult.Verified => "Verified"
@@ -103,13 +103,13 @@ class AuditService @Inject() (auditConnector: AuditConnector)(implicit ec: Execu
     }
 
     EmailVerificationResultAuditDetail(
-      origin         = toAuditString(journey.origin),
-      taxType        = journey.taxRegime.entryName,
-      taxId          = journey.taxId.map(_.value),
-      emailAddress   = email.value.decryptedValue,
-      emailSource    = deriveEmailSource(journey, email),
-      result         = resultString,
-      failureReason  = result match {
+      origin = toAuditString(journey.origin),
+      taxType = journey.taxRegime.entryName,
+      taxId = journey.taxId.map(_.value),
+      emailAddress = email.value.decryptedValue,
+      emailSource = deriveEmailSource(journey, email),
+      result = resultString,
+      failureReason = result match {
         case EmailVerificationResult.Verified => None
         case EmailVerificationResult.Locked   => Some("TooManyPasscodeAttempts")
       },

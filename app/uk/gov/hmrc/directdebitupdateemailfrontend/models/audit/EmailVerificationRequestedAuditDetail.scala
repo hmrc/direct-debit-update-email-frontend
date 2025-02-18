@@ -19,13 +19,13 @@ package uk.gov.hmrc.directdebitupdateemailfrontend.models.audit
 import play.api.libs.json.{Json, OWrites}
 
 final case class EmailVerificationRequestedAuditDetail(
-    origin:         String,
-    taxType:        String,
-    taxId:          Option[String],
-    emailAddress:   String,
-    emailSource:    EmailSource,
-    result:         String,
-    authProviderId: String
+  origin:         String,
+  taxType:        String,
+  taxId:          Option[String],
+  emailAddress:   String,
+  emailSource:    EmailSource,
+  result:         String,
+  authProviderId: String
 ) extends AuditDetail {
   val auditType: String = "EmailVerificationRequested"
 }

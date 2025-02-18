@@ -25,14 +25,16 @@ import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class DirectDebitBackendConnector @Inject() (
-    httpClient: HttpClientV2,
-    config:     Configuration
-)(implicit ec: ExecutionContext) extends ServicesConfig(config) {
+  httpClient: HttpClientV2,
+  config:     Configuration
+)(implicit ec: ExecutionContext)
+    extends ServicesConfig(config) {
 
   import DirectDebitBackendConnector._
 
@@ -41,11 +43,13 @@ class DirectDebitBackendConnector @Inject() (
   private def updateEmailAndBouncedFlagUrl(ddiNumber: DDINumber): String =
     s"$baseUrl/direct-debit-backend/bounced-email/status/${ddiNumber.value}"
 
-  def updateEmailAndBouncedFlag(ddiNumber: DDINumber, email: Email, isBounced: Boolean)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
-    httpClient.post(url"${updateEmailAndBouncedFlagUrl(ddiNumber)}")
+  def updateEmailAndBouncedFlag(ddiNumber: DDINumber, email: Email, isBounced: Boolean)(implicit
+    hc: HeaderCarrier
+  ): Future[HttpResponse] =
+    httpClient
+      .post(url"${updateEmailAndBouncedFlagUrl(ddiNumber)}")
       .withBody(Json.toJson(BouncedEmailUpdateRequest(email, isBounced)))
       .execute[HttpResponse]
-  }
 
 }
 

@@ -28,11 +28,11 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 class EmailController @Inject() (
-    actions:                    Actions,
-    mcc:                        MessagesControllerComponents,
-    emailVerificationConnector: EmailVerificationConnector
+  actions:                    Actions,
+  mcc:                        MessagesControllerComponents,
+  emailVerificationConnector: EmailVerificationConnector
 )(implicit ec: ExecutionContext)
-  extends FrontendController(mcc) {
+    extends FrontendController(mcc) {
 
   implicit val cryptoFormat: CryptoFormat = CryptoFormat.NoOpCryptoFormat
 

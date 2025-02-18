@@ -22,12 +22,12 @@
 
 @()(implicit request: Request[_])
 
-@title = @{"I am a back page"}
+  @title = @{"I am a back page"}
 
-@layout(title, showBackLink = false){
+ @layout(title, showBackLink = false){
 
- <h1 class="govuk-heading-xl">@title</h1>
+  <h1 class="govuk-heading-xl">@title</h1>
 
- <p class="govuk-body">Go back to the <a class="govuk-link" href="@{routes.StartJourneyController.startJourney.url}">start page</a>.</p>
+  <p class="govuk-body">Go back to the <a class="govuk-link" href="@{routes.StartJourneyController.startJourney.url}">start page</a>.</p>
 
 }

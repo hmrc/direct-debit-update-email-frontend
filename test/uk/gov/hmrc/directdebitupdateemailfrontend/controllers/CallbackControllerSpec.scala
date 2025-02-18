@@ -47,27 +47,31 @@ class CallbackControllerSpec extends ItSpec {
       ("BTA", "vatc", "vrn", Vrn("123456")),
       ("EpayeService", "ppt", "zppt", Zppt("12345")),
       ("EpayeService", "zsdl", "zsdl", Zsdl("1234"))
-    ).foreach {
-        case (origin, taxRegimeString, taxIdType, taxId) =>
-          "redirect to the email verified page if the email has been verified for " +
-            s"origin=$origin, taxRegime=$taxRegimeString and taxIdType=$taxIdType" in {
-              AuthStub.authorise()
-              DirectDebitUpdateEmailBackendStub.findByLatestSessionId(
-                TestData.Journeys.EmailVerificationJourneyStarted.journeyJson(origin    = origin, taxRegime = taxRegimeString, taxId = Some(taxId))
-              )
-              EmailVerificationStub.getVerificationStatus(PaymentsEmailVerificationResult.Verified)
-              DirectDebitBackendStub.updateEmailAndBouncedFlag(TestData.ddiNumber)
-              DirectDebitUpdateEmailBackendStub.updateEmailVerificationResult(TestData.journeyId, TestData.Journeys.ObtainedEmailVerificationResult.journeyJson())
+    ).foreach { case (origin, taxRegimeString, taxIdType, taxId) =>
+      "redirect to the email verified page if the email has been verified for " +
+        s"origin=$origin, taxRegime=$taxRegimeString and taxIdType=$taxIdType" in {
+          AuthStub.authorise()
+          DirectDebitUpdateEmailBackendStub.findByLatestSessionId(
+            TestData.Journeys.EmailVerificationJourneyStarted
+              .journeyJson(origin = origin, taxRegime = taxRegimeString, taxId = Some(taxId))
+          )
+          EmailVerificationStub.getVerificationStatus(PaymentsEmailVerificationResult.Verified)
+          DirectDebitBackendStub.updateEmailAndBouncedFlag(TestData.ddiNumber)
+          DirectDebitUpdateEmailBackendStub.updateEmailVerificationResult(
+            TestData.journeyId,
+            TestData.Journeys.ObtainedEmailVerificationResult.journeyJson()
+          )
 
-              val result = controller.callback(TestData.fakeRequestWithAuthorization)
-              status(result) shouldBe SEE_OTHER
-              redirectLocation(result) shouldBe Some(routes.EmailVerificationResultController.emailConfirmed.url)
+          val result = controller.callback(TestData.fakeRequestWithAuthorization)
+          status(result) shouldBe SEE_OTHER
+          redirectLocation(result) shouldBe Some(routes.EmailVerificationResultController.emailConfirmed.url)
 
-              EmailVerificationStub.verifyGetEmailVerificationResult(TestData.selectedEmail)
-              AuditStub.verifyEventAudited(
-                "EmailVerificationResult",
-                Json.parse(
-                  s"""{
+          EmailVerificationStub.verifyGetEmailVerificationResult(TestData.selectedEmail)
+          AuditStub.verifyEventAudited(
+            "EmailVerificationResult",
+            Json
+              .parse(
+                s"""{
                  |  "origin": "$origin",
                  |  "taxType": "$taxRegimeString",
                  |  "taxId": "${taxId.value}",
@@ -76,21 +80,26 @@ class CallbackControllerSpec extends ItSpec {
                  |  "result": "Verified",
                  |  "authProviderId": "${TestData.ggCredId.value}"
                  |}""".stripMargin
-                ).as[JsObject]
               )
-              DirectDebitBackendStub.verifyUpdateEmailAndBouncedFlag(
-                TestData.ddiNumber,
-                TestData.selectedEmail,
-                isBounced = false
-              )
-              DirectDebitUpdateEmailBackendStub.verifyUpdateEmailVerificationResult(TestData.journeyId, EmailVerificationResult.Verified)
-            }
-      }
+              .as[JsObject]
+          )
+          DirectDebitBackendStub.verifyUpdateEmailAndBouncedFlag(
+            TestData.ddiNumber,
+            TestData.selectedEmail,
+            isBounced = false
+          )
+          DirectDebitUpdateEmailBackendStub.verifyUpdateEmailVerificationResult(
+            TestData.journeyId,
+            EmailVerificationResult.Verified
+          )
+        }
+    }
 
     "return an error if the email has been verified but there is a problem updating direct-debit-backend" in {
       AuthStub.authorise()
       DirectDebitUpdateEmailBackendStub.findByLatestSessionId(
-        TestData.Journeys.EmailVerificationJourneyStarted.journeyJson(taxId         = None, selectedEmail = TestData.bouncedEmail)
+        TestData.Journeys.EmailVerificationJourneyStarted
+          .journeyJson(taxId = None, selectedEmail = TestData.bouncedEmail)
       )
       EmailVerificationStub.getVerificationStatus(PaymentsEmailVerificationResult.Verified)
       DirectDebitBackendStub.updateEmailAndBouncedFlag(TestData.ddiNumber, INTERNAL_SERVER_ERROR)
@@ -103,8 +112,9 @@ class CallbackControllerSpec extends ItSpec {
       EmailVerificationStub.verifyGetEmailVerificationResult(TestData.bouncedEmail)
       AuditStub.verifyEventAudited(
         "EmailVerificationResult",
-        Json.parse(
-          s"""{
+        Json
+          .parse(
+            s"""{
              |  "origin": "BTA",
              |  "taxType": "paye",
              |  "emailAddress": "${TestData.bouncedEmail.value.decryptedValue}",
@@ -112,7 +122,8 @@ class CallbackControllerSpec extends ItSpec {
              |  "result": "Verified",
              |  "authProviderId": "${TestData.ggCredId.value}"
              |}""".stripMargin
-        ).as[JsObject]
+          )
+          .as[JsObject]
       )
       DirectDebitBackendStub.verifyUpdateEmailAndBouncedFlag(
         TestData.ddiNumber,
@@ -123,11 +134,14 @@ class CallbackControllerSpec extends ItSpec {
 
     "redirect to the too many passcode attempts if the user has attempted too many passcodes" in {
       AuthStub.authorise()
-      DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.EmailVerificationJourneyStarted.journeyJson())
+      DirectDebitUpdateEmailBackendStub.findByLatestSessionId(
+        TestData.Journeys.EmailVerificationJourneyStarted.journeyJson()
+      )
       EmailVerificationStub.getVerificationStatus(PaymentsEmailVerificationResult.Locked)
       DirectDebitUpdateEmailBackendStub.updateEmailVerificationResult(
         TestData.journeyId,
-        TestData.Journeys.ObtainedEmailVerificationResult.journeyJson(emailVerificationResult = EmailVerificationResult.Locked)
+        TestData.Journeys.ObtainedEmailVerificationResult
+          .journeyJson(emailVerificationResult = EmailVerificationResult.Locked)
       )
 
       val result = controller.callback(TestData.fakeRequestWithAuthorization)
@@ -137,8 +151,9 @@ class CallbackControllerSpec extends ItSpec {
       EmailVerificationStub.verifyGetEmailVerificationResult(TestData.selectedEmail)
       AuditStub.verifyEventAudited(
         "EmailVerificationResult",
-        Json.parse(
-          s"""{
+        Json
+          .parse(
+            s"""{
              |  "origin": "BTA",
              |  "taxType": "paye",
              |  "emailAddress": "${TestData.selectedEmail.value.decryptedValue}",
@@ -147,9 +162,13 @@ class CallbackControllerSpec extends ItSpec {
              |  "failureReason": "TooManyPasscodeAttempts",
              |  "authProviderId": "${TestData.ggCredId.value}"
              |}""".stripMargin
-        ).as[JsObject]
+          )
+          .as[JsObject]
       )
-      DirectDebitUpdateEmailBackendStub.verifyUpdateEmailVerificationResult(TestData.journeyId, EmailVerificationResult.Locked)
+      DirectDebitUpdateEmailBackendStub.verifyUpdateEmailVerificationResult(
+        TestData.journeyId,
+        EmailVerificationResult.Locked
+      )
     }
 
   }

@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.directdebitupdateemailfrontend.controllers
 
-import cats.syntax.eq._
+import cats.syntax.eq.*
 import com.google.inject.{Inject, Singleton}
 import ddUpdateEmail.connectors.JourneyConnector
 import ddUpdateEmail.models.journey.Journey
@@ -39,28 +39,31 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class EmailController @Inject() (
-    actions:                   Actions,
-    selectEmailPage:           html.SelectEmail,
-    journeyConnector:          JourneyConnector,
-    emailVerificationService:  EmailVerificationService,
-    directDebitBackendService: DirectDebitBackendService,
-    mcc:                       MessagesControllerComponents
-)(implicit ec: ExecutionContext) extends FrontendController(mcc) {
+  actions:                   Actions,
+  selectEmailPage:           html.SelectEmail,
+  journeyConnector:          JourneyConnector,
+  emailVerificationService:  EmailVerificationService,
+  directDebitBackendService: DirectDebitBackendService,
+  mcc:                       MessagesControllerComponents
+)(implicit ec: ExecutionContext)
+    extends FrontendController(mcc) {
 
   val selectEmail: Action[AnyContent] = actions.authenticatedJourneyAction { implicit request =>
     val form = existingSelectedEmail(request.journey).fold(
       EmailController.chooseEmailForm()
     ) { selectedEmail =>
-        val chooseEmailFormData =
-          if (selectedEmail === request.journey.bouncedEmail)
-            ChooseEmailForm(request.journey.bouncedEmail.value.decryptedValue, None)
-          else
-            ChooseEmailForm(request.journey.bouncedEmail.value.decryptedValue, Some(selectedEmail.value.decryptedValue))
+      val chooseEmailFormData =
+        if (selectedEmail === request.journey.bouncedEmail)
+          ChooseEmailForm(request.journey.bouncedEmail.value.decryptedValue, None)
+        else
+          ChooseEmailForm(request.journey.bouncedEmail.value.decryptedValue, Some(selectedEmail.value.decryptedValue))
 
-        EmailController.chooseEmailForm().fill(chooseEmailFormData)
-      }
+      EmailController.chooseEmailForm().fill(chooseEmailFormData)
+    }
 
-    Ok(selectEmailPage(request.journey.taxRegime, request.journey.bouncedEmail, request.journey.sjRequest.backUrl, form))
+    Ok(
+      selectEmailPage(request.journey.taxRegime, request.journey.bouncedEmail, request.journey.sjRequest.backUrl, form)
+    )
   }
 
   private def existingSelectedEmail(journey: Journey): Option[Email] =
@@ -69,23 +72,32 @@ class EmailController @Inject() (
       case j: Journey.AfterSelectedEmail  => Some(j.selectedEmail)
     }
 
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val selectEmailSubmit: Action[AnyContent] = actions.authenticatedJourneyAction.async { implicit request =>
-    EmailController.chooseEmailForm()
+    EmailController
+      .chooseEmailForm()
       .bindFromRequest()
       .fold(
         formWithErrors =>
           BadRequest(
-            selectEmailPage(request.journey.taxRegime, request.journey.bouncedEmail, request.journey.sjRequest.backUrl, formWithErrors)
+            selectEmailPage(
+              request.journey.taxRegime,
+              request.journey.bouncedEmail,
+              request.journey.sjRequest.backUrl,
+              formWithErrors
+            )
           ),
         { formData =>
-          val selectedEmail = formData.differentEmail.map(e => Email(SensitiveString(e))).getOrElse(request.journey.bouncedEmail)
-          journeyConnector.updateSelectedEmail(request.journeyId, selectedEmail).map(_ =>
-            Redirect(routes.EmailController.requestVerification))
+          val selectedEmail =
+            formData.differentEmail.map(e => Email(SensitiveString(e))).getOrElse(request.journey.bouncedEmail)
+          journeyConnector
+            .updateSelectedEmail(request.journeyId, selectedEmail)
+            .map(_ => Redirect(routes.EmailController.requestVerification))
         }
       )
   }
 
-  val requestVerification: Action[AnyContent] = actions.authenticatedJourneyAction.async{ implicit request =>
+  val requestVerification: Action[AnyContent] = actions.authenticatedJourneyAction.async { implicit request =>
     request.journey match {
       case j: Journey.BeforeSelectedEmail =>
         Errors.throwServerErrorException(
@@ -94,13 +106,14 @@ class EmailController @Inject() (
 
       case j: Journey.AfterSelectedEmail =>
         val result = for {
-          startResult <- emailVerificationService.startEmailVerificationJourney(j.selectedEmail)
+          startResult    <- emailVerificationService.startEmailVerificationJourney(j.selectedEmail)
           updatedJourney <- journeyConnector.updateStartEmailVerificationJourneyResult(j._id, startResult)
-          _ <- {
+          _              <- {
             // bring the journey forward to ObtainedEmailVerificationResult if already verified or locked
             startResult match {
               case StartEmailVerificationJourneyResult.AlreadyVerified =>
-                directDebitBackendService.updateEmailAndBouncedFlag(j.sjRequest.ddiNumber, j.selectedEmail, isBounced = false)
+                directDebitBackendService
+                  .updateEmailAndBouncedFlag(j.sjRequest.ddiNumber, j.selectedEmail, isBounced = false)
                   .flatMap(_ => journeyConnector.updateEmailVerificationResult(j._id, EmailVerificationResult.Verified))
 
               case StartEmailVerificationJourneyResult.TooManyPasscodeAttempts =>
@@ -139,8 +152,8 @@ object EmailController {
   def chooseEmailForm(): Form[ChooseEmailForm] = Form(
     mapping(
       "selectAnEmailToUseRadio" -> nonEmptyText,
-      "newEmailInput" -> mandatoryIfEqual("selectAnEmailToUseRadio", "new", differentEmailAddressMapping)
-    )(ChooseEmailForm.apply)(ChooseEmailForm.unapply)
+      "newEmailInput"           -> mandatoryIfEqual("selectAnEmailToUseRadio", "new", differentEmailAddressMapping)
+    )(ChooseEmailForm.apply)(e => Some((e.email, e.differentEmail)))
   )
 
   private val emailRegex = "^([a-zA-Z0-9.!#$%&’'*+/=?^_`{|}~-]+)@([a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*)$".r
@@ -149,7 +162,8 @@ object EmailController {
     Constraint[String]((email: String) =>
       if (email.length > 256) Invalid("error.tooManyChar")
       else if (emailRegex.matches(email)) Valid
-      else Invalid("error.invalidFormat"))
+      else Invalid("error.invalidFormat")
+    )
 
   val differentEmailAddressMapping: Mapping[String] = nonEmptyText
     .transform[String](email => email.toLowerCase(Locale.UK), _.toLowerCase(Locale.UK))

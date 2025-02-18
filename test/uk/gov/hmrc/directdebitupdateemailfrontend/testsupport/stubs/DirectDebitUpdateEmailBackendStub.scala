@@ -32,15 +32,16 @@ object DirectDebitUpdateEmailBackendStub {
   private val findByLatestSessionIdUrl: String = s"$baseUrl/find-latest-by-session-id"
 
   private def updateSelectedEmailUrl(journeyId: JourneyId): String = s"$baseUrl/${journeyId.value}/selected-email"
-  private def updateStartVerificationJourneyResultUrl(journeyId: JourneyId): String = s"$baseUrl/${journeyId.value}/start-verification-journey-result"
-  private def updateEmailVerificationResultUrl(journeyId: JourneyId): String = s"$baseUrl/${journeyId.value}/email-verification-result"
+  private def updateStartVerificationJourneyResultUrl(journeyId: JourneyId): String =
+    s"$baseUrl/${journeyId.value}/start-verification-journey-result"
+  private def updateEmailVerificationResultUrl(journeyId: JourneyId): String        =
+    s"$baseUrl/${journeyId.value}/email-verification-result"
 
   def findByLatestSessionId(jsonBody: Option[String]): StubMapping = stubFor(
     get(urlPathEqualTo(findByLatestSessionIdUrl))
-      .willReturn{
-        jsonBody.fold(aResponse().withStatus(NOT_FOUND)){
-          json =>
-            aResponse().withStatus(OK).withBody(json)
+      .willReturn {
+        jsonBody.fold(aResponse().withStatus(NOT_FOUND)) { json =>
+          aResponse().withStatus(OK).withBody(json)
         }
       }
   )
@@ -74,7 +75,10 @@ object DirectDebitUpdateEmailBackendStub {
         .withRequestBody(equalToJson(s""" "${TestData.encryptString(selectedEmail.value.decryptedValue)}" """))
     )
 
-  def verifyUpdateStartVerificationJourneyResult(journeyId: JourneyId, startResult: StartEmailVerificationJourneyResult) =
+  def verifyUpdateStartVerificationJourneyResult(
+    journeyId:   JourneyId,
+    startResult: StartEmailVerificationJourneyResult
+  ) =
     verify(
       postRequestedFor(urlPathEqualTo(updateStartVerificationJourneyResultUrl(journeyId)))
         .withRequestBody(equalToJson(TestData.Journeys.startResultJsonValue(startResult)))

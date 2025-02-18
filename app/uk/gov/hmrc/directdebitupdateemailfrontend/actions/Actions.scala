@@ -22,9 +22,9 @@ import javax.inject.{Inject, Singleton}
 
 @Singleton
 class Actions @Inject() (
-    actionBuilder:              DefaultActionBuilder,
-    authenticatedActionRefiner: AuthenticatedActionRefiner,
-    getJourneyActionRefiner:    GetJourneyActionRefiner
+  actionBuilder:              DefaultActionBuilder,
+  authenticatedActionRefiner: AuthenticatedActionRefiner,
+  getJourneyActionRefiner:    GetJourneyActionRefiner
 ) {
 
   val default: ActionBuilder[Request, AnyContent] = actionBuilder

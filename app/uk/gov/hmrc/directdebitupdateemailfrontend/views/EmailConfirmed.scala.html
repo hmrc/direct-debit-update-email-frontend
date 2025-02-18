@@ -14,17 +14,17 @@
  * limitations under the License.
  *@
 
+@import ddUpdateEmail.models.{Email, ReturnUrl}
 @import play.api.mvc.Request
 @import play.twirl.api.Html
-@import uk.gov.hmrc.directdebitupdateemailfrontend.views.html.Layout
 @import uk.gov.hmrc.directdebitupdateemailfrontend.messages.Messages
 @import uk.gov.hmrc.directdebitupdateemailfrontend.utils.RequestSupport
-@import ddUpdateEmail.models.{Email, ReturnUrl}
 
 @this(
 layout: Layout,
 requestSupport: RequestSupport
 )
+
 
 @(email: Email, continueUrl: ReturnUrl)(implicit request: Request[_])
 

@@ -24,8 +24,8 @@ import javax.inject.{Inject, Singleton}
 
 @Singleton
 class SignOutController @Inject() (
-    mcc:          MessagesControllerComponents,
-    timedOutPage: TimedOut
+  mcc:          MessagesControllerComponents,
+  timedOutPage: TimedOut
 ) extends FrontendController(mcc) {
 
   def signOut: Action[AnyContent] = Action { _ =>

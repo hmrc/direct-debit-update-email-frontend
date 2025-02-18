@@ -24,14 +24,14 @@ import org.scalatest.matchers.should.Matchers
 object RichMatchers extends RichMatchers
 
 trait RichMatchers
-  extends Matchers
-  with Diagrams
-  with TryValues
-  with EitherValues
-  with OptionValues
-  with AppendedClues
-  with ScalaFutures
-  with StreamlinedXml
-  with Inside
-  with Eventually
-  with IntegrationPatience
+    extends Matchers
+    with Diagrams
+    with TryValues
+    with EitherValues
+    with OptionValues
+    with AppendedClues
+    with ScalaFutures
+    with StreamlinedXml
+    with Inside
+    with Eventually
+    with IntegrationPatience

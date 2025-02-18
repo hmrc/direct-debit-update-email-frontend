@@ -16,13 +16,14 @@
 
 package uk.gov.hmrc.directdebitupdateemailfrontend.testsupport
 
+import org.scalatest.freespec.AnyFreeSpecLike
 import play.api.mvc.{Action, AnyContent}
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
+import play.api.test.Helpers.*
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.stubs.{AuthStub, DirectDebitUpdateEmailBackendStub}
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.testdata.TestData
 
-trait CommonBehaviour { this: ItSpec =>
+trait CommonBehaviour extends AnyFreeSpecLike { this: ItSpec =>
 
   def authenticatedJourneyBehaviour(action: Action[AnyContent]): Unit = {
 

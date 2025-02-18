@@ -29,24 +29,36 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class DirectDebitUpdateEmailBackendService @Inject() (
-    connector: DirectDebitUpdateEmailBackendConnector
+  connector: DirectDebitUpdateEmailBackendConnector
 )(implicit ec: ExecutionContext) {
 
-  def start(origin: Origin, sjRequest: SjRequest)(implicit hc: HeaderCarrier): Future[Either[SjResponse.Error, NextUrl]] =
+  def start(origin: Origin, sjRequest: SjRequest)(implicit
+    hc: HeaderCarrier
+  ): Future[Either[SjResponse.Error, NextUrl]] =
     connector.start(origin, sjRequest).map { response =>
       if (response.status === CREATED) {
-        val next = response.json.validate[SjResponse.Success].fold(
-          e => Errors.throwServerErrorException(s"Could not parse response body to start journey request. " +
-            s"Body was ${response.body}, errors were ${e.toString}"),
-          _.nextUrl
-        )
+        val next = response.json
+          .validate[SjResponse.Success]
+          .fold(
+            e =>
+              Errors.throwServerErrorException(
+                s"Could not parse response body to start journey request. " +
+                  s"Body was ${response.body}, errors were ${e.toString}"
+              ),
+            _.nextUrl
+          )
         Right(next)
       } else {
-        response.json.validate[SjResponse.Error].fold(
-          _ => Errors.throwServerErrorException(s"Got status ${response.status.toString} in response to start journey request. " +
-            s"Response body was ${response.body}"),
-          Left(_)
-        )
+        response.json
+          .validate[SjResponse.Error]
+          .fold(
+            _ =>
+              Errors.throwServerErrorException(
+                s"Got status ${response.status.toString} in response to start journey request. " +
+                  s"Response body was ${response.body}"
+              ),
+            Left(_)
+          )
       }
 
     }

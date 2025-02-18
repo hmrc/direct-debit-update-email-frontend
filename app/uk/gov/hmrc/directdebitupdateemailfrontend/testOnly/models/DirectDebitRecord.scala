@@ -21,11 +21,11 @@ import ddUpdateEmail.models.{DDINumber, Email, TaxRegime}
 import play.api.libs.json.{Json, OFormat}
 
 final case class DirectDebitRecord(
-    regime:                    TaxRegime,
-    identifier:                Option[TaxId]   = None,
-    email:                     Email,
-    directDebitInstructionNos: List[DDINumber],
-    bounced:                   Boolean
+  regime:                    TaxRegime,
+  identifier:                Option[TaxId] = None,
+  email:                     Email,
+  directDebitInstructionNos: List[DDINumber],
+  bounced:                   Boolean
 )
 
 object DirectDebitRecord {

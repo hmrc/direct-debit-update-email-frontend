@@ -46,18 +46,18 @@ class SignOutControllerSpec extends ItSpec {
 
     "return the timed out page" in {
 
-      val request = TestData.fakeRequestWithAuthorization
+      val request                = TestData.fakeRequestWithAuthorization
       val result: Future[Result] = controller.signOutFromTimeout(request)
-      val pageContent: String = contentAsString(result)
-      val doc: Document = Jsoup.parse(pageContent)
+      val pageContent: String    = contentAsString(result)
+      val doc: Document          = Jsoup.parse(pageContent)
 
       status(result) shouldBe OK
       ContentAssertions.commonPageChecks(
         doc,
-        expectedH1        = "For your security, we signed you out",
+        expectedH1 = "For your security, we signed you out",
         expectedSubmitUrl = None,
-        hasBackLink       = false,
-        hasSignOutLink    = false
+        hasBackLink = false,
+        hasSignOutLink = false
       )(request)
       val signInButton = doc.select(".govuk-body")
       signInButton.text() shouldBe "Sign in"
@@ -66,19 +66,19 @@ class SignOutControllerSpec extends ItSpec {
 
     "return the timed out page in Welsh" in {
 
-      val request = TestData.fakeRequestWithAuthorization.withLang(Language.Welsh)
+      val request                = TestData.fakeRequestWithAuthorization.withLang(Language.Welsh)
       val result: Future[Result] = controller.signOutFromTimeout(request)
-      val pageContent: String = contentAsString(result)
-      val doc: Document = Jsoup.parse(pageContent)
+      val pageContent: String    = contentAsString(result)
+      val doc: Document          = Jsoup.parse(pageContent)
 
       status(result) shouldBe OK
       ContentAssertions.commonPageChecks(
         doc,
-        expectedH1        = "Er eich diogelwch, gwnaethom eich allgofnodi",
+        expectedH1 = "Er eich diogelwch, gwnaethom eich allgofnodi",
         expectedSubmitUrl = None,
-        hasBackLink       = false,
-        hasSignOutLink    = false,
-        language          = Language.Welsh
+        hasBackLink = false,
+        hasSignOutLink = false,
+        language = Language.Welsh
       )(request)
       val signInButton = doc.select(".govuk-body")
       signInButton.text() shouldBe "Mewngofnodi"

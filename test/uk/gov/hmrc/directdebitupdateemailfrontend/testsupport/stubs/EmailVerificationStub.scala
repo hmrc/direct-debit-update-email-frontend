@@ -46,11 +46,11 @@ object EmailVerificationStub {
     )
 
   def verifyRequestEmailVerification(
-      emailAddress:                      Email,
-      expectedAccessibilityStatementUrl: String,
-      expectedPageTitle:                 String,
-      expectedLanguageCode:              String,
-      urlPrefix:                         String
+    emailAddress:                      Email,
+    expectedAccessibilityStatementUrl: String,
+    expectedPageTitle:                 String,
+    expectedLanguageCode:              String,
+    urlPrefix:                         String
   ): Unit =
     verify(
       exactly(1),
@@ -76,13 +76,13 @@ object EmailVerificationStub {
   def getVerificationStatus(result: EmailVerificationResult): StubMapping =
     stubFor(
       post(urlPathEqualTo(getVerificationResultUrl))
-        .willReturn{
+        .willReturn {
           aResponse().withStatus(OK).withBody(Json.prettyPrint(Json.toJson(result)))
         }
     )
 
   def verifyGetEmailVerificationResult(
-      emailAddress: Email
+    emailAddress: Email
   ): Unit =
     verify(
       exactly(1),
@@ -100,12 +100,15 @@ object EmailVerificationStub {
   def getLockoutCreatedAt(dateTime: Option[LocalDateTime]): StubMapping = stubFor(
     get(urlPathEqualTo(getLockoutCreatedAtUrl))
       .willReturn(
-        aResponse().withStatus(OK).withBody(
-          Json.prettyPrint(dateTime.fold[JsValue](
-            Json.parse("{}")
-          )(d =>
-              Json.parse(s"""{ "earliestCreatedAtTime": ${Json.toJson(d).toString}  } """)))
-        )
+        aResponse()
+          .withStatus(OK)
+          .withBody(
+            Json.prettyPrint(
+              dateTime.fold[JsValue](
+                Json.parse("{}")
+              )(d => Json.parse(s"""{ "earliestCreatedAtTime": ${Json.toJson(d).toString}  } """))
+            )
+          )
       )
   )
 

@@ -56,9 +56,11 @@ object TestData {
   val frozenInstant: Instant = Instant.parse(frozenInstantString)
 
   def encryptString(s: String)(implicit encrypter: Encrypter): String =
-    encrypter.encrypt(
-      PlainText("\"" + SensitiveString(s).decryptedValue + "\"")
-    ).value
+    encrypter
+      .encrypt(
+        PlainText("\"" + SensitiveString(s).decryptedValue + "\"")
+      )
+      .value
 
   object Journeys {
 
@@ -84,7 +86,11 @@ object TestData {
 
     object Started {
 
-      def journey(origin: Origin = Origin.BTA, taxRegime: TaxRegime = TaxRegime.Paye, taxId: Option[TaxId] = None): Journey.Started =
+      def journey(
+        origin:    Origin = Origin.BTA,
+        taxRegime: TaxRegime = TaxRegime.Paye,
+        taxId:     Option[TaxId] = None
+      ): Journey.Started =
         Journey.Started(
           journeyId,
           origin,
@@ -96,7 +102,9 @@ object TestData {
           bouncedEmail
         )
 
-      def journeyJson(origin: String = "BTA", taxRegime: String = "paye", taxId: Option[TaxId] = None)(implicit encrypter: Encrypter): String =
+      def journeyJson(origin: String = "BTA", taxRegime: String = "paye", taxId: Option[TaxId] = None)(implicit
+        encrypter: Encrypter
+      ): String =
         s"""{
           |  "Started": {
           |    "_id": "${journeyId.value}",
@@ -121,10 +129,10 @@ object TestData {
     object SelectedEmail {
 
       def journey(
-          origin:        Origin        = Origin.BTA,
-          taxRegime:     TaxRegime     = TaxRegime.Paye,
-          selectedEmail: Email         = selectedEmail,
-          taxId:         Option[TaxId] = None
+        origin:        Origin = Origin.BTA,
+        taxRegime:     TaxRegime = TaxRegime.Paye,
+        selectedEmail: Email = selectedEmail,
+        taxId:         Option[TaxId] = None
       ): Journey.SelectedEmail =
         Journey.SelectedEmail(
           journeyId,
@@ -139,10 +147,10 @@ object TestData {
         )
 
       def journeyJson(
-          origin:        String        = "BTA",
-          taxRegime:     String        = "paye",
-          selectedEmail: Email         = selectedEmail,
-          taxId:         Option[TaxId] = None
+        origin:        String = "BTA",
+        taxRegime:     String = "paye",
+        selectedEmail: Email = selectedEmail,
+        taxId:         Option[TaxId] = None
       )(implicit encrypter: Encrypter): String =
         s"""{
            |  "SelectedEmail": {
@@ -169,11 +177,12 @@ object TestData {
     object EmailVerificationJourneyStarted {
 
       def journey(
-          origin:                              Origin                              = Origin.BTA,
-          taxRegime:                           TaxRegime                           = TaxRegime.Paye,
-          selectedEmail:                       Email                               = selectedEmail,
-          startEmailVerificationJourneyResult: StartEmailVerificationJourneyResult = StartEmailVerificationJourneyResult.Ok(emailVerificationRedirectUrl),
-          taxId:                               Option[TaxId]                       = None
+        origin:                              Origin = Origin.BTA,
+        taxRegime:                           TaxRegime = TaxRegime.Paye,
+        selectedEmail:                       Email = selectedEmail,
+        startEmailVerificationJourneyResult: StartEmailVerificationJourneyResult =
+          StartEmailVerificationJourneyResult.Ok(emailVerificationRedirectUrl),
+        taxId:                               Option[TaxId] = None
       ): Journey.EmailVerificationJourneyStarted =
         Journey.EmailVerificationJourneyStarted(
           journeyId,
@@ -189,12 +198,13 @@ object TestData {
         )
 
       def journeyJson(
-          origin:                              String                              = "BTA",
-          taxRegime:                           String                              = "paye",
-          selectedEmail:                       Email                               = selectedEmail,
-          startEmailVerificationJourneyResult: StartEmailVerificationJourneyResult = StartEmailVerificationJourneyResult.Ok(emailVerificationRedirectUrl),
-          taxId:                               Option[TaxId]                       = None
-      )(implicit encrypter: Encrypter): String = {
+        origin:                              String = "BTA",
+        taxRegime:                           String = "paye",
+        selectedEmail:                       Email = selectedEmail,
+        startEmailVerificationJourneyResult: StartEmailVerificationJourneyResult =
+          StartEmailVerificationJourneyResult.Ok(emailVerificationRedirectUrl),
+        taxId:                               Option[TaxId] = None
+      )(implicit encrypter: Encrypter): String =
         s"""{
            |  "EmailVerificationJourneyStarted": {
            |    "_id": "${journeyId.value}",
@@ -215,18 +225,17 @@ object TestData {
            |    "startEmailVerificationJourneyResult": ${startResultJsonValue(startEmailVerificationJourneyResult)}
            |  }
            |}""".stripMargin
-      }
 
     }
 
     object ObtainedEmailVerificationResult {
 
       def journey(
-          origin:                  Origin                  = Origin.BTA,
-          taxRegime:               TaxRegime               = TaxRegime.Paye,
-          selectedEmail:           Email                   = selectedEmail,
-          emailVerificationResult: EmailVerificationResult = EmailVerificationResult.Verified,
-          taxId:                   Option[TaxId]           = None
+        origin:                  Origin = Origin.BTA,
+        taxRegime:               TaxRegime = TaxRegime.Paye,
+        selectedEmail:           Email = selectedEmail,
+        emailVerificationResult: EmailVerificationResult = EmailVerificationResult.Verified,
+        taxId:                   Option[TaxId] = None
       ): Journey.ObtainedEmailVerificationResult =
         Journey.ObtainedEmailVerificationResult(
           journeyId,
@@ -243,12 +252,12 @@ object TestData {
         )
 
       def journeyJson(
-          origin:                  String                  = "BTA",
-          taxRegime:               String                  = "paye",
-          selectedEmail:           Email                   = selectedEmail,
-          emailVerificationResult: EmailVerificationResult = EmailVerificationResult.Verified,
-          taxId:                   Option[TaxId]           = None
-      )(implicit encrypter: Encrypter): String = {
+        origin:                  String = "BTA",
+        taxRegime:               String = "paye",
+        selectedEmail:           Email = selectedEmail,
+        emailVerificationResult: EmailVerificationResult = EmailVerificationResult.Verified,
+        taxId:                   Option[TaxId] = None
+      )(implicit encrypter: Encrypter): String =
         s"""{
            |  "ObtainedEmailVerificationResult": {
            |    "_id": "${journeyId.value}",
@@ -266,29 +275,31 @@ object TestData {
            |    "createdAt":{"$$date": {"$$numberLong": "${frozenInstant.toEpochMilli.toString}" } },
            |    "lastUpdated":{"$$date": {"$$numberLong": "${frozenInstant.toEpochMilli.toString}" } },
            |    "selectedEmail": "${encryptString(selectedEmail.value.decryptedValue)}",
-           |    "startEmailVerificationJourneyResult": ${startResultJsonValue(StartEmailVerificationJourneyResult.Ok(emailVerificationRedirectUrl))},
+           |    "startEmailVerificationJourneyResult": ${startResultJsonValue(
+            StartEmailVerificationJourneyResult.Ok(emailVerificationRedirectUrl)
+          )},
            |    "emailVerificationResult": "${emailVerificationResult.entryName}"
            |  }
            |}""".stripMargin
-      }
 
     }
 
-    def startResultJsonValue(startEmailVerificationJourneyResult: StartEmailVerificationJourneyResult): String = startEmailVerificationJourneyResult match {
-      case StartEmailVerificationJourneyResult.Ok(redirect) =>
-        s"""{
+    def startResultJsonValue(startEmailVerificationJourneyResult: StartEmailVerificationJourneyResult): String =
+      startEmailVerificationJourneyResult match {
+        case StartEmailVerificationJourneyResult.Ok(redirect) =>
+          s"""{
            |  "Ok": {
-           |    "redirectUrl": "${redirect}"
+           |    "redirectUrl": "$redirect"
            |  }
            |}
            |""".stripMargin
 
-      case other =>
-        s"""{
+        case other =>
+          s"""{
            |  "${other.toString}": {}
            |}
            |""".stripMargin
-    }
+      }
 
   }
 

@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.directdebitupdateemailfrontend.testOnly.models.testuser
 
-/**
- * The same as CredId
- */
+/** The same as CredId
+  */
 final case class AuthorityId(value: String)

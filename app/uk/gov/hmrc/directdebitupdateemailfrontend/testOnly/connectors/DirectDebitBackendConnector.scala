@@ -25,14 +25,16 @@ import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import play.api.libs.ws.WSBodyWritables.writeableOf_JsValue
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class DirectDebitBackendConnector @Inject() (
-    httpClient: HttpClientV2,
-    config:     Configuration
-)(implicit ex: ExecutionContext) extends ServicesConfig(config) {
+  httpClient: HttpClientV2,
+  config:     Configuration
+)(implicit ex: ExecutionContext)
+    extends ServicesConfig(config) {
 
   private implicit val noOpCrypto: CryptoFormat = CryptoFormat.NoOpCryptoFormat
 
@@ -40,8 +42,7 @@ class DirectDebitBackendConnector @Inject() (
 
   private val insertRecordUrl: String = s"$baseUrl/direct-debit-backend/test-only/bounced-email/status"
 
-  def insertRecord(directDebitRecord: DirectDebitRecord)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
+  def insertRecord(directDebitRecord: DirectDebitRecord)(implicit hc: HeaderCarrier): Future[HttpResponse] =
     httpClient.post(url"$insertRecordUrl").withBody(Json.toJson(directDebitRecord)).execute[HttpResponse]
-  }
 
 }

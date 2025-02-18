@@ -28,15 +28,18 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class EmailVerificationConnector @Inject() (servicesConfig: ServicesConfig, httpClient: HttpClientV2)(implicit ec: ExecutionContext) {
+class EmailVerificationConnector @Inject() (servicesConfig: ServicesConfig, httpClient: HttpClientV2)(implicit
+  ec: ExecutionContext
+) {
 
   private val getPasscodesUrl: String = servicesConfig.baseUrl("email-verification") + "/test-only/passcodes"
 
-  def requestEmailVerification()(implicit hc: HeaderCarrier): Future[EmailVerificationPasscodes] = {
-    httpClient.get(url"$getPasscodesUrl").execute[EmailVerificationPasscodes]
-      .recover{
+  def requestEmailVerification()(implicit hc: HeaderCarrier): Future[EmailVerificationPasscodes] =
+    httpClient
+      .get(url"$getPasscodesUrl")
+      .execute[EmailVerificationPasscodes]
+      .recover {
         case e: UpstreamErrorResponse if e.statusCode === NOT_FOUND => EmailVerificationPasscodes(List.empty)
       }
-  }
 
 }

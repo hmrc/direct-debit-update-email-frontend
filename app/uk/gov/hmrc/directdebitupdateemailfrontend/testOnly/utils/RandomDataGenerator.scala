@@ -26,9 +26,8 @@ object RandomDataGenerator {
 
   private implicit val random: Random.type = Random
 
-  /**
-   * Next n-digit number string. Values can start from '0'
-   */
+  /** Next n-digit number string. Values can start from '0'
+    */
   def nextNumber(n: Int): String = random.alphanumeric.filter(_.isDigit).take(n).mkString
 
   def nextAlphanumeric(n: Int): String = random.alphanumeric.take(n).mkString
@@ -36,7 +35,7 @@ object RandomDataGenerator {
   def nextAlpha(n: Int): String = random.alphanumeric.filter(_.isLetter).take(n).mkString
 
   def nextEmpref(): String = {
-    val nextTaxOfficeNumber = nextNumber(3)
+    val nextTaxOfficeNumber    = nextNumber(3)
     val nextTaxOfficeReference = s"GZ${nextNumber(5)}"
     s"$nextTaxOfficeNumber$nextTaxOfficeReference"
   }

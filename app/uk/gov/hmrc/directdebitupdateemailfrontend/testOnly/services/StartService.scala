@@ -32,12 +32,14 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class StartService @Inject() (
-    authLoginApiService:                  AuthLoginApiService,
-    directDebitBackendService:            DirectDebitBackendService,
-    directDebitUpdateEmailBackendService: DirectDebitUpdateEmailBackendService
+  authLoginApiService:                  AuthLoginApiService,
+  directDebitBackendService:            DirectDebitBackendService,
+  directDebitUpdateEmailBackendService: DirectDebitUpdateEmailBackendService
 )(implicit ec: ExecutionContext) {
 
-  def start(formData: StartJourneyForm)(implicit request: Request[_]): Future[Either[SjResponse.Error, (Session, NextUrl)]] = {
+  def start(
+    formData: StartJourneyForm
+  )(implicit request: Request[_]): Future[Either[SjResponse.Error, (Session, NextUrl)]] = {
     lazy val ddiNumber = RandomDataGenerator.nextDdiNumber()
 
     lazy val directDebitRecord = {
@@ -66,9 +68,12 @@ class StartService @Inject() (
 
     for {
       session <- authLoginApiService.logIn(TestUser.makeTestUser(formData))
-      hc = HeaderCarrierConverter.fromRequestAndSession(request.withHeaders(request.headers.remove(HeaderNames.xSessionId)), session)
-      _ <- directDebitBackendService.insertRecord(directDebitRecord)(hc)
-      result <- directDebitUpdateEmailBackendService.start(formData.origin, sjRequest)(hc)
+      hc       = HeaderCarrierConverter.fromRequestAndSession(
+                   request.withHeaders(request.headers.remove(HeaderNames.xSessionId)),
+                   session
+                 )
+      _       <- directDebitBackendService.insertRecord(directDebitRecord)(hc)
+      result  <- directDebitUpdateEmailBackendService.start(formData.origin, sjRequest)(hc)
     } yield result.map(session -> _)
   }
 
