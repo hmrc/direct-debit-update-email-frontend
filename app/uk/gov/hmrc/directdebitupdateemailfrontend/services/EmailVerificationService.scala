@@ -38,13 +38,13 @@ class EmailVerificationService @Inject() (
   auditService:               AuditService,
   contactFrontendConfig:      ContactFrontendConfig,
   requestSupport:             RequestSupport
-)(implicit ec: ExecutionContext) {
+)(using ExecutionContext) {
 
   private val isLocal: Boolean = appConfig.BaseUrl.platformHost.isEmpty
 
   def startEmailVerificationJourney(
     email: Email
-  )(implicit r: AuthenticatedJourneyRequest[_], hc: HeaderCarrier): Future[StartEmailVerificationJourneyResult] = {
+  )(using r: AuthenticatedJourneyRequest[_], hc: HeaderCarrier): Future[StartEmailVerificationJourneyResult] = {
     val lang = requestSupport.language(r)
 
     val startRequest = StartEmailVerificationJourneyRequest(
@@ -68,7 +68,7 @@ class EmailVerificationService @Inject() (
 
   def getVerificationResult(
     email: Email
-  )(implicit r: AuthenticatedJourneyRequest[_], hc: HeaderCarrier): Future[EmailVerificationResult] = {
+  )(using r: AuthenticatedJourneyRequest[_], hc: HeaderCarrier): Future[EmailVerificationResult] = {
     val request = GetEmailVerificationResultRequest(PaymentsEmailVerificationEmail(email.value.decryptedValue))
     emailVerificationConnector.getEmailVerificationResult(request).map { response =>
       val result = toEmailVerificationResult(response)
@@ -77,7 +77,7 @@ class EmailVerificationService @Inject() (
     }
   }
 
-  def getEarliestCreatedAtTime()(implicit hc: HeaderCarrier): Future[GetEarliestCreatedAtTimeResponse] =
+  def getEarliestCreatedAtTime()(using HeaderCarrier): Future[GetEarliestCreatedAtTimeResponse] =
     emailVerificationConnector.getEarliestCreatedAtTime()
 
   private def toStartEmailVerificationJourneyResult(s: StartEmailVerificationJourneyResponse) = s match {

@@ -27,12 +27,10 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class DirectDebitBackendService @Inject() (connector: DirectDebitBackendConnector)(implicit
-  ec: ExecutionContext
-) {
+class DirectDebitBackendService @Inject() (connector: DirectDebitBackendConnector)(using ExecutionContext) {
 
-  def updateEmailAndBouncedFlag(ddiNumber: DDINumber, email: Email, isBounced: Boolean)(implicit
-    hc: HeaderCarrier
+  def updateEmailAndBouncedFlag(ddiNumber: DDINumber, email: Email, isBounced: Boolean)(using
+    HeaderCarrier
   ): Future[Unit] =
     connector.updateEmailAndBouncedFlag(ddiNumber, email, isBounced).map { response =>
       if (response.status === NO_CONTENT) ()

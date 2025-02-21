@@ -37,7 +37,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class AuthLoginApiService @Inject() (
   httpClient:     HttpClientV2,
   servicesConfig: ServicesConfig
-)(implicit ec: ExecutionContext) {
+)(using ExecutionContext) {
 
   def logIn(testUser: TestUser): Future[Session] = for {
     authToken: AuthToken <- callAuthLoginApi(makeLoginRequestBody(testUser))
@@ -58,7 +58,7 @@ class AuthLoginApiService @Inject() (
     )
 
   private def callAuthLoginApi(requestBody: JsObject): Future[AuthToken] = {
-    implicit val hc: HeaderCarrier = HeaderCarrier()
+    given HeaderCarrier = HeaderCarrier()
 
     httpClient
       .post(url"$authLoginApiUrl/government-gateway/session/login")

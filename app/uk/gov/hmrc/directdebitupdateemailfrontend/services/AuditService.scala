@@ -31,13 +31,13 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class AuditService @Inject() (auditConnector: AuditConnector)(implicit ec: ExecutionContext) {
+class AuditService @Inject() (auditConnector: AuditConnector)(using ExecutionContext) {
 
   private val auditSource: String = "direct-debit-update-email-frontend"
 
   private def toAuditString(origin: Origin) = origin.toString.split('.').lastOption.getOrElse(origin.toString)
 
-  private def audit[A <: AuditDetail: Writes](a: A)(implicit hc: HeaderCarrier): Unit = {
+  private def audit[A <: AuditDetail: Writes](a: A)(using hc: HeaderCarrier): Unit = {
     val _ = auditConnector.sendExtendedEvent(
       ExtendedDataEvent(
         auditSource = auditSource,
@@ -54,7 +54,7 @@ class AuditService @Inject() (auditConnector: AuditConnector)(implicit ec: Execu
     ggCredId: GGCredId,
     email:    Email,
     result:   StartEmailVerificationJourneyResult
-  )(implicit headerCarrier: HeaderCarrier): Unit =
+  )(using HeaderCarrier): Unit =
     audit(toEmailVerificationRequested(journey, ggCredId, email, result))
 
   def auditEmailVerificationResult(
@@ -62,7 +62,7 @@ class AuditService @Inject() (auditConnector: AuditConnector)(implicit ec: Execu
     ggCredId: GGCredId,
     email:    Email,
     result:   EmailVerificationResult
-  )(implicit headerCarrier: HeaderCarrier): Unit =
+  )(using HeaderCarrier): Unit =
     audit(toEmailVerificationResult(journey, ggCredId, email: Email, result))
 
   private def toEmailVerificationRequested(

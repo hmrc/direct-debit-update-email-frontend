@@ -37,7 +37,7 @@ class EmailVerificationResultController @Inject() (
   tooManyPasscodesPage:        html.TooManyPasscodes,
   tooManyPasscodeJourneysPage: html.TooManyPasscodeJourneysStarted,
   mcc:                         MessagesControllerComponents
-)(implicit ec: ExecutionContext)
+)(using ExecutionContext)
     extends FrontendController(mcc) {
 
   val emailConfirmed: Action[AnyContent] = actions.authenticatedJourneyAction { implicit request =>

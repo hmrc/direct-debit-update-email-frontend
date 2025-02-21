@@ -55,7 +55,7 @@ object TestData {
 
   val frozenInstant: Instant = Instant.parse(frozenInstantString)
 
-  def encryptString(s: String)(implicit encrypter: Encrypter): String =
+  def encryptString(s: String)(using encrypter: Encrypter): String =
     encrypter
       .encrypt(
         PlainText("\"" + SensitiveString(s).decryptedValue + "\"")
@@ -102,8 +102,8 @@ object TestData {
           bouncedEmail
         )
 
-      def journeyJson(origin: String = "BTA", taxRegime: String = "paye", taxId: Option[TaxId] = None)(implicit
-        encrypter: Encrypter
+      def journeyJson(origin: String = "BTA", taxRegime: String = "paye", taxId: Option[TaxId] = None)(using
+        Encrypter
       ): String =
         s"""{
           |  "Started": {
@@ -151,7 +151,7 @@ object TestData {
         taxRegime:     String = "paye",
         selectedEmail: Email = selectedEmail,
         taxId:         Option[TaxId] = None
-      )(implicit encrypter: Encrypter): String =
+      )(using Encrypter): String =
         s"""{
            |  "SelectedEmail": {
            |    "_id": "${journeyId.value}",
@@ -204,7 +204,7 @@ object TestData {
         startEmailVerificationJourneyResult: StartEmailVerificationJourneyResult =
           StartEmailVerificationJourneyResult.Ok(emailVerificationRedirectUrl),
         taxId:                               Option[TaxId] = None
-      )(implicit encrypter: Encrypter): String =
+      )(using Encrypter): String =
         s"""{
            |  "EmailVerificationJourneyStarted": {
            |    "_id": "${journeyId.value}",
@@ -257,7 +257,7 @@ object TestData {
         selectedEmail:           Email = selectedEmail,
         emailVerificationResult: EmailVerificationResult = EmailVerificationResult.Verified,
         taxId:                   Option[TaxId] = None
-      )(implicit encrypter: Encrypter): String =
+      )(using Encrypter): String =
         s"""{
            |  "ObtainedEmailVerificationResult": {
            |    "_id": "${journeyId.value}",

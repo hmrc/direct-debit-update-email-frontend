@@ -33,6 +33,6 @@ final case class EmailVerificationResultAuditDetail(
 
 object EmailVerificationResultAuditDetail {
 
-  implicit val writes: OWrites[EmailVerificationResultAuditDetail] = Json.writes
+  given OWrites[EmailVerificationResultAuditDetail] = Json.writes
 
 }

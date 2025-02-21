@@ -39,14 +39,14 @@ class AuthenticatedActionRefiner @Inject() (
   val authConnector: AuthConnector,
   appConfig:         AppConfig,
   cc:                MessagesControllerComponents
-) extends ActionRefiner[Request, AuthenticatedRequest]
-    with AuthorisedFunctions
-    with FrontendHeaderCarrierProvider {
+) extends ActionRefiner[Request, AuthenticatedRequest],
+      AuthorisedFunctions,
+      FrontendHeaderCarrierProvider {
 
-  private implicit val ec: ExecutionContext = cc.executionContext
+  private given ExecutionContext = cc.executionContext
 
   override protected def refine[A](request: Request[A]): Future[Either[Result, AuthenticatedRequest[A]]] = {
-    implicit val r: Request[A] = request
+    given Request[A] = request
 
     authorised(AuthProviders(GovernmentGateway))
       .retrieve(

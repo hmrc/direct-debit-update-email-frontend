@@ -69,7 +69,7 @@ object DirectDebitUpdateEmailBackendStub {
       .willReturn(aResponse().withStatus(OK).withBody(responseJsonBody))
   )
 
-  def verifyUpdateSelectedEmail(journeyId: JourneyId, selectedEmail: Email)(implicit encrypter: Encrypter) =
+  def verifyUpdateSelectedEmail(journeyId: JourneyId, selectedEmail: Email)(using Encrypter) =
     verify(
       postRequestedFor(urlPathEqualTo(updateSelectedEmailUrl(journeyId)))
         .withRequestBody(equalToJson(s""" "${TestData.encryptString(selectedEmail.value.decryptedValue)}" """))

@@ -33,7 +33,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class DirectDebitBackendConnector @Inject() (
   httpClient: HttpClientV2,
   config:     Configuration
-)(implicit ec: ExecutionContext)
+)(using ExecutionContext)
     extends ServicesConfig(config) {
 
   import DirectDebitBackendConnector._
@@ -43,8 +43,8 @@ class DirectDebitBackendConnector @Inject() (
   private def updateEmailAndBouncedFlagUrl(ddiNumber: DDINumber): String =
     s"$baseUrl/direct-debit-backend/bounced-email/status/${ddiNumber.value}"
 
-  def updateEmailAndBouncedFlag(ddiNumber: DDINumber, email: Email, isBounced: Boolean)(implicit
-    hc: HeaderCarrier
+  def updateEmailAndBouncedFlag(ddiNumber: DDINumber, email: Email, isBounced: Boolean)(using
+    HeaderCarrier
   ): Future[HttpResponse] =
     httpClient
       .post(url"${updateEmailAndBouncedFlagUrl(ddiNumber)}")
@@ -57,8 +57,8 @@ object DirectDebitBackendConnector {
 
   private final case class BouncedEmailUpdateRequest(email: Email, isBounced: Boolean)
 
-  private implicit val write: OWrites[BouncedEmailUpdateRequest] = {
-    implicit val noOpCrypto: CryptoFormat = CryptoFormat.NoOpCryptoFormat
+  private given OWrites[BouncedEmailUpdateRequest] = {
+    given CryptoFormat = CryptoFormat.NoOpCryptoFormat
     Json.writes
   }
 

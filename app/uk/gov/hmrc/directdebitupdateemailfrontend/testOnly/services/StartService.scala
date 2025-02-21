@@ -35,11 +35,11 @@ class StartService @Inject() (
   authLoginApiService:                  AuthLoginApiService,
   directDebitBackendService:            DirectDebitBackendService,
   directDebitUpdateEmailBackendService: DirectDebitUpdateEmailBackendService
-)(implicit ec: ExecutionContext) {
+)(using ExecutionContext) {
 
   def start(
     formData: StartJourneyForm
-  )(implicit request: Request[_]): Future[Either[SjResponse.Error, (Session, NextUrl)]] = {
+  )(using request: Request[_]): Future[Either[SjResponse.Error, (Session, NextUrl)]] = {
     lazy val ddiNumber = RandomDataGenerator.nextDdiNumber()
 
     lazy val directDebitRecord = {

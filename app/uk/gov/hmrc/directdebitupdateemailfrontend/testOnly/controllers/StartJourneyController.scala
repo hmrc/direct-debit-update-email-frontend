@@ -33,7 +33,7 @@ class StartJourneyController @Inject() (
   returnPage:     IAmAReturnPage,
   startService:   StartService,
   mcc:            MessagesControllerComponents
-)(implicit ec: ExecutionContext)
+)(using ExecutionContext)
     extends FrontendController(mcc) {
 
   val startJourney: Action[AnyContent] = Action { implicit request =>

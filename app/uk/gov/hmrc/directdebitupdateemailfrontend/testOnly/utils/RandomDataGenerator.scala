@@ -24,7 +24,7 @@ import scala.util.Random
 
 object RandomDataGenerator {
 
-  private implicit val random: Random.type = Random
+  private given random: Random.type = Random
 
   /** Next n-digit number string. Values can start from '0'
     */

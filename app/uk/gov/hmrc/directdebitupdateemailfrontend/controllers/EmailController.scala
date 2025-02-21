@@ -45,7 +45,7 @@ class EmailController @Inject() (
   emailVerificationService:  EmailVerificationService,
   directDebitBackendService: DirectDebitBackendService,
   mcc:                       MessagesControllerComponents
-)(implicit ec: ExecutionContext)
+)(using ExecutionContext)
     extends FrontendController(mcc) {
 
   val selectEmail: Action[AnyContent] = actions.authenticatedJourneyAction { implicit request =>

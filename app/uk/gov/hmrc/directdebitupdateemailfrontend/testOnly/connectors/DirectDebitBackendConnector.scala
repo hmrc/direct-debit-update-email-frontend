@@ -33,16 +33,16 @@ import scala.concurrent.{ExecutionContext, Future}
 class DirectDebitBackendConnector @Inject() (
   httpClient: HttpClientV2,
   config:     Configuration
-)(implicit ex: ExecutionContext)
+)(using ExecutionContext)
     extends ServicesConfig(config) {
 
-  private implicit val noOpCrypto: CryptoFormat = CryptoFormat.NoOpCryptoFormat
+  private given CryptoFormat = CryptoFormat.NoOpCryptoFormat
 
   private val baseUrl: String = baseUrl("direct-debit-backend")
 
   private val insertRecordUrl: String = s"$baseUrl/direct-debit-backend/test-only/bounced-email/status"
 
-  def insertRecord(directDebitRecord: DirectDebitRecord)(implicit hc: HeaderCarrier): Future[HttpResponse] =
+  def insertRecord(directDebitRecord: DirectDebitRecord)(using HeaderCarrier): Future[HttpResponse] =
     httpClient.post(url"$insertRecordUrl").withBody(Json.toJson(directDebitRecord)).execute[HttpResponse]
 
 }

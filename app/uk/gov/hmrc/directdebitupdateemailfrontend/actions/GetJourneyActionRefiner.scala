@@ -39,16 +39,15 @@ class AuthenticatedJourneyRequest[A](
 @Singleton
 class GetJourneyActionRefiner @Inject() (
   journeyConnector: JourneyConnector
-)(implicit
-  ec:               ExecutionContext
-) extends ActionRefiner[AuthenticatedRequest, AuthenticatedJourneyRequest]
-    with FrontendHeaderCarrierProvider
-    with Logging {
+)(using ec: ExecutionContext)
+    extends ActionRefiner[AuthenticatedRequest, AuthenticatedJourneyRequest],
+      FrontendHeaderCarrierProvider,
+      Logging {
 
   override protected def refine[A](
     request: AuthenticatedRequest[A]
   ): Future[Either[Result, AuthenticatedJourneyRequest[A]]] = {
-    implicit val r: Request[A] = request
+    given Request[A] = request
     for {
       maybeJourney: Option[Journey] <- journeyConnector.findLatestJourneyBySessionId()
     } yield maybeJourney match {

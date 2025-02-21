@@ -30,7 +30,7 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class DirectDebitUpdateEmailBackendService @Inject() (
   connector: DirectDebitUpdateEmailBackendConnector
-)(implicit ec: ExecutionContext) {
+)(using ExecutionContext) {
 
   def start(origin: Origin, sjRequest: SjRequest)(implicit
     hc: HeaderCarrier

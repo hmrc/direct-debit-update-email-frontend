@@ -32,7 +32,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class DirectDebitUpdateEmailBackendConnector @Inject() (
   httpClient: HttpClientV2,
   config:     Configuration
-)(implicit ec: ExecutionContext)
+)(using ExecutionContext)
     extends ServicesConfig(config) {
 
   private val baseUrl: String = baseUrl("direct-debit-update-email-backend")
@@ -45,7 +45,7 @@ class DirectDebitUpdateEmailBackendConnector @Inject() (
   private val btaStartUrl: String   = s"$baseUrl/direct-debit-update-email/bta/start"
   private val epayeStartUrl: String = s"$baseUrl/direct-debit-update-email/epaye/start"
 
-  def start(origin: Origin, sjRequest: SjRequest)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
+  def start(origin: Origin, sjRequest: SjRequest)(using HeaderCarrier): Future[HttpResponse] = {
     val (url, internalAuthToken) = origin match {
       case Origin.BTA          => btaStartUrl   -> btaInternalAuthToken
       case Origin.EpayeService => epayeStartUrl -> epayeInternalAuthToken

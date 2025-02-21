@@ -27,7 +27,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class DirectDebitBackendService @Inject() (connector: DirectDebitBackendConnector)(implicit ec: ExecutionContext) {
+class DirectDebitBackendService @Inject() (connector: DirectDebitBackendConnector)(using ExecutionContext) {
 
   def insertRecord(directDebitRecord: DirectDebitRecord)(implicit hc: HeaderCarrier): Future[Unit] =
     connector.insertRecord(directDebitRecord).map { response =>

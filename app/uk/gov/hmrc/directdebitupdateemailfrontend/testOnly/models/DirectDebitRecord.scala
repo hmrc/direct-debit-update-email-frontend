@@ -30,7 +30,6 @@ final case class DirectDebitRecord(
 
 object DirectDebitRecord {
 
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  implicit def format(implicit cryptoFormat: CryptoFormat): OFormat[DirectDebitRecord] = Json.format
+  given format(using CryptoFormat): OFormat[DirectDebitRecord] = Json.format
 
 }

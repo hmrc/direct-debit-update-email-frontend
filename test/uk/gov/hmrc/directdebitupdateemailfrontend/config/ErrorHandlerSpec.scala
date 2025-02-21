@@ -26,7 +26,7 @@ import play.api.test.Helpers.{await, defaultAwaitTimeout}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class ErrorHandlerSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuite {
+class ErrorHandlerSpec extends AnyWordSpec, Matchers, GuiceOneAppPerSuite {
 
   override def fakeApplication(): Application =
     new GuiceApplicationBuilder()

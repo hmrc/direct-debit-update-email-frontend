@@ -49,7 +49,6 @@ class ItSpec extends UnitSpec, GuiceOneServerPerSuite, WireMockSupport, HttpRead
 
   val testOperationCryptoFormat: OperationalCryptoFormat = OperationalCryptoFormat(testCrypto)
 
-  @SuppressWarnings(Array("org.wartremover.Warts.Any"))
   protected lazy val configMap: Map[String, Any] = Map[String, Any](
     "logger.application"                                           -> "INFO",
     "logger.connector"                                             -> "INFO",

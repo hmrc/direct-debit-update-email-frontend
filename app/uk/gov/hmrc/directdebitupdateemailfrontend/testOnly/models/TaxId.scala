@@ -22,7 +22,6 @@ final case class TaxId(`type`: String, value: String)
 
 object TaxId {
 
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  implicit val format: OFormat[TaxId] = Json.format
+  given OFormat[TaxId] = Json.format
 
 }
