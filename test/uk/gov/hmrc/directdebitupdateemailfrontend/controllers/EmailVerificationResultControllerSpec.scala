@@ -39,20 +39,27 @@ class EmailVerificationResultControllerSpec extends ItSpec {
 
     "return an error if an email verification result has not been obtained yet" in {
       AuthStub.authorise()
-      DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.EmailVerificationJourneyStarted.journeyJson())
+      DirectDebitUpdateEmailBackendStub.findByLatestSessionId(
+        TestData.Journeys.EmailVerificationJourneyStarted.journeyJson()
+      )
 
-      val error = intercept[UpstreamErrorResponse](await(controller.emailConfirmed(TestData.fakeRequestWithAuthorization)))
+      val error =
+        intercept[UpstreamErrorResponse](await(controller.emailConfirmed(TestData.fakeRequestWithAuthorization)))
       error.statusCode shouldBe INTERNAL_SERVER_ERROR
-      error.message should include("Cannot show email confirmed page before email verification result has been obtained.")
+      error.message should include(
+        "Cannot show email confirmed page before email verification result has been obtained."
+      )
     }
 
     "return an error if the email verification result is locked" in {
       AuthStub.authorise()
       DirectDebitUpdateEmailBackendStub.findByLatestSessionId(
-        TestData.Journeys.ObtainedEmailVerificationResult.journeyJson(emailVerificationResult = EmailVerificationResult.Locked)
+        TestData.Journeys.ObtainedEmailVerificationResult
+          .journeyJson(emailVerificationResult = EmailVerificationResult.Locked)
       )
 
-      val error = intercept[UpstreamErrorResponse](await(controller.emailConfirmed(TestData.fakeRequestWithAuthorization)))
+      val error =
+        intercept[UpstreamErrorResponse](await(controller.emailConfirmed(TestData.fakeRequestWithAuthorization)))
       error.statusCode shouldBe INTERNAL_SERVER_ERROR
       error.message should include("Cannot show email confirmed page when email verification result is 'Locked'")
     }
@@ -64,7 +71,7 @@ class EmailVerificationResultControllerSpec extends ItSpec {
       )
 
       val request = TestData.fakeRequestWithAuthorization
-      val result = controller.emailConfirmed(request)
+      val result  = controller.emailConfirmed(request)
       status(result) shouldBe OK
 
       val doc = Jsoup.parse(contentAsString(result))
@@ -79,7 +86,8 @@ class EmailVerificationResultControllerSpec extends ItSpec {
       val paragraphs = doc.selectList(".govuk-body")
       paragraphs.size shouldBe 3
 
-      paragraphs(0).html() shouldBe s"We’ll use <strong>${TestData.selectedEmail.value.decryptedValue}</strong> to contact you about your Direct Debit."
+      paragraphs(0)
+        .html() shouldBe s"We’ll use <strong>${TestData.selectedEmail.value.decryptedValue}</strong> to contact you about your Direct Debit."
       paragraphs(1).text shouldBe "Your email address has not been changed in other government services."
 
       val continueButton = doc.select(".govuk-button")
@@ -95,7 +103,7 @@ class EmailVerificationResultControllerSpec extends ItSpec {
       )
 
       val request = TestData.fakeRequestWithAuthorization.withLang(Language.Welsh)
-      val result = controller.emailConfirmed(request)
+      val result  = controller.emailConfirmed(request)
       status(result) shouldBe OK
 
       val doc = Jsoup.parse(contentAsString(result))
@@ -105,13 +113,14 @@ class EmailVerificationResultControllerSpec extends ItSpec {
         "Cyfeiriad e-bost wedi’i ddilysu",
         None,
         hasBackLink = false,
-        language    = Language.Welsh
+        language = Language.Welsh
       )(request)
 
       val paragraphs = doc.selectList(".govuk-body")
       paragraphs.size shouldBe 3
 
-      paragraphs(0).html() shouldBe s"Byddwn yn defnyddio <strong>${TestData.selectedEmail.value.decryptedValue}</strong> i gysylltu â chi ynghylch eich Debyd Uniongyrchol."
+      paragraphs(0)
+        .html() shouldBe s"Byddwn yn defnyddio <strong>${TestData.selectedEmail.value.decryptedValue}</strong> i gysylltu â chi ynghylch eich Debyd Uniongyrchol."
       paragraphs(1).text shouldBe "Nid yw’ch e-bost wedi cael ei newid ar gyfer gwasanaethau eraill y llywodraeth."
 
       val continueButton = doc.select(".govuk-button")
@@ -128,11 +137,17 @@ class EmailVerificationResultControllerSpec extends ItSpec {
 
     "return an error if an email verification result has not been obtained yet" in {
       AuthStub.authorise()
-      DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.EmailVerificationJourneyStarted.journeyJson())
+      DirectDebitUpdateEmailBackendStub.findByLatestSessionId(
+        TestData.Journeys.EmailVerificationJourneyStarted.journeyJson()
+      )
 
-      val error = intercept[UpstreamErrorResponse](await(controller.tooManyPasscodeAttempts(TestData.fakeRequestWithAuthorization)))
+      val error = intercept[UpstreamErrorResponse](
+        await(controller.tooManyPasscodeAttempts(TestData.fakeRequestWithAuthorization))
+      )
       error.statusCode shouldBe INTERNAL_SERVER_ERROR
-      error.message should include("Cannot show tooManyPasscodeAttempts page before email verification result has been obtained.")
+      error.message should include(
+        "Cannot show tooManyPasscodeAttempts page before email verification result has been obtained."
+      )
     }
 
     "return an error if the email verification result is Verified" in {
@@ -141,19 +156,24 @@ class EmailVerificationResultControllerSpec extends ItSpec {
         TestData.Journeys.ObtainedEmailVerificationResult.journeyJson()
       )
 
-      val error = intercept[UpstreamErrorResponse](await(controller.tooManyPasscodeAttempts(TestData.fakeRequestWithAuthorization)))
+      val error = intercept[UpstreamErrorResponse](
+        await(controller.tooManyPasscodeAttempts(TestData.fakeRequestWithAuthorization))
+      )
       error.statusCode shouldBe INTERNAL_SERVER_ERROR
-      error.message should include("Cannot show tooManyPasscodeAttempts page when email verification result is 'Verified'")
+      error.message should include(
+        "Cannot show tooManyPasscodeAttempts page when email verification result is 'Verified'"
+      )
     }
 
     "show the page if the email verification result is Locked" in {
       AuthStub.authorise()
       DirectDebitUpdateEmailBackendStub.findByLatestSessionId(
-        TestData.Journeys.ObtainedEmailVerificationResult.journeyJson(emailVerificationResult = EmailVerificationResult.Locked)
+        TestData.Journeys.ObtainedEmailVerificationResult
+          .journeyJson(emailVerificationResult = EmailVerificationResult.Locked)
       )
 
       val request = TestData.fakeRequestWithAuthorization
-      val result = controller.tooManyPasscodeAttempts(request)
+      val result  = controller.tooManyPasscodeAttempts(request)
       status(result) shouldBe OK
 
       val doc = Jsoup.parse(contentAsString(result))
@@ -178,11 +198,12 @@ class EmailVerificationResultControllerSpec extends ItSpec {
     "display the page in Welsh" in {
       AuthStub.authorise()
       DirectDebitUpdateEmailBackendStub.findByLatestSessionId(
-        TestData.Journeys.ObtainedEmailVerificationResult.journeyJson(emailVerificationResult = EmailVerificationResult.Locked)
+        TestData.Journeys.ObtainedEmailVerificationResult
+          .journeyJson(emailVerificationResult = EmailVerificationResult.Locked)
       )
 
       val request = TestData.fakeRequestWithAuthorization.withLang(Language.Welsh)
-      val result = controller.tooManyPasscodeAttempts(request)
+      val result  = controller.tooManyPasscodeAttempts(request)
       status(result) shouldBe OK
 
       val doc = Jsoup.parse(contentAsString(result))
@@ -191,7 +212,7 @@ class EmailVerificationResultControllerSpec extends ItSpec {
         "Cod dilysu e-bost wedi’i nodi gormod o weithiau",
         None,
         hasBackLink = false,
-        language    = Language.Welsh
+        language = Language.Welsh
       )(request)
 
       val paragraphs = doc.selectList("p.govuk-body")
@@ -215,9 +236,13 @@ class EmailVerificationResultControllerSpec extends ItSpec {
       AuthStub.authorise()
       DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.SelectedEmail.journeyJson())
 
-      val error = intercept[UpstreamErrorResponse](await(controller.tooManyPasscodeJourneysStarted(TestData.fakeRequestWithAuthorization)))
+      val error = intercept[UpstreamErrorResponse](
+        await(controller.tooManyPasscodeJourneysStarted(TestData.fakeRequestWithAuthorization))
+      )
       error.statusCode shouldBe INTERNAL_SERVER_ERROR
-      error.message should include("Cannot show tooManyPasscodeJourneysStarted page before email verification journey has been started.")
+      error.message should include(
+        "Cannot show tooManyPasscodeJourneysStarted page before email verification journey has been started."
+      )
     }
 
     List(
@@ -226,18 +251,23 @@ class EmailVerificationResultControllerSpec extends ItSpec {
       StartEmailVerificationJourneyResult.TooManyDifferentEmailAddresses,
       StartEmailVerificationJourneyResult.TooManyPasscodeAttempts
     ).foreach { startResult =>
-        s"return an error if the start email verification journey result is ${startResult.getClass.getSimpleName}" in {
-          AuthStub.authorise()
-          DirectDebitUpdateEmailBackendStub.findByLatestSessionId(
-            TestData.Journeys.EmailVerificationJourneyStarted.journeyJson(startEmailVerificationJourneyResult = startResult)
-          )
+      s"return an error if the start email verification journey result is ${startResult.getClass.getSimpleName}" in {
+        AuthStub.authorise()
+        DirectDebitUpdateEmailBackendStub.findByLatestSessionId(
+          TestData.Journeys.EmailVerificationJourneyStarted
+            .journeyJson(startEmailVerificationJourneyResult = startResult)
+        )
 
-          val error = intercept[UpstreamErrorResponse](await(controller.tooManyPasscodeJourneysStarted(TestData.fakeRequestWithAuthorization)))
-          error.statusCode shouldBe INTERNAL_SERVER_ERROR
-          error.message should include("Cannot show tooManyPasscodeJourneysStarted when start verification journey result " +
-            s"is ${startResult.getClass.getSimpleName}")
-        }
+        val error = intercept[UpstreamErrorResponse](
+          await(controller.tooManyPasscodeJourneysStarted(TestData.fakeRequestWithAuthorization))
+        )
+        error.statusCode shouldBe INTERNAL_SERVER_ERROR
+        error.message should include(
+          "Cannot show tooManyPasscodeJourneysStarted when start verification journey result " +
+            s"is ${startResult.getClass.getSimpleName}"
+        )
       }
+    }
 
     "show the page if the start email verification journey result is TooManyPasscodeJourneysStarted" in {
       AuthStub.authorise()
@@ -248,7 +278,7 @@ class EmailVerificationResultControllerSpec extends ItSpec {
       )
 
       val request = TestData.fakeRequestWithAuthorization
-      val result = controller.tooManyPasscodeJourneysStarted(request)
+      val result  = controller.tooManyPasscodeJourneysStarted(request)
       status(result) shouldBe OK
 
       val doc = Jsoup.parse(contentAsString(result))
@@ -262,7 +292,8 @@ class EmailVerificationResultControllerSpec extends ItSpec {
       val paragraphs = doc.selectList("p.govuk-body")
       paragraphs.size shouldBe 2
 
-      paragraphs(0).text() shouldBe s"You have tried to verify ${TestData.selectedEmail.value.decryptedValue} too many times."
+      paragraphs(0)
+        .text() shouldBe s"You have tried to verify ${TestData.selectedEmail.value.decryptedValue} too many times."
       paragraphs(1).text() shouldBe "You will need to verify a different email address."
 
       val link = doc.select("p > a.govuk-link")
@@ -279,7 +310,7 @@ class EmailVerificationResultControllerSpec extends ItSpec {
       )
 
       val request = TestData.fakeRequestWithAuthorization.withLang(Language.Welsh)
-      val result = controller.tooManyPasscodeJourneysStarted(request)
+      val result  = controller.tooManyPasscodeJourneysStarted(request)
       status(result) shouldBe OK
 
       val doc = Jsoup.parse(contentAsString(result))
@@ -288,13 +319,14 @@ class EmailVerificationResultControllerSpec extends ItSpec {
         "Rydych wedi ceisio dilysu cyfeiriad e-bost gormod o weithiau",
         None,
         hasBackLink = false,
-        language    = Language.Welsh
+        language = Language.Welsh
       )(request)
 
       val paragraphs = doc.selectList("p.govuk-body")
       paragraphs.size shouldBe 2
 
-      paragraphs(0).text() shouldBe s"Rydych wedi ceisio dilysu ${TestData.selectedEmail.value.decryptedValue} gormod o weithiau."
+      paragraphs(0)
+        .text() shouldBe s"Rydych wedi ceisio dilysu ${TestData.selectedEmail.value.decryptedValue} gormod o weithiau."
       paragraphs(1).text() shouldBe "Bydd angen i chi ddilysu cyfeiriad e-bost gwahanol."
 
       val link = doc.select("p > a.govuk-link")
@@ -312,9 +344,13 @@ class EmailVerificationResultControllerSpec extends ItSpec {
       AuthStub.authorise()
       DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.SelectedEmail.journeyJson())
 
-      val error = intercept[UpstreamErrorResponse](await(controller.tooManyDifferentEmailAddresses(TestData.fakeRequestWithAuthorization)))
+      val error = intercept[UpstreamErrorResponse](
+        await(controller.tooManyDifferentEmailAddresses(TestData.fakeRequestWithAuthorization))
+      )
       error.statusCode shouldBe INTERNAL_SERVER_ERROR
-      error.message should include("Cannot show tooManyDifferentEmailAddresses page before email verification journey has been started.")
+      error.message should include(
+        "Cannot show tooManyDifferentEmailAddresses page before email verification journey has been started."
+      )
     }
 
     List(
@@ -323,18 +359,23 @@ class EmailVerificationResultControllerSpec extends ItSpec {
       StartEmailVerificationJourneyResult.TooManyPasscodeJourneysStarted,
       StartEmailVerificationJourneyResult.TooManyPasscodeAttempts
     ).foreach { startResult =>
-        s"return an error if the start email verification journey result is ${startResult.getClass.getSimpleName}" in {
-          AuthStub.authorise()
-          DirectDebitUpdateEmailBackendStub.findByLatestSessionId(
-            TestData.Journeys.EmailVerificationJourneyStarted.journeyJson(startEmailVerificationJourneyResult = startResult)
-          )
+      s"return an error if the start email verification journey result is ${startResult.getClass.getSimpleName}" in {
+        AuthStub.authorise()
+        DirectDebitUpdateEmailBackendStub.findByLatestSessionId(
+          TestData.Journeys.EmailVerificationJourneyStarted
+            .journeyJson(startEmailVerificationJourneyResult = startResult)
+        )
 
-          val error = intercept[UpstreamErrorResponse](await(controller.tooManyDifferentEmailAddresses(TestData.fakeRequestWithAuthorization)))
-          error.statusCode shouldBe INTERNAL_SERVER_ERROR
-          error.message should include("Cannot show tooManyDifferentEmailAddresses when start verification journey result " +
-            s"is ${startResult.getClass.getSimpleName}")
-        }
+        val error = intercept[UpstreamErrorResponse](
+          await(controller.tooManyDifferentEmailAddresses(TestData.fakeRequestWithAuthorization))
+        )
+        error.statusCode shouldBe INTERNAL_SERVER_ERROR
+        error.message should include(
+          "Cannot show tooManyDifferentEmailAddresses when start verification journey result " +
+            s"is ${startResult.getClass.getSimpleName}"
+        )
       }
+    }
 
     "should return an error if the lockout expiry time cannot be determined" in {
       AuthStub.authorise()
@@ -362,7 +403,7 @@ class EmailVerificationResultControllerSpec extends ItSpec {
       EmailVerificationStub.getLockoutCreatedAt(Some(dateTime))
 
       val request = TestData.fakeRequestWithAuthorization
-      val result = controller.tooManyDifferentEmailAddresses(request)
+      val result  = controller.tooManyDifferentEmailAddresses(request)
       status(result) shouldBe OK
 
       val doc = Jsoup.parse(contentAsString(result))
@@ -373,7 +414,10 @@ class EmailVerificationResultControllerSpec extends ItSpec {
         hasBackLink = false
       )(request)
 
-      doc.select("p.govuk-body").first.text() shouldBe "You have been locked out because you have tried to verify too many " +
+      doc
+        .select("p.govuk-body")
+        .first
+        .text() shouldBe "You have been locked out because you have tried to verify too many " +
         "email addresses. Please try again on 13 March 2023 at 11:34am."
 
       val button = doc.select(".govuk-button")
@@ -384,51 +428,53 @@ class EmailVerificationResultControllerSpec extends ItSpec {
 
     "display the page in Welsh" in {
       List(
-        1 -> "Ionawr",
-        2 -> "Chwefror",
-        3 -> "Mawrth",
-        4 -> "Ebrill",
-        5 -> "Mai",
-        6 -> "Mehefin",
-        7 -> "Gorffennaf",
-        8 -> "Awst",
-        9 -> "Medi",
+        1  -> "Ionawr",
+        2  -> "Chwefror",
+        3  -> "Mawrth",
+        4  -> "Ebrill",
+        5  -> "Mai",
+        6  -> "Mehefin",
+        7  -> "Gorffennaf",
+        8  -> "Awst",
+        9  -> "Medi",
         10 -> "Hydref",
         11 -> "Tachwedd",
         12 -> "Rhagfyr"
-      ).foreach {
-          case (monthInt, expectedWelshMonth) =>
-            withClue(s"For month ${monthInt.toString}: ") {
-              val dateTime = LocalDateTime.of(2023, monthInt, 12, 11, 34, 43)
-              AuthStub.authorise()
-              DirectDebitUpdateEmailBackendStub.findByLatestSessionId(
-                TestData.Journeys.EmailVerificationJourneyStarted.journeyJson(
-                  startEmailVerificationJourneyResult = StartEmailVerificationJourneyResult.TooManyDifferentEmailAddresses
-                )
-              )
-              EmailVerificationStub.getLockoutCreatedAt(Some(dateTime))
+      ).foreach { case (monthInt, expectedWelshMonth) =>
+        withClue(s"For month ${monthInt.toString}: ") {
+          val dateTime = LocalDateTime.of(2023, monthInt, 12, 11, 34, 43)
+          AuthStub.authorise()
+          DirectDebitUpdateEmailBackendStub.findByLatestSessionId(
+            TestData.Journeys.EmailVerificationJourneyStarted.journeyJson(
+              startEmailVerificationJourneyResult = StartEmailVerificationJourneyResult.TooManyDifferentEmailAddresses
+            )
+          )
+          EmailVerificationStub.getLockoutCreatedAt(Some(dateTime))
 
-              val request = TestData.fakeRequestWithAuthorization.withLang(Language.Welsh)
-              val result = controller.tooManyDifferentEmailAddresses(request)
-              status(result) shouldBe OK
+          val request = TestData.fakeRequestWithAuthorization.withLang(Language.Welsh)
+          val result  = controller.tooManyDifferentEmailAddresses(request)
+          status(result) shouldBe OK
 
-              val doc = Jsoup.parse(contentAsString(result))
-              ContentAssertions.commonPageChecks(
-                doc,
-                "Rydych wedi ceisio dilysu gormod o gyfeiriadau e-bost",
-                None,
-                hasBackLink = false,
-                language    = Language.Welsh
-              )(request)
+          val doc = Jsoup.parse(contentAsString(result))
+          ContentAssertions.commonPageChecks(
+            doc,
+            "Rydych wedi ceisio dilysu gormod o gyfeiriadau e-bost",
+            None,
+            hasBackLink = false,
+            language = Language.Welsh
+          )(request)
 
-              doc.select("p.govuk-body").first.text() shouldBe "Rydych chi wedi cael eich cloi allan oherwydd eich bod wedi ceisio dilysu gormod o gyfeiriadau e-bost. " +
-                s"Rhowch gynnig arall arni ar 13 $expectedWelshMonth 2023 am 11:34am."
+          doc
+            .select("p.govuk-body")
+            .first
+            .text() shouldBe "Rydych chi wedi cael eich cloi allan oherwydd eich bod wedi ceisio dilysu gormod o gyfeiriadau e-bost. " +
+            s"Rhowch gynnig arall arni ar 13 $expectedWelshMonth 2023 am 11:34am."
 
-              val button = doc.select(".govuk-button")
-              button.text() shouldBe "Yn ôl i’r cyfrif treth"
-              button.attr("href") shouldBe TestData.sjRequest.backUrl.value
-            }
+          val button = doc.select(".govuk-button")
+          button.text() shouldBe "Yn ôl i’r cyfrif treth"
+          button.attr("href") shouldBe TestData.sjRequest.backUrl.value
         }
+      }
     }
 
   }

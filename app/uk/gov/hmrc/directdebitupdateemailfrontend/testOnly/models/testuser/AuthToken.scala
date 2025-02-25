@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.directdebitupdateemailfrontend.testOnly.models.testuser
 
-/**
- * The same as bearer token
- */
+/** The same as bearer token
+  */
 final case class AuthToken(value: String)

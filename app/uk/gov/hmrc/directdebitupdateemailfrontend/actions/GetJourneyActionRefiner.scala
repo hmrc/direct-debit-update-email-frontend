@@ -29,29 +29,31 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 class AuthenticatedJourneyRequest[A](
-    override val request: Request[A],
-    val journey:          Journey,
-    ggCredId:             GGCredId
+  override val request: Request[A],
+  val journey:          Journey,
+  ggCredId:             GGCredId
 ) extends AuthenticatedRequest[A](request, ggCredId) {
   val journeyId: JourneyId = journey._id
 }
 
 @Singleton
 class GetJourneyActionRefiner @Inject() (
-    journeyConnector: JourneyConnector
-)(
-    implicit
-    ec: ExecutionContext
-) extends ActionRefiner[AuthenticatedRequest, AuthenticatedJourneyRequest] with FrontendHeaderCarrierProvider with Logging {
+  journeyConnector: JourneyConnector
+)(using ec: ExecutionContext)
+    extends ActionRefiner[AuthenticatedRequest, AuthenticatedJourneyRequest],
+      FrontendHeaderCarrierProvider,
+      Logging {
 
-  override protected def refine[A](request: AuthenticatedRequest[A]): Future[Either[Result, AuthenticatedJourneyRequest[A]]] = {
-    implicit val r: Request[A] = request
+  override protected def refine[A](
+    request: AuthenticatedRequest[A]
+  ): Future[Either[Result, AuthenticatedJourneyRequest[A]]] = {
+    given Request[A] = request
     for {
       maybeJourney: Option[Journey] <- journeyConnector.findLatestJourneyBySessionId()
     } yield maybeJourney match {
       case Some(journey) =>
         Right(new AuthenticatedJourneyRequest(request, journey, request.ggCredId))
-      case None =>
+      case None          =>
         logger.warn(s"No journey found for sessionId: ${hc.sessionId.map(_.value).getOrElse("-")}")
         Left(Redirect(routes.PageUnavailableController.pageUnavailable))
     }

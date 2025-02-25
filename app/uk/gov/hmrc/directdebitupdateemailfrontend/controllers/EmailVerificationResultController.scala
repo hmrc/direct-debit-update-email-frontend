@@ -30,20 +30,23 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 class EmailVerificationResultController @Inject() (
-    actions:                     Actions,
-    emailVerificationService:    EmailVerificationService,
-    emailConfirmedPage:          html.EmailConfirmed,
-    tooManyEmailAddressesPage:   html.TooManyEmailAddresses,
-    tooManyPasscodesPage:        html.TooManyPasscodes,
-    tooManyPasscodeJourneysPage: html.TooManyPasscodeJourneysStarted,
-    mcc:                         MessagesControllerComponents
-)(implicit ec: ExecutionContext) extends FrontendController(mcc) {
+  actions:                     Actions,
+  emailVerificationService:    EmailVerificationService,
+  emailConfirmedPage:          html.EmailConfirmed,
+  tooManyEmailAddressesPage:   html.TooManyEmailAddresses,
+  tooManyPasscodesPage:        html.TooManyPasscodes,
+  tooManyPasscodeJourneysPage: html.TooManyPasscodeJourneysStarted,
+  mcc:                         MessagesControllerComponents
+)(using ExecutionContext)
+    extends FrontendController(mcc) {
 
   val emailConfirmed: Action[AnyContent] = actions.authenticatedJourneyAction { implicit request =>
     request.journey match {
       case j: BeforeEmailVerificationResult =>
-        Errors.throwServerErrorException("Cannot show email confirmed page before email verification result has been obtained. " +
-          s"Journey is in state ${j.getClass.getSimpleName}")
+        Errors.throwServerErrorException(
+          "Cannot show email confirmed page before email verification result has been obtained. " +
+            s"Journey is in state ${j.getClass.getSimpleName}"
+        )
 
       case j: AfterEmailVerificationResult =>
         j.emailVerificationResult match {
@@ -55,7 +58,9 @@ class EmailVerificationResultController @Inject() (
             Ok(emailConfirmedPage(selectedEmail, request.journey.sjRequest.returnUrl))
 
           case EmailVerificationResult.Locked =>
-            Errors.throwServerErrorException("Cannot show email confirmed page when email verification result is 'Locked'")
+            Errors.throwServerErrorException(
+              "Cannot show email confirmed page when email verification result is 'Locked'"
+            )
         }
     }
   }
@@ -63,13 +68,17 @@ class EmailVerificationResultController @Inject() (
   val tooManyPasscodeAttempts: Action[AnyContent] = actions.authenticatedJourneyAction { implicit request =>
     request.journey match {
       case j: BeforeEmailVerificationResult =>
-        Errors.throwServerErrorException("Cannot show tooManyPasscodeAttempts page before email verification result has been obtained. " +
-          s"Journey is in state ${j.getClass.getSimpleName}")
+        Errors.throwServerErrorException(
+          "Cannot show tooManyPasscodeAttempts page before email verification result has been obtained. " +
+            s"Journey is in state ${j.getClass.getSimpleName}"
+        )
 
       case j: AfterEmailVerificationResult =>
         j.emailVerificationResult match {
           case EmailVerificationResult.Verified =>
-            Errors.throwServerErrorException("Cannot show tooManyPasscodeAttempts page when email verification result is 'Verified'")
+            Errors.throwServerErrorException(
+              "Cannot show tooManyPasscodeAttempts page when email verification result is 'Verified'"
+            )
 
           case EmailVerificationResult.Locked =>
             Ok(tooManyPasscodesPage())
@@ -80,8 +89,10 @@ class EmailVerificationResultController @Inject() (
   val tooManyPasscodeJourneysStarted: Action[AnyContent] = actions.authenticatedJourneyAction { implicit request =>
     request.journey match {
       case j: BeforeEmailVerificationJourneyStarted =>
-        Errors.throwServerErrorException("Cannot show tooManyPasscodeJourneysStarted page before email verification journey has been started. " +
-          s"Journey is in state ${j.getClass.getSimpleName}")
+        Errors.throwServerErrorException(
+          "Cannot show tooManyPasscodeJourneysStarted page before email verification journey has been started. " +
+            s"Journey is in state ${j.getClass.getSimpleName}"
+        )
 
       case j: AfterEmailVerificationJourneyStarted =>
         j.startEmailVerificationJourneyResult match {
@@ -92,35 +103,43 @@ class EmailVerificationResultController @Inject() (
             Ok(tooManyPasscodeJourneysPage(selectedEmail))
 
           case other =>
-            Errors.throwServerErrorException("Cannot show tooManyPasscodeJourneysStarted when start verification journey result " +
-              s"is ${other.getClass.getSimpleName}")
+            Errors.throwServerErrorException(
+              "Cannot show tooManyPasscodeJourneysStarted when start verification journey result " +
+                s"is ${other.getClass.getSimpleName}"
+            )
         }
 
     }
   }
 
-  val tooManyDifferentEmailAddresses: Action[AnyContent] = actions.authenticatedJourneyAction.async { implicit request =>
-    request.journey match {
-      case j: BeforeEmailVerificationJourneyStarted =>
-        Errors.throwServerErrorException("Cannot show tooManyDifferentEmailAddresses page before email verification journey has been started. " +
-          s"Journey is in state ${j.getClass.getSimpleName}")
+  val tooManyDifferentEmailAddresses: Action[AnyContent] = actions.authenticatedJourneyAction.async {
+    implicit request =>
+      request.journey match {
+        case j: BeforeEmailVerificationJourneyStarted =>
+          Errors.throwServerErrorException(
+            "Cannot show tooManyDifferentEmailAddresses page before email verification journey has been started. " +
+              s"Journey is in state ${j.getClass.getSimpleName}"
+          )
 
-      case j: AfterEmailVerificationJourneyStarted =>
-        j.startEmailVerificationJourneyResult match {
-          case StartEmailVerificationJourneyResult.TooManyDifferentEmailAddresses =>
-            emailVerificationService.getEarliestCreatedAtTime().map{
-              _.earliestCreatedAtTime.fold(
-                Errors.throwServerErrorException("Could not find earliest created at time")
-              )(earliestCreatedAtTime =>
-                  Ok(tooManyEmailAddressesPage(earliestCreatedAtTime.plusDays(1L), j.sjRequest.backUrl)))
-            }
+        case j: AfterEmailVerificationJourneyStarted =>
+          j.startEmailVerificationJourneyResult match {
+            case StartEmailVerificationJourneyResult.TooManyDifferentEmailAddresses =>
+              emailVerificationService.getEarliestCreatedAtTime().map {
+                _.earliestCreatedAtTime.fold(
+                  Errors.throwServerErrorException("Could not find earliest created at time")
+                )(earliestCreatedAtTime =>
+                  Ok(tooManyEmailAddressesPage(earliestCreatedAtTime.plusDays(1L), j.sjRequest.backUrl))
+                )
+              }
 
-          case other =>
-            Errors.throwServerErrorException("Cannot show tooManyDifferentEmailAddresses when start verification journey result " +
-              s"is ${other.getClass.getSimpleName}")
-        }
+            case other =>
+              Errors.throwServerErrorException(
+                "Cannot show tooManyDifferentEmailAddresses when start verification journey result " +
+                  s"is ${other.getClass.getSimpleName}"
+              )
+          }
 
-    }
+      }
   }
 
 }

@@ -28,12 +28,7 @@ import uk.gov.hmrc.crypto.{AesCrypto, Decrypter, Encrypter}
 import uk.gov.hmrc.directdebitupdateemailfrontend.testsupport.stubs.AuditStub
 import uk.gov.hmrc.http.HttpReadsInstances
 
-class ItSpec
-  extends UnitSpec
-  with GuiceOneServerPerSuite
-  with WireMockSupport
-  with HttpReadsInstances
-  with CommonBehaviour {
+class ItSpec extends UnitSpec, GuiceOneServerPerSuite, WireMockSupport, HttpReadsInstances, CommonBehaviour {
 
   override def beforeEach(): Unit = {
     super.beforeEach()
@@ -44,7 +39,7 @@ class ItSpec
   val testPort: Int = 19001
 
   implicit override val patienceConfig: PatienceConfig =
-    PatienceConfig(timeout  = scaled(Span(300, Millis)), interval = scaled(Span(2, Seconds)))
+    PatienceConfig(timeout = scaled(Span(300, Millis)), interval = scaled(Span(2, Seconds)))
 
   protected lazy val configOverrides: Map[String, Any] = Map()
 
@@ -54,17 +49,16 @@ class ItSpec
 
   val testOperationCryptoFormat: OperationalCryptoFormat = OperationalCryptoFormat(testCrypto)
 
-  @SuppressWarnings(Array("org.wartremover.Warts.Any"))
   protected lazy val configMap: Map[String, Any] = Map[String, Any](
-    "logger.application" -> "INFO",
-    "logger.connector" -> "INFO",
-    "microservice.services.auth.port" -> WireMockSupport.port,
+    "logger.application"                                           -> "INFO",
+    "logger.connector"                                             -> "INFO",
+    "microservice.services.auth.port"                              -> WireMockSupport.port,
     "microservice.services.direct-debit-update-email-backend.port" -> WireMockSupport.port,
-    "microservice.services.direct-debit-backend.port" -> WireMockSupport.port,
-    "microservice.services.payments-email-verification.port" -> WireMockSupport.port,
-    "auditing.consumer.baseUri.port" -> WireMockSupport.port,
-    "auditing.enabled" -> true,
-    "auditing.traceRequests" -> false
+    "microservice.services.direct-debit-backend.port"              -> WireMockSupport.port,
+    "microservice.services.payments-email-verification.port"       -> WireMockSupport.port,
+    "auditing.consumer.baseUri.port"                               -> WireMockSupport.port,
+    "auditing.enabled"                                             -> true,
+    "auditing.traceRequests"                                       -> false
   ) ++ configOverrides
 
   lazy val modules: List[GuiceableModule] =
@@ -72,7 +66,7 @@ class ItSpec
       bind[OperationalCryptoFormat].toInstance(testOperationCryptoFormat)
     )
 
-  //in tests use `app`
+  // in tests use `app`
   override def fakeApplication(): Application = new GuiceApplicationBuilder()
     .overrides(modules: _*)
     .disable(classOf[ddUpdateEmail.module.CryptoModule])
@@ -84,10 +78,9 @@ class ItSpec
 
   object TestServerFactory extends DefaultTestServerFactory {
     override protected def serverConfig(app: Application): ServerConfig = {
-      val sc = ServerConfig(port    = Some(testPort), sslPort = Some(0), mode = Mode.Test, rootDir = app.path)
+      val sc = ServerConfig(port = Some(testPort), sslPort = Some(0), mode = Mode.Test, rootDir = app.path)
       sc.copy(configuration = sc.configuration.withFallback(overrideServerConfiguration(app)))
     }
   }
 
 }
-

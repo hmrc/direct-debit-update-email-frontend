@@ -25,9 +25,9 @@ import javax.inject.{Inject, Singleton}
 
 @Singleton
 class PageUnavailableController @Inject() (
-    mcc:                 MessagesControllerComponents,
-    pageUnavailablePage: PageUnavailable,
-    appConfig:           AppConfig
+  mcc:                 MessagesControllerComponents,
+  pageUnavailablePage: PageUnavailable,
+  appConfig:           AppConfig
 ) extends FrontendController(mcc) {
 
   def pageUnavailable: Action[AnyContent] = Action { implicit request =>

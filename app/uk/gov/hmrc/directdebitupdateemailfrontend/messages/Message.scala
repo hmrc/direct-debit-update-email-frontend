@@ -19,8 +19,8 @@ package uk.gov.hmrc.directdebitupdateemailfrontend.messages
 import uk.gov.hmrc.directdebitupdateemailfrontend.models.Language
 
 final case class Message private (
-    english: String,
-    welsh:   Option[String]
+  english: String,
+  welsh:   Option[String]
 ) {
 
   def show(implicit language: Language): String = language match {

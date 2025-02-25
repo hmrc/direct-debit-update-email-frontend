@@ -29,17 +29,17 @@ object DirectDebitBackendStub {
   type HttpStatus = Int
 
   def updateEmailAndBouncedFlag(
-      ddiNumber:      DDINumber,
-      responseStatus: HttpStatus = NO_CONTENT
+    ddiNumber:      DDINumber,
+    responseStatus: HttpStatus = NO_CONTENT
   ): StubMapping = stubFor(
     post(urlPathEqualTo(updateEmailAndBouncedFlagUrl(ddiNumber)))
       .willReturn(aResponse().withStatus(responseStatus))
   )
 
   def verifyUpdateEmailAndBouncedFlag(
-      ddiNumber: DDINumber,
-      email:     Email,
-      isBounced: Boolean
+    ddiNumber: DDINumber,
+    email:     Email,
+    isBounced: Boolean
   ): Unit =
     verify(
       postRequestedFor(urlPathEqualTo(updateEmailAndBouncedFlagUrl(ddiNumber)))

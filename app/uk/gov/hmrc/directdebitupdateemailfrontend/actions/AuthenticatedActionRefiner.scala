@@ -31,26 +31,27 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class AuthenticatedRequest[A](
-    val request:  Request[A],
-    val ggCredId: GGCredId
+  val request:  Request[A],
+  val ggCredId: GGCredId
 ) extends WrappedRequest[A](request)
 
 class AuthenticatedActionRefiner @Inject() (
-    val authConnector: AuthConnector,
-    appConfig:         AppConfig,
-    cc:                MessagesControllerComponents
-) extends ActionRefiner[Request, AuthenticatedRequest]
-  with AuthorisedFunctions
-  with FrontendHeaderCarrierProvider {
+  val authConnector: AuthConnector,
+  appConfig:         AppConfig,
+  cc:                MessagesControllerComponents
+) extends ActionRefiner[Request, AuthenticatedRequest],
+      AuthorisedFunctions,
+      FrontendHeaderCarrierProvider {
 
-  private implicit val ec: ExecutionContext = cc.executionContext
+  private given ExecutionContext = cc.executionContext
 
   override protected def refine[A](request: Request[A]): Future[Either[Result, AuthenticatedRequest[A]]] = {
-    implicit val r: Request[A] = request
+    given Request[A] = request
 
-    authorised(AuthProviders(GovernmentGateway)).retrieve(
-      Retrievals.credentials
-    ) {
+    authorised(AuthProviders(GovernmentGateway))
+      .retrieve(
+        Retrievals.credentials
+      ) {
         case None =>
           Future.failed(new RuntimeException(s"Could not find credentials"))
 
@@ -59,8 +60,9 @@ class AuthenticatedActionRefiner @Inject() (
             Right(new AuthenticatedRequest[A](request, GGCredId(ggCredId.providerId)))
           )
 
-      }.recover {
-        case _: NoActiveSession => Left(redirectToLoginPage(request))
+      }
+      .recover {
+        case _: NoActiveSession        => Left(redirectToLoginPage(request))
         case e: AuthorisationException =>
           Errors.throwServerErrorException(s"Unauthorised because of ${e.reason}, please investigate why")
       }
@@ -71,7 +73,7 @@ class AuthenticatedActionRefiner @Inject() (
       appConfig.BaseUrl.gg,
       Map(
         "continue" -> Seq(appConfig.BaseUrl.ddUpdateEmailFrontend + request.uri),
-        "origin" -> Seq("direct-debit-update-email-frontend")
+        "origin"   -> Seq("direct-debit-update-email-frontend")
       )
     )
 

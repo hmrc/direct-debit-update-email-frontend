@@ -25,30 +25,35 @@ import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, HttpResponse, StringContextOps}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import play.api.libs.ws.WSBodyWritables.writeableOf_JsValue
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class DirectDebitUpdateEmailBackendConnector @Inject() (
-    httpClient: HttpClientV2,
-    config:     Configuration
-)(implicit ec: ExecutionContext) extends ServicesConfig(config) {
+  httpClient: HttpClientV2,
+  config:     Configuration
+)(using ExecutionContext)
+    extends ServicesConfig(config) {
 
   private val baseUrl: String = baseUrl("direct-debit-update-email-backend")
 
-  private val btaInternalAuthToken: String = config.get[String]("direct-debit-update-email-backend.start.internal-auth-token.bta")
-  private val epayeInternalAuthToken: String = config.get[String]("direct-debit-update-email-backend.start.internal-auth-token.epaye")
+  private val btaInternalAuthToken: String   =
+    config.get[String]("direct-debit-update-email-backend.start.internal-auth-token.bta")
+  private val epayeInternalAuthToken: String =
+    config.get[String]("direct-debit-update-email-backend.start.internal-auth-token.epaye")
 
-  private val btaStartUrl: String = s"$baseUrl/direct-debit-update-email/bta/start"
+  private val btaStartUrl: String   = s"$baseUrl/direct-debit-update-email/bta/start"
   private val epayeStartUrl: String = s"$baseUrl/direct-debit-update-email/epaye/start"
 
-  def start(origin: Origin, sjRequest: SjRequest)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
+  def start(origin: Origin, sjRequest: SjRequest)(using HeaderCarrier): Future[HttpResponse] = {
     val (url, internalAuthToken) = origin match {
-      case Origin.BTA          => btaStartUrl -> btaInternalAuthToken
+      case Origin.BTA          => btaStartUrl   -> btaInternalAuthToken
       case Origin.EpayeService => epayeStartUrl -> epayeInternalAuthToken
     }
 
     val headers = HeaderNames.authorisation -> internalAuthToken
-    httpClient.post(url"$url")
+    httpClient
+      .post(url"$url")
       .withBody(Json.toJson(sjRequest))
       .setHeader(headers)
       .execute[HttpResponse]

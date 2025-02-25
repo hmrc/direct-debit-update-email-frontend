@@ -39,35 +39,37 @@ class EmailControllerSpec extends ItSpec {
   lazy val controller = app.injector.instanceOf[EmailController]
 
   s"GET ${routes.EmailController.selectEmail.url}" - {
-      def checkPageContents(doc: Document)(implicit request: Request[_]): Unit = {
-        ContentAssertions.commonPageChecks(
-          doc,
-          "Check or change your email address",
-          Some(routes.EmailController.selectEmailSubmit.url),
-          backLinkOverrideUrl = Some(TestData.sjRequest.backUrl.value)
-        )
+    def checkPageContents(doc: Document)(implicit request: Request[_]): Unit = {
+      ContentAssertions.commonPageChecks(
+        doc,
+        "Check or change your email address",
+        Some(routes.EmailController.selectEmailSubmit.url),
+        backLinkOverrideUrl = Some(TestData.sjRequest.backUrl.value)
+      )
 
-        val paragraphs = doc.selectList("p.govuk-body")
-        paragraphs.size shouldBe 2
+      val paragraphs = doc.selectList("p.govuk-body")
+      paragraphs.size shouldBe 2
 
-        paragraphs(0).text shouldBe "We cannot contact you about your Employers’ PAYE Direct Debit using bounced@email.com."
-        paragraphs(1).text shouldBe "The reason for this could be:"
+      paragraphs(
+        0
+      ).text shouldBe "We cannot contact you about your Employers’ PAYE Direct Debit using bounced@email.com."
+      paragraphs(1).text shouldBe "The reason for this could be:"
 
-        val listItems = doc.selectList(".govuk-list > li")
-        listItems.size shouldBe 3
-        listItems(0).text shouldBe "Your email inbox is full"
-        listItems(1).text shouldBe "Your email address is not valid or it is spelt incorrectly"
-        listItems(2).text shouldBe "Emails from HMRC have been marked as spam"
+      val listItems = doc.selectList(".govuk-list > li")
+      listItems.size shouldBe 3
+      listItems(0).text shouldBe "Your email inbox is full"
+      listItems(1).text shouldBe "Your email address is not valid or it is spelt incorrectly"
+      listItems(2).text shouldBe "Emails from HMRC have been marked as spam"
 
-        doc.select(".govuk-fieldset__legend").text() shouldBe "Which email address do you want to use?"
+      doc.select(".govuk-fieldset__legend").text() shouldBe "Which email address do you want to use?"
 
-        val radios = doc.selectList(".govuk-radios__item")
-        radios.size shouldBe 2
+      val radios = doc.selectList(".govuk-radios__item")
+      radios.size shouldBe 2
 
-        radios(0).text() shouldBe "Use a different email address"
-        radios(1).text() shouldBe "Test bounced@email.com with a verification email"
-        ()
-      }
+      radios(0).text() shouldBe "Use a different email address"
+      radios(1).text() shouldBe "Test bounced@email.com with a verification email"
+      ()
+    }
 
     behave like (authenticatedJourneyBehaviour(controller.selectEmail))
 
@@ -76,9 +78,9 @@ class EmailControllerSpec extends ItSpec {
       DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.Started.journeyJson())
 
       val request = TestData.fakeRequestWithAuthorization
-      val result = controller.selectEmail(request)
+      val result  = controller.selectEmail(request)
       status(result) shouldBe OK
-      val doc = Jsoup.parse(contentAsString(result))
+      val doc     = Jsoup.parse(contentAsString(result))
 
       checkPageContents(doc)(request)
 
@@ -96,9 +98,9 @@ class EmailControllerSpec extends ItSpec {
       DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.SelectedEmail.journeyJson())
 
       val request = TestData.fakeRequestWithAuthorization
-      val result = controller.selectEmail(request)
+      val result  = controller.selectEmail(request)
       status(result) shouldBe OK
-      val doc = Jsoup.parse(contentAsString(result))
+      val doc     = Jsoup.parse(contentAsString(result))
 
       checkPageContents(doc)(request)
 
@@ -121,9 +123,9 @@ class EmailControllerSpec extends ItSpec {
       )
 
       val request = TestData.fakeRequestWithAuthorization
-      val result = controller.selectEmail(request)
+      val result  = controller.selectEmail(request)
       status(result) shouldBe OK
-      val doc = Jsoup.parse(contentAsString(result))
+      val doc     = Jsoup.parse(contentAsString(result))
 
       checkPageContents(doc)(request)
 
@@ -143,22 +145,24 @@ class EmailControllerSpec extends ItSpec {
       )
 
       val request = TestData.fakeRequestWithAuthorization.withLang(Language.Welsh)
-      val result = controller.selectEmail(request)
+      val result  = controller.selectEmail(request)
       status(result) shouldBe OK
-      val doc = Jsoup.parse(contentAsString(result))
+      val doc     = Jsoup.parse(contentAsString(result))
 
       ContentAssertions.commonPageChecks(
         doc,
         "Gwirio neu newid eich cyfeiriad e-bost",
         Some(routes.EmailController.selectEmailSubmit.url),
         backLinkOverrideUrl = Some(TestData.sjRequest.backUrl.value),
-        language            = Language.Welsh
+        language = Language.Welsh
       )(request)
 
       val paragraphs = doc.selectList("p.govuk-body")
       paragraphs.size shouldBe 2
 
-      paragraphs(0).text shouldBe "Ni allwn gysylltu â chi am eich Debyd Uniongyrchol ar gyfer TWE y Cyflogwr gan ddefnyddio bounced@email.com."
+      paragraphs(
+        0
+      ).text shouldBe "Ni allwn gysylltu â chi am eich Debyd Uniongyrchol ar gyfer TWE y Cyflogwr gan ddefnyddio bounced@email.com."
       paragraphs(1).text shouldBe "Gallai’r rheswm am hyn fod y naill o’r canlynol:"
 
       val listItems = doc.selectList(".govuk-list > li")
@@ -184,49 +188,50 @@ class EmailControllerSpec extends ItSpec {
 
     "return a form error when" - {
 
-        def test(formData: (String, String)*)(expectedErrorMessageEnglish: String, expectedErrorMessageWelsh: String, expectedErrorTarget: String): Unit = {
-          List(
-            Language.English,
-            Language.Welsh
-          ).foreach{ lang =>
-              withClue(s"For language ${lang.entryName}: "){
-                AuthStub.authorise()
-                DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.Started.journeyJson())
+      def test(
+        formData: (String, String)*
+      )(expectedErrorMessageEnglish: String, expectedErrorMessageWelsh: String, expectedErrorTarget: String): Unit =
+        List(
+          Language.English,
+          Language.Welsh
+        ).foreach { lang =>
+          withClue(s"For language ${lang.entryName}: ") {
+            AuthStub.authorise()
+            DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.Started.journeyJson())
 
-                val request =
-                  TestData.fakeRequestWithAuthorization
-                    .withMethod("POST")
-                    .withFormUrlEncodedBody(formData: _*)
-                    .withLang(lang)
-                val result = controller.selectEmailSubmit(request)
+            val request =
+              TestData.fakeRequestWithAuthorization
+                .withMethod("POST")
+                .withFormUrlEncodedBody(formData: _*)
+                .withLang(lang)
+            val result  = controller.selectEmailSubmit(request)
 
-                status(result) shouldBe BAD_REQUEST
-                val doc = Jsoup.parse(contentAsString(result))
+            status(result) shouldBe BAD_REQUEST
+            val doc = Jsoup.parse(contentAsString(result))
 
-                val expectedH1 = lang match {
-                  case Language.English => "Check or change your email address"
-                  case Language.Welsh   => "Gwirio neu newid eich cyfeiriad e-bost"
-                }
-
-                ContentAssertions.commonPageChecks(
-                  doc,
-                  expectedH1,
-                  Some(routes.EmailController.selectEmailSubmit.url),
-                  backLinkOverrideUrl = Some(TestData.sjRequest.backUrl.value),
-                  hasFormError        = true,
-                  language            = lang
-                )(request)
-
-                val errorSummary = doc.select(".govuk-error-summary")
-                val errorLink = errorSummary.select("a")
-                errorLink.text() shouldBe (lang match {
-                  case Language.English => expectedErrorMessageEnglish
-                  case Language.Welsh   => expectedErrorMessageWelsh
-                })
-                errorLink.attr("href") shouldBe expectedErrorTarget
-                ()
-              }
+            val expectedH1 = lang match {
+              case Language.English => "Check or change your email address"
+              case Language.Welsh   => "Gwirio neu newid eich cyfeiriad e-bost"
             }
+
+            ContentAssertions.commonPageChecks(
+              doc,
+              expectedH1,
+              Some(routes.EmailController.selectEmailSubmit.url),
+              backLinkOverrideUrl = Some(TestData.sjRequest.backUrl.value),
+              hasFormError = true,
+              language = lang
+            )(request)
+
+            val errorSummary = doc.select(".govuk-error-summary")
+            val errorLink    = errorSummary.select("a")
+            errorLink.text() shouldBe (lang match {
+              case Language.English => expectedErrorMessageEnglish
+              case Language.Welsh   => expectedErrorMessageWelsh
+            })
+            errorLink.attr("href") shouldBe expectedErrorTarget
+            ()
+          }
         }
 
       "nothing is submitted" in {
@@ -242,78 +247,78 @@ class EmailControllerSpec extends ItSpec {
         "the email is empty" in {
           test(
             "selectAnEmailToUseRadio" -> "new",
-            "newEmailInput" -> ""
+            "newEmailInput"           -> ""
           )(
-              "Enter your email address in the correct format, like name@example.com",
-              "Nodwch eich cyfeiriad e-bost yn y fformat cywir, megis enw@enghraifft.com",
-              "#newEmailInput"
-            )
+            "Enter your email address in the correct format, like name@example.com",
+            "Nodwch eich cyfeiriad e-bost yn y fformat cywir, megis enw@enghraifft.com",
+            "#newEmailInput"
+          )
         }
 
         "the email is longer than 256 characters" in {
           test(
             "selectAnEmailToUseRadio" -> "new",
-            "newEmailInput" -> ("a" * 257)
+            "newEmailInput"           -> ("a" * 257)
           )(
-              "Enter an email address with 256 characters or less",
-              "Nodwch gyfeiriad e-bost gan ddefnyddio 256 o gymeriadau neu lai",
-              "#newEmailInput"
-            )
+            "Enter an email address with 256 characters or less",
+            "Nodwch gyfeiriad e-bost gan ddefnyddio 256 o gymeriadau neu lai",
+            "#newEmailInput"
+          )
         }
 
         "the email address has no @ sign" in {
           test(
             "selectAnEmailToUseRadio" -> "new",
-            "newEmailInput" -> "invalidEmail"
+            "newEmailInput"           -> "invalidEmail"
           )(
-              "Enter your email address in the correct format, like name@example.com",
-              "Nodwch eich cyfeiriad e-bost yn y fformat cywir, megis enw@enghraifft.com",
-              "#newEmailInput"
-            )
+            "Enter your email address in the correct format, like name@example.com",
+            "Nodwch eich cyfeiriad e-bost yn y fformat cywir, megis enw@enghraifft.com",
+            "#newEmailInput"
+          )
         }
 
         "the email address has an empty username" in {
           test(
             "selectAnEmailToUseRadio" -> "new",
-            "newEmailInput" -> "@domain.com"
+            "newEmailInput"           -> "@domain.com"
           )(
-              "Enter your email address in the correct format, like name@example.com",
-              "Nodwch eich cyfeiriad e-bost yn y fformat cywir, megis enw@enghraifft.com",
-              "#newEmailInput"
-            )
+            "Enter your email address in the correct format, like name@example.com",
+            "Nodwch eich cyfeiriad e-bost yn y fformat cywir, megis enw@enghraifft.com",
+            "#newEmailInput"
+          )
         }
 
         "the email address has an empty domain" in {
           test(
             "selectAnEmailToUseRadio" -> "new",
-            "newEmailInput" -> "username@"
+            "newEmailInput"           -> "username@"
           )(
-              "Enter your email address in the correct format, like name@example.com",
-              "Nodwch eich cyfeiriad e-bost yn y fformat cywir, megis enw@enghraifft.com",
-              "#newEmailInput"
-            )
+            "Enter your email address in the correct format, like name@example.com",
+            "Nodwch eich cyfeiriad e-bost yn y fformat cywir, megis enw@enghraifft.com",
+            "#newEmailInput"
+          )
         }
 
         "the email address has special characters in the domain" in {
           test(
             "selectAnEmailToUseRadio" -> "new",
-            "newEmailInput" -> "username@1£5"
+            "newEmailInput"           -> "username@1£5"
           )(
-              "Enter your email address in the correct format, like name@example.com",
-              "Nodwch eich cyfeiriad e-bost yn y fformat cywir, megis enw@enghraifft.com",
-              "#newEmailInput"
-            )
+            "Enter your email address in the correct format, like name@example.com",
+            "Nodwch eich cyfeiriad e-bost yn y fformat cywir, megis enw@enghraifft.com",
+            "#newEmailInput"
+          )
         }
 
         "the email address has disallowed characters in the username" in {
           test(
             "selectAnEmailToUseRadio" -> "new",
-            "newEmailInput" -> "鍾username@domain.com"
+            "newEmailInput"           -> "鍾username@domain.com"
           )(
-              "Enter your email address in the correct format, like name@example.com",
-              "Nodwch eich cyfeiriad e-bost yn y fformat cywir, megis enw@enghraifft.com",
-              "#newEmailInput"
-            )
+            "Enter your email address in the correct format, like name@example.com",
+            "Nodwch eich cyfeiriad e-bost yn y fformat cywir, megis enw@enghraifft.com",
+            "#newEmailInput"
+          )
         }
 
       }
@@ -327,13 +332,18 @@ class EmailControllerSpec extends ItSpec {
 
         AuthStub.authorise()
         DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.Started.journeyJson())
-        DirectDebitUpdateEmailBackendStub.updateSelectedEmail(TestData.journeyId, TestData.Journeys.SelectedEmail.journeyJson())
-
-        val request = TestData.fakeRequestWithAuthorization.withMethod("POST").withFormUrlEncodedBody(
-          "selectAnEmailToUseRadio" -> "new",
-          "newEmailInput" -> email
+        DirectDebitUpdateEmailBackendStub.updateSelectedEmail(
+          TestData.journeyId,
+          TestData.Journeys.SelectedEmail.journeyJson()
         )
-        val result = controller.selectEmailSubmit(request)
+
+        val request = TestData.fakeRequestWithAuthorization
+          .withMethod("POST")
+          .withFormUrlEncodedBody(
+            "selectAnEmailToUseRadio" -> "new",
+            "newEmailInput"           -> email
+          )
+        val result  = controller.selectEmailSubmit(request)
         status(result) shouldBe SEE_OTHER
         redirectLocation(result) shouldBe Some(routes.EmailController.requestVerification.url)
 
@@ -348,11 +358,13 @@ class EmailControllerSpec extends ItSpec {
           TestData.Journeys.SelectedEmail.journeyJson(selectedEmail = TestData.bouncedEmail)
         )
 
-        val request = TestData.fakeRequestWithAuthorization.withMethod("POST").withFormUrlEncodedBody(
-          "selectAnEmailToUseRadio" -> TestData.bouncedEmail.value.decryptedValue,
-          "newEmailInput" -> ""
-        )
-        val result = controller.selectEmailSubmit(request)
+        val request = TestData.fakeRequestWithAuthorization
+          .withMethod("POST")
+          .withFormUrlEncodedBody(
+            "selectAnEmailToUseRadio" -> TestData.bouncedEmail.value.decryptedValue,
+            "newEmailInput"           -> ""
+          )
+        val result  = controller.selectEmailSubmit(request)
         status(result) shouldBe SEE_OTHER
         redirectLocation(result) shouldBe Some(routes.EmailController.requestVerification.url)
 
@@ -371,7 +383,8 @@ class EmailControllerSpec extends ItSpec {
       AuthStub.authorise()
       DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.Started.journeyJson())
 
-      val error = intercept[UpstreamErrorResponse](await(controller.requestVerification(TestData.fakeRequestWithAuthorization)))
+      val error =
+        intercept[UpstreamErrorResponse](await(controller.requestVerification(TestData.fakeRequestWithAuthorization)))
       error.statusCode shouldBe INTERNAL_SERVER_ERROR
     }
 
@@ -380,37 +393,39 @@ class EmailControllerSpec extends ItSpec {
       ("BTA", "vatc", "vrn", Vrn("123456")),
       ("EpayeService", "ppt", "zppt", Zppt("12345")),
       ("EpayeService", "zsdl", "zsdl", Zsdl("1234"))
-    ).foreach {
-        case (origin, taxRegimeString, taxIdType, taxId) =>
+    ).foreach { case (origin, taxRegimeString, taxIdType, taxId) =>
+      s"must redirect to the given redirectUrl if the verification journey has successfully started for " +
+        s"origin=$origin, taxRegime=$taxRegimeString and taxIdType=$taxIdType " in {
+          AuthStub.authorise()
+          DirectDebitUpdateEmailBackendStub.findByLatestSessionId(
+            TestData.Journeys.SelectedEmail
+              .journeyJson(origin = origin, taxRegime = taxRegimeString, taxId = Some(taxId))
+          )
+          EmailVerificationStub.requestEmailVerification(
+            StartEmailVerificationJourneyResponse.Success(TestData.emailVerificationRedirectUrl)
+          )
+          AuditStub.audit()
+          DirectDebitUpdateEmailBackendStub.updateStartVerificationJourneyResult(
+            TestData.journeyId,
+            TestData.Journeys.EmailVerificationJourneyStarted.journeyJson()
+          )
 
-          s"must redirect to the given redirectUrl if the verification journey has successfully started for " +
-            s"origin=$origin, taxRegime=$taxRegimeString and taxIdType=$taxIdType " in {
-              AuthStub.authorise()
-              DirectDebitUpdateEmailBackendStub.findByLatestSessionId(
-                TestData.Journeys.SelectedEmail.journeyJson(origin    = origin, taxRegime = taxRegimeString, taxId = Some(taxId))
-              )
-              EmailVerificationStub.requestEmailVerification(StartEmailVerificationJourneyResponse.Success(TestData.emailVerificationRedirectUrl))
-              AuditStub.audit()
-              DirectDebitUpdateEmailBackendStub.updateStartVerificationJourneyResult(
-                TestData.journeyId,
-                TestData.Journeys.EmailVerificationJourneyStarted.journeyJson()
-              )
+          val result = controller.requestVerification(TestData.fakeRequestWithAuthorization)
+          status(result) shouldBe SEE_OTHER
+          redirectLocation(result) shouldBe Some(TestData.emailVerificationRedirectUrl)
 
-              val result = controller.requestVerification(TestData.fakeRequestWithAuthorization)
-              status(result) shouldBe SEE_OTHER
-              redirectLocation(result) shouldBe Some(TestData.emailVerificationRedirectUrl)
-
-              EmailVerificationStub.verifyRequestEmailVerification(
-                TestData.selectedEmail,
-                "http://localhost:12346/accessibility-statement/direct-debit-verify-email",
-                "Check or change your Direct Debit email address",
-                "en",
-                "http://localhost:10801"
-              )
-              AuditStub.verifyEventAudited(
-                "EmailVerificationRequested",
-                Json.parse(
-                  s"""{
+          EmailVerificationStub.verifyRequestEmailVerification(
+            TestData.selectedEmail,
+            "http://localhost:12346/accessibility-statement/direct-debit-verify-email",
+            "Check or change your Direct Debit email address",
+            "en",
+            "http://localhost:10801"
+          )
+          AuditStub.verifyEventAudited(
+            "EmailVerificationRequested",
+            Json
+              .parse(
+                s"""{
                  |  "origin": "$origin",
                  |  "taxType": "$taxRegimeString",
                  |  "taxId": "${taxId.value}",
@@ -419,21 +434,24 @@ class EmailControllerSpec extends ItSpec {
                  |  "result": "Ok",
                  |  "authProviderId": "${TestData.ggCredId.value}"
                  |}""".stripMargin
-                ).as[JsObject]
               )
-              DirectDebitUpdateEmailBackendStub.verifyUpdateStartVerificationJourneyResult(
-                TestData.journeyId,
-                StartEmailVerificationJourneyResult.Ok(TestData.emailVerificationRedirectUrl)
-              )
-            }
-      }
+              .as[JsObject]
+          )
+          DirectDebitUpdateEmailBackendStub.verifyUpdateStartVerificationJourneyResult(
+            TestData.journeyId,
+            StartEmailVerificationJourneyResult.Ok(TestData.emailVerificationRedirectUrl)
+          )
+        }
+    }
 
     "audit correctly when there is no tax id in the journey and the selected email address is the same as the original bounced email" in {
       AuthStub.authorise()
       DirectDebitUpdateEmailBackendStub.findByLatestSessionId(
-        TestData.Journeys.SelectedEmail.journeyJson(taxId         = None, selectedEmail = TestData.bouncedEmail)
+        TestData.Journeys.SelectedEmail.journeyJson(taxId = None, selectedEmail = TestData.bouncedEmail)
       )
-      EmailVerificationStub.requestEmailVerification(StartEmailVerificationJourneyResponse.Success(TestData.emailVerificationRedirectUrl))
+      EmailVerificationStub.requestEmailVerification(
+        StartEmailVerificationJourneyResponse.Success(TestData.emailVerificationRedirectUrl)
+      )
       AuditStub.audit()
       DirectDebitUpdateEmailBackendStub.updateStartVerificationJourneyResult(
         TestData.journeyId,
@@ -453,8 +471,9 @@ class EmailControllerSpec extends ItSpec {
       )
       AuditStub.verifyEventAudited(
         "EmailVerificationRequested",
-        Json.parse(
-          s"""{
+        Json
+          .parse(
+            s"""{
              |  "origin": "BTA",
              |  "taxType": "paye",
              |  "emailAddress": "${TestData.bouncedEmail.value.decryptedValue}",
@@ -462,7 +481,8 @@ class EmailControllerSpec extends ItSpec {
              |  "result": "Ok",
              |  "authProviderId": "${TestData.ggCredId.value}"
              |}""".stripMargin
-        ).as[JsObject]
+          )
+          .as[JsObject]
       )
       DirectDebitUpdateEmailBackendStub.verifyUpdateStartVerificationJourneyResult(
         TestData.journeyId,
@@ -473,7 +493,9 @@ class EmailControllerSpec extends ItSpec {
     "pass in Welsh parameters to email verification if the user is navigating the service in Welsh" in {
       AuthStub.authorise()
       DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.SelectedEmail.journeyJson())
-      EmailVerificationStub.requestEmailVerification(StartEmailVerificationJourneyResponse.Success(TestData.emailVerificationRedirectUrl))
+      EmailVerificationStub.requestEmailVerification(
+        StartEmailVerificationJourneyResponse.Success(TestData.emailVerificationRedirectUrl)
+      )
       AuditStub.audit()
       DirectDebitUpdateEmailBackendStub.updateStartVerificationJourneyResult(
         TestData.journeyId,
@@ -495,8 +517,9 @@ class EmailControllerSpec extends ItSpec {
       )
       AuditStub.verifyEventAudited(
         "EmailVerificationRequested",
-        Json.parse(
-          s"""{
+        Json
+          .parse(
+            s"""{
              |  "origin": "BTA",
              |  "taxType": "paye",
              |  "emailAddress": "${TestData.selectedEmail.value.decryptedValue}",
@@ -504,7 +527,8 @@ class EmailControllerSpec extends ItSpec {
              |  "result": "Ok",
              |  "authProviderId": "${TestData.ggCredId.value}"
              |}""".stripMargin
-        ).as[JsObject]
+          )
+          .as[JsObject]
       )
       DirectDebitUpdateEmailBackendStub.verifyUpdateStartVerificationJourneyResult(
         TestData.journeyId,
@@ -519,7 +543,8 @@ class EmailControllerSpec extends ItSpec {
       AuditStub.audit()
       DirectDebitUpdateEmailBackendStub.updateStartVerificationJourneyResult(
         TestData.journeyId,
-        TestData.Journeys.EmailVerificationJourneyStarted.journeyJson(startEmailVerificationJourneyResult = StartEmailVerificationJourneyResult.AlreadyVerified)
+        TestData.Journeys.EmailVerificationJourneyStarted
+          .journeyJson(startEmailVerificationJourneyResult = StartEmailVerificationJourneyResult.AlreadyVerified)
       )
       DirectDebitBackendStub.updateEmailAndBouncedFlag(TestData.ddiNumber)
       DirectDebitUpdateEmailBackendStub.updateEmailVerificationResult(
@@ -533,8 +558,9 @@ class EmailControllerSpec extends ItSpec {
 
       AuditStub.verifyEventAudited(
         "EmailVerificationRequested",
-        Json.parse(
-          s"""{
+        Json
+          .parse(
+            s"""{
              |  "origin": "BTA",
              |  "taxType": "paye",
              |  "emailAddress": "${TestData.selectedEmail.value.decryptedValue}",
@@ -542,7 +568,8 @@ class EmailControllerSpec extends ItSpec {
              |  "result": "AlreadyVerified",
              |  "authProviderId": "${TestData.ggCredId.value}"
              |}""".stripMargin
-        ).as[JsObject]
+          )
+          .as[JsObject]
       )
       DirectDebitUpdateEmailBackendStub.verifyUpdateStartVerificationJourneyResult(
         TestData.journeyId,
@@ -567,7 +594,8 @@ class EmailControllerSpec extends ItSpec {
         AuditStub.audit()
         DirectDebitUpdateEmailBackendStub.updateStartVerificationJourneyResult(
           TestData.journeyId,
-          TestData.Journeys.EmailVerificationJourneyStarted.journeyJson(startEmailVerificationJourneyResult = StartEmailVerificationJourneyResult.AlreadyVerified)
+          TestData.Journeys.EmailVerificationJourneyStarted
+            .journeyJson(startEmailVerificationJourneyResult = StartEmailVerificationJourneyResult.AlreadyVerified)
         )
         DirectDebitBackendStub.updateEmailAndBouncedFlag(TestData.ddiNumber, INTERNAL_SERVER_ERROR)
 
@@ -578,8 +606,9 @@ class EmailControllerSpec extends ItSpec {
 
         AuditStub.verifyEventAudited(
           "EmailVerificationRequested",
-          Json.parse(
-            s"""{
+          Json
+            .parse(
+              s"""{
              |  "origin": "BTA",
              |  "taxType": "paye",
              |  "emailAddress": "${TestData.selectedEmail.value.decryptedValue}",
@@ -587,7 +616,8 @@ class EmailControllerSpec extends ItSpec {
              |  "result": "AlreadyVerified",
              |  "authProviderId": "${TestData.ggCredId.value}"
              |}""".stripMargin
-          ).as[JsObject]
+            )
+            .as[JsObject]
         )
         DirectDebitUpdateEmailBackendStub.verifyUpdateStartVerificationJourneyResult(
           TestData.journeyId,
@@ -603,15 +633,20 @@ class EmailControllerSpec extends ItSpec {
     "must redirect to the too many passcode attempts page if the user has made too many passcode attempts" in {
       AuthStub.authorise()
       DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.SelectedEmail.journeyJson())
-      EmailVerificationStub.requestEmailVerification(StartEmailVerificationJourneyResponse.Error(TooManyPasscodeAttempts))
+      EmailVerificationStub.requestEmailVerification(
+        StartEmailVerificationJourneyResponse.Error(TooManyPasscodeAttempts)
+      )
       AuditStub.audit()
       DirectDebitUpdateEmailBackendStub.updateStartVerificationJourneyResult(
         TestData.journeyId,
-        TestData.Journeys.EmailVerificationJourneyStarted.journeyJson(startEmailVerificationJourneyResult = StartEmailVerificationJourneyResult.TooManyPasscodeAttempts)
+        TestData.Journeys.EmailVerificationJourneyStarted.journeyJson(startEmailVerificationJourneyResult =
+          StartEmailVerificationJourneyResult.TooManyPasscodeAttempts
+        )
       )
       DirectDebitUpdateEmailBackendStub.updateEmailVerificationResult(
         TestData.journeyId,
-        TestData.Journeys.ObtainedEmailVerificationResult.journeyJson(emailVerificationResult = EmailVerificationResult.Locked)
+        TestData.Journeys.ObtainedEmailVerificationResult
+          .journeyJson(emailVerificationResult = EmailVerificationResult.Locked)
       )
 
       val result = controller.requestVerification(TestData.fakeRequestWithAuthorization)
@@ -620,8 +655,9 @@ class EmailControllerSpec extends ItSpec {
 
       AuditStub.verifyEventAudited(
         "EmailVerificationRequested",
-        Json.parse(
-          s"""{
+        Json
+          .parse(
+            s"""{
              |  "origin": "BTA",
              |  "taxType": "paye",
              |  "emailAddress": "${TestData.selectedEmail.value.decryptedValue}",
@@ -629,7 +665,8 @@ class EmailControllerSpec extends ItSpec {
              |  "result": "TooManyPasscodeAttempts",
              |  "authProviderId": "${TestData.ggCredId.value}"
              |}""".stripMargin
-        ).as[JsObject]
+          )
+          .as[JsObject]
       )
       DirectDebitUpdateEmailBackendStub.verifyUpdateStartVerificationJourneyResult(
         TestData.journeyId,
@@ -645,21 +682,28 @@ class EmailControllerSpec extends ItSpec {
       "passcode journeys" in {
         AuthStub.authorise()
         DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.SelectedEmail.journeyJson())
-        EmailVerificationStub.requestEmailVerification(StartEmailVerificationJourneyResponse.Error(TooManyPasscodeJourneysStarted))
+        EmailVerificationStub.requestEmailVerification(
+          StartEmailVerificationJourneyResponse.Error(TooManyPasscodeJourneysStarted)
+        )
         AuditStub.audit()
         DirectDebitUpdateEmailBackendStub.updateStartVerificationJourneyResult(
           TestData.journeyId,
-          TestData.Journeys.EmailVerificationJourneyStarted.journeyJson(startEmailVerificationJourneyResult = StartEmailVerificationJourneyResult.TooManyPasscodeJourneysStarted)
+          TestData.Journeys.EmailVerificationJourneyStarted.journeyJson(startEmailVerificationJourneyResult =
+            StartEmailVerificationJourneyResult.TooManyPasscodeJourneysStarted
+          )
         )
 
         val result = controller.requestVerification(TestData.fakeRequestWithAuthorization)
         status(result) shouldBe SEE_OTHER
-        redirectLocation(result) shouldBe Some(routes.EmailVerificationResultController.tooManyPasscodeJourneysStarted.url)
+        redirectLocation(result) shouldBe Some(
+          routes.EmailVerificationResultController.tooManyPasscodeJourneysStarted.url
+        )
 
         AuditStub.verifyEventAudited(
           "EmailVerificationRequested",
-          Json.parse(
-            s"""{
+          Json
+            .parse(
+              s"""{
              |  "origin": "BTA",
              |  "taxType": "paye",
              |  "emailAddress": "${TestData.selectedEmail.value.decryptedValue}",
@@ -667,7 +711,8 @@ class EmailControllerSpec extends ItSpec {
              |  "result": "TooManyPasscodeJourneysStarted",
              |  "authProviderId": "${TestData.ggCredId.value}"
              |}""".stripMargin
-          ).as[JsObject]
+            )
+            .as[JsObject]
         )
         DirectDebitUpdateEmailBackendStub.verifyUpdateStartVerificationJourneyResult(
           TestData.journeyId,
@@ -679,21 +724,28 @@ class EmailControllerSpec extends ItSpec {
       "many email addresses" in {
         AuthStub.authorise()
         DirectDebitUpdateEmailBackendStub.findByLatestSessionId(TestData.Journeys.SelectedEmail.journeyJson())
-        EmailVerificationStub.requestEmailVerification(StartEmailVerificationJourneyResponse.Error(TooManyDifferentEmailAddresses))
+        EmailVerificationStub.requestEmailVerification(
+          StartEmailVerificationJourneyResponse.Error(TooManyDifferentEmailAddresses)
+        )
         AuditStub.audit()
         DirectDebitUpdateEmailBackendStub.updateStartVerificationJourneyResult(
           TestData.journeyId,
-          TestData.Journeys.EmailVerificationJourneyStarted.journeyJson(startEmailVerificationJourneyResult = StartEmailVerificationJourneyResult.TooManyDifferentEmailAddresses)
+          TestData.Journeys.EmailVerificationJourneyStarted.journeyJson(startEmailVerificationJourneyResult =
+            StartEmailVerificationJourneyResult.TooManyDifferentEmailAddresses
+          )
         )
 
         val result = controller.requestVerification(TestData.fakeRequestWithAuthorization)
         status(result) shouldBe SEE_OTHER
-        redirectLocation(result) shouldBe Some(routes.EmailVerificationResultController.tooManyDifferentEmailAddresses.url)
+        redirectLocation(result) shouldBe Some(
+          routes.EmailVerificationResultController.tooManyDifferentEmailAddresses.url
+        )
 
         AuditStub.verifyEventAudited(
           "EmailVerificationRequested",
-          Json.parse(
-            s"""{
+          Json
+            .parse(
+              s"""{
              |  "origin": "BTA",
              |  "taxType": "paye",
              |  "emailAddress": "${TestData.selectedEmail.value.decryptedValue}",
@@ -701,7 +753,8 @@ class EmailControllerSpec extends ItSpec {
              |  "result": "TooManyDifferentEmailAddresses",
              |  "authProviderId": "${TestData.ggCredId.value}"
              |}""".stripMargin
-          ).as[JsObject]
+            )
+            .as[JsObject]
         )
         DirectDebitUpdateEmailBackendStub.verifyUpdateStartVerificationJourneyResult(
           TestData.journeyId,
@@ -748,8 +801,9 @@ class EmailNotLocalControllerSpec extends ItSpec {
       )
       AuditStub.verifyEventAudited(
         "EmailVerificationRequested",
-        Json.parse(
-          s"""{
+        Json
+          .parse(
+            s"""{
              |  "origin": "BTA",
              |  "taxType": "paye",
              |  "emailAddress": "${TestData.selectedEmail.value.decryptedValue}",
@@ -757,7 +811,8 @@ class EmailNotLocalControllerSpec extends ItSpec {
              |  "result": "Ok",
              |  "authProviderId": "${TestData.ggCredId.value}"
              |}""".stripMargin
-        ).as[JsObject]
+          )
+          .as[JsObject]
       )
       DirectDebitUpdateEmailBackendStub.verifyUpdateStartVerificationJourneyResult(
         TestData.journeyId,

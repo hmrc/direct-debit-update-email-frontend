@@ -29,12 +29,12 @@ import scala.jdk.CollectionConverters._
 
 object ContentAssertions extends RichMatchers {
 
-  def assertListOfContent(elements: Elements)(expectedContent: List[String]) = {
-    elements.asScala.toList.zip(expectedContent)
+  def assertListOfContent(elements: Elements)(expectedContent: List[String]) =
+    elements.asScala.toList
+      .zip(expectedContent)
       .map { case (element, expectedText) => element.text() shouldBe expectedText }
-  }
 
-  //used for summary lists
+  // used for summary lists
   def assertKeyAndValue(element: Element, keyValue: (String, String)): Assertion = {
     element.select(".govuk-summary-list__key").text() shouldBe keyValue._1
     element.select(".govuk-summary-list__value").text() shouldBe keyValue._2
@@ -45,7 +45,7 @@ object ContentAssertions extends RichMatchers {
     langToggleItems.size shouldBe 2
 
     val englishOption = langToggleItems(0)
-    val welshOption = langToggleItems(1)
+    val welshOption   = langToggleItems(1)
 
     selectedLanguage match {
       case Language.English =>
@@ -68,14 +68,14 @@ object ContentAssertions extends RichMatchers {
 
   @nowarn
   def commonPageChecks(
-      page:                Document,
-      expectedH1:          String,
-      expectedSubmitUrl:   Option[String],
-      hasFormError:        Boolean        = false,
-      language:            Language       = Language.English,
-      backLinkOverrideUrl: Option[String] = None,
-      hasBackLink:         Boolean        = true,
-      hasSignOutLink:      Boolean        = true
+    page:                Document,
+    expectedH1:          String,
+    expectedSubmitUrl:   Option[String],
+    hasFormError:        Boolean = false,
+    language:            Language = Language.English,
+    backLinkOverrideUrl: Option[String] = None,
+    hasBackLink:         Boolean = true,
+    hasSignOutLink:      Boolean = true
   )(implicit request: Request[_]): Unit = {
     val titlePrefix = if (hasFormError) {
       language match {
@@ -144,12 +144,14 @@ object ContentAssertions extends RichMatchers {
       case Language.English => "Accessibility statement"
       case Language.Welsh   => "Datganiad hygyrchedd"
     }
-    val accessibilityStatementLink = footerLinks.find(_.text().eqv(accessibilityStatementLinkText))
-    accessibilityStatementLink.map(_.attr("href")) shouldBe Some("http://localhost:12346/accessibility-statement/direct-debit-verify-email?referrerUrl=%2F")
+    val accessibilityStatementLink     = footerLinks.find(_.text().eqv(accessibilityStatementLinkText))
+    accessibilityStatementLink.map(_.attr("href")) shouldBe Some(
+      "http://localhost:12346/accessibility-statement/direct-debit-verify-email?referrerUrl=%2F"
+    )
 
     val form = page.select("form")
     expectedSubmitUrl match {
-      case None => form.isEmpty shouldBe true
+      case None         => form.isEmpty shouldBe true
       case Some(submit) =>
         form.attr("action") shouldBe submit
         form.select(".govuk-button").text shouldBe (language match {

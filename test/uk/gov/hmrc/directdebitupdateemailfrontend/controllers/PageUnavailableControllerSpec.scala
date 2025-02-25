@@ -37,20 +37,20 @@ class PageUnavailableControllerSpec extends ItSpec with LogCapturing {
       status(result) shouldBe OK
 
       val pageContent: String = contentAsString(result)
-      val doc: Document = Jsoup.parse(pageContent)
+      val doc: Document       = Jsoup.parse(pageContent)
       ContentAssertions.commonPageChecks(
         doc,
-        expectedH1        = "Sorry, the page is unavailable",
+        expectedH1 = "Sorry, the page is unavailable",
         expectedSubmitUrl = None,
-        hasBackLink       = false,
-        hasSignOutLink    = false
+        hasBackLink = false,
+        hasSignOutLink = false
       )(FakeRequest())
 
       val paragraphs = doc.selectList("p.govuk-body")
       paragraphs.size shouldBe 2
       paragraphs(0).text() shouldBe "The page is unavailable."
       paragraphs(1).text() shouldBe "Go to your tax account to check or change your Direct Debit email address."
-      val link = doc.select("p > a.govuk-link")
+      val link       = doc.select("p > a.govuk-link")
       link.text() shouldBe "Go to your tax account"
       link.attr("href").contains("/business-account") shouldBe true
     }

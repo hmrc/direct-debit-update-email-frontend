@@ -30,7 +30,7 @@ object EmailSource extends PlayEnum[EmailSource] {
 
   case object Original extends EmailSource
 
-  implicit val format: Format[EmailSource] = EnumFormat(EmailSource)
+  given Format[EmailSource] = EnumFormat(EmailSource)
 
   override val values: immutable.IndexedSeq[EmailSource] = findValues
 

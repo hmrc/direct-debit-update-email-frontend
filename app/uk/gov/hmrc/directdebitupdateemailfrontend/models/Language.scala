@@ -23,7 +23,7 @@ import play.api.libs.json.Format
 
 import scala.collection.immutable
 
-sealed trait Language extends EnumEntry with Product with Serializable {
+sealed trait Language extends EnumEntry, Product, Serializable derives CanEqual {
 
   val code: String
 
@@ -36,7 +36,7 @@ object Language extends Enum[Language] {
   def apply(lang: Lang): Language = lang.code match {
     case "en" => English
     case "cy" => Welsh
-    case _    => English //default language is English
+    case _    => English // default language is English
   }
 
   val availableLanguages: List[Language] = List(English, Welsh)
@@ -52,4 +52,3 @@ object Language extends Enum[Language] {
     override val code: String = "cy"
   }
 }
-

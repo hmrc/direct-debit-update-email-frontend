@@ -80,13 +80,14 @@
 
   @hmrcLanguageSelectHelper()
 
-  @{
-   if(showBackLink) {
-     backLinkUrlOverride.fold(
-      govukBackLink(BackLink(href = "#", classes = "js-visible", content = Text(Messages.back.show)))
-     )(url => govukBackLink(BackLink(href = url, content = Text(Messages.back.show))))
+  @if(showBackLink) {
+   @backLinkUrlOverride.fold {
+    @govukBackLink(BackLink(href = "#", classes = "js-visible", content = Text(Messages.back.show)))
+   } { url =>
+    @govukBackLink(BackLink(href = url, content = Text(Messages.back.show)))
    }
   }
+
 
  </div>
 }
@@ -97,19 +98,19 @@
  <div class="govuk-!-display-none-print">@hmrcReportTechnicalIssueHelper()</div>
 }
 
-@serviceName = @{ Messages.`Check or change your Direct Debit email address`.show }
+ @serviceName = @{ Messages.`Check or change your Direct Debit email address`.show }
 
-@serviceNameAndTitle = @{ s"$pageTitle - $serviceName" }
+ @serviceNameAndTitle = @{ s"$pageTitle - $serviceName" }
 
-@govTitle = @{serviceNameAndTitle + " - GOV.UK"}
-@documentTitle = @{if(hasErrors) { s"${Messages.error.show} $govTitle" } else { govTitle }}
+ @govTitle = @{serviceNameAndTitle + " - GOV.UK"}
+ @documentTitle = @{if(hasErrors) { s"${Messages.error.show} $govTitle" } else { govTitle }}
 
-@header = @{
- hmrcStandardHeader(
-  serviceName =  Some(serviceName),
-  serviceUrl = Some(routes.EmailController.selectEmail.url),
-  signOutUrl = if(showSignOut) Some(appConfig.signOutUrl) else None
- )
+ @header = @{
+  hmrcStandardHeader(
+   serviceName =  Some(serviceName),
+   serviceUrl = Some(routes.EmailController.selectEmail.url),
+   signOutUrl = if(showSignOut) Some(appConfig.signOutUrl) else None
+  )
 }
 
 @govukLayout(

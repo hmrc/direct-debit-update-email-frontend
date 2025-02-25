@@ -21,16 +21,15 @@ import ddUpdateEmail.models.{DDINumber, Email, TaxRegime}
 import play.api.libs.json.{Json, OFormat}
 
 final case class DirectDebitRecord(
-    regime:                    TaxRegime,
-    identifier:                Option[TaxId]   = None,
-    email:                     Email,
-    directDebitInstructionNos: List[DDINumber],
-    bounced:                   Boolean
+  regime:                    TaxRegime,
+  identifier:                Option[TaxId] = None,
+  email:                     Email,
+  directDebitInstructionNos: List[DDINumber],
+  bounced:                   Boolean
 )
 
 object DirectDebitRecord {
 
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  implicit def format(implicit cryptoFormat: CryptoFormat): OFormat[DirectDebitRecord] = Json.format
+  given format(using CryptoFormat): OFormat[DirectDebitRecord] = Json.format
 
 }

@@ -23,7 +23,7 @@ import play.api.libs.json.JsObject
 
 object AuditStub extends Eventually {
 
-  val auditUrl: String = "/write/audit"
+  val auditUrl: String       = "/write/audit"
   val auditMergedUrl: String = "/write/audit/merged"
 
   def audit(): StubMapping = {
@@ -35,7 +35,7 @@ object AuditStub extends Eventually {
     verify(
       postRequestedFor(urlPathEqualTo(auditUrl))
         .withRequestBody(
-          equalToJson(s"""{ "auditType" : "${auditType}"  }""", true, true)
+          equalToJson(s"""{ "auditType" : "$auditType"  }""", true, true)
         )
         .withRequestBody(
           equalToJson(s"""{ "auditSource" : "direct-debit-update-email-frontend"  }""", true, true)

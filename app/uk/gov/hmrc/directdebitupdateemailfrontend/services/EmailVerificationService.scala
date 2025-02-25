@@ -20,7 +20,7 @@ import com.google.inject.{Inject, Singleton}
 import ddUpdateEmail.models.{Email, EmailVerificationResult, StartEmailVerificationJourneyResult}
 import paymentsEmailVerification.connectors.PaymentsEmailVerificationConnector
 import paymentsEmailVerification.models.api.{GetEarliestCreatedAtTimeResponse, GetEmailVerificationResultRequest, StartEmailVerificationJourneyRequest, StartEmailVerificationJourneyResponse}
-import paymentsEmailVerification.models.{EmailVerificationState, Email => PaymentsEmailVerificationEmail, EmailVerificationResult => PaymentsEmailVerificationResult}
+import paymentsEmailVerification.models.{Email => PaymentsEmailVerificationEmail, EmailVerificationResult => PaymentsEmailVerificationResult, EmailVerificationState}
 import uk.gov.hmrc.directdebitupdateemailfrontend.actions.AuthenticatedJourneyRequest
 import uk.gov.hmrc.directdebitupdateemailfrontend.config.AppConfig
 import uk.gov.hmrc.directdebitupdateemailfrontend.controllers.routes
@@ -33,16 +33,18 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class EmailVerificationService @Inject() (
-    appConfig:                  AppConfig,
-    emailVerificationConnector: PaymentsEmailVerificationConnector,
-    auditService:               AuditService,
-    contactFrontendConfig:      ContactFrontendConfig,
-    requestSupport:             RequestSupport
-)(implicit ec: ExecutionContext) {
+  appConfig:                  AppConfig,
+  emailVerificationConnector: PaymentsEmailVerificationConnector,
+  auditService:               AuditService,
+  contactFrontendConfig:      ContactFrontendConfig,
+  requestSupport:             RequestSupport
+)(using ExecutionContext) {
 
   private val isLocal: Boolean = appConfig.BaseUrl.platformHost.isEmpty
 
-  def startEmailVerificationJourney(email: Email)(implicit r: AuthenticatedJourneyRequest[_], hc: HeaderCarrier): Future[StartEmailVerificationJourneyResult] = {
+  def startEmailVerificationJourney(
+    email: Email
+  )(using r: AuthenticatedJourneyRequest[_], hc: HeaderCarrier): Future[StartEmailVerificationJourneyResult] = {
     val lang = requestSupport.language(r)
 
     val startRequest = StartEmailVerificationJourneyRequest(
@@ -57,34 +59,40 @@ class EmailVerificationService @Inject() (
       lang.code
     )
 
-    emailVerificationConnector.startEmailVerification(startRequest).map{ response =>
+    emailVerificationConnector.startEmailVerification(startRequest).map { response =>
       val result = toStartEmailVerificationJourneyResult(response)
       auditService.auditEmailVerificationRequested(r.journey, r.ggCredId, email, result)
       result
     }
   }
 
-  def getVerificationResult(email: Email)(implicit r: AuthenticatedJourneyRequest[_], hc: HeaderCarrier): Future[EmailVerificationResult] = {
+  def getVerificationResult(
+    email: Email
+  )(using r: AuthenticatedJourneyRequest[_], hc: HeaderCarrier): Future[EmailVerificationResult] = {
     val request = GetEmailVerificationResultRequest(PaymentsEmailVerificationEmail(email.value.decryptedValue))
-    emailVerificationConnector.getEmailVerificationResult(request).map{ response =>
+    emailVerificationConnector.getEmailVerificationResult(request).map { response =>
       val result = toEmailVerificationResult(response)
       auditService.auditEmailVerificationResult(r.journey, r.ggCredId, email, result)
       result
     }
   }
 
-  def getEarliestCreatedAtTime()(implicit hc: HeaderCarrier): Future[GetEarliestCreatedAtTimeResponse] =
+  def getEarliestCreatedAtTime()(using HeaderCarrier): Future[GetEarliestCreatedAtTimeResponse] =
     emailVerificationConnector.getEarliestCreatedAtTime()
 
   private def toStartEmailVerificationJourneyResult(s: StartEmailVerificationJourneyResponse) = s match {
-    case StartEmailVerificationJourneyResponse.Success(redirectUrl) => StartEmailVerificationJourneyResult.Ok(redirectUrl)
+    case StartEmailVerificationJourneyResponse.Success(redirectUrl) =>
+      StartEmailVerificationJourneyResult.Ok(redirectUrl)
 
     case StartEmailVerificationJourneyResponse.Error(reason) =>
       reason match {
         case EmailVerificationState.AlreadyVerified                => StartEmailVerificationJourneyResult.AlreadyVerified
-        case EmailVerificationState.TooManyPasscodeAttempts        => StartEmailVerificationJourneyResult.TooManyPasscodeAttempts
-        case EmailVerificationState.TooManyPasscodeJourneysStarted => StartEmailVerificationJourneyResult.TooManyPasscodeJourneysStarted
-        case EmailVerificationState.TooManyDifferentEmailAddresses => StartEmailVerificationJourneyResult.TooManyDifferentEmailAddresses
+        case EmailVerificationState.TooManyPasscodeAttempts        =>
+          StartEmailVerificationJourneyResult.TooManyPasscodeAttempts
+        case EmailVerificationState.TooManyPasscodeJourneysStarted =>
+          StartEmailVerificationJourneyResult.TooManyPasscodeJourneysStarted
+        case EmailVerificationState.TooManyDifferentEmailAddresses =>
+          StartEmailVerificationJourneyResult.TooManyDifferentEmailAddresses
       }
   }
 
@@ -94,15 +102,17 @@ class EmailVerificationService @Inject() (
   }
 
   private object RequestEmailVerification {
-    private def ddUpdateEmailFrontendUrl(s: String): String = if (isLocal) s"${appConfig.BaseUrl.ddUpdateEmailFrontend}$s" else s
-    val continueUrl: String = ddUpdateEmailFrontendUrl(routes.CallbackController.callback.url)
-    val origin: String = "direct-debit-update-email-frontend"
-    val deskproServiceName: String = contactFrontendConfig.serviceId.getOrElse(sys.error("Could not find contact frontend serviceId"))
-    val accessibilityStatementUrl: String = {
+    private def ddUpdateEmailFrontendUrl(s: String): String =
+      if (isLocal) s"${appConfig.BaseUrl.ddUpdateEmailFrontend}$s" else s
+    val continueUrl: String                                 = ddUpdateEmailFrontendUrl(routes.CallbackController.callback.url)
+    val origin: String                                      = "direct-debit-update-email-frontend"
+    val deskproServiceName: String                          =
+      contactFrontendConfig.serviceId.getOrElse(sys.error("Could not find contact frontend serviceId"))
+    val accessibilityStatementUrl: String                   = {
       val u = "/accessibility-statement/direct-debit-verify-email"
       if (isLocal) s"${appConfig.BaseUrl.accessibilityStatementFrontend}$u" else u
     }
-    val emailEntryUrl = ddUpdateEmailFrontendUrl(routes.EmailController.selectEmail.url)
+    val emailEntryUrl                                       = ddUpdateEmailFrontendUrl(routes.EmailController.selectEmail.url)
   }
 
 }

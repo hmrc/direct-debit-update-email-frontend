@@ -27,15 +27,14 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class StartJourneyController @Inject() (
-    startPage:      StartPage,
-    startErrorPage: StartErrorPage,
-    backPage:       IAmABackPage,
-    returnPage:     IAmAReturnPage,
-    startService:   StartService,
-    mcc:            MessagesControllerComponents
-
-)(implicit ec: ExecutionContext)
-  extends FrontendController(mcc) {
+  startPage:      StartPage,
+  startErrorPage: StartErrorPage,
+  backPage:       IAmABackPage,
+  returnPage:     IAmAReturnPage,
+  startService:   StartService,
+  mcc:            MessagesControllerComponents
+)(using ExecutionContext)
+    extends FrontendController(mcc) {
 
   val startJourney: Action[AnyContent] = Action { implicit request =>
     Ok(startPage(StartJourneyForm.form))
@@ -46,10 +45,11 @@ class StartJourneyController @Inject() (
       .bindFromRequest()
       .fold(
         formWithErrors => Future.successful(BadRequest(startPage(formWithErrors))),
-        startForm => startService.start(startForm).map{
-          case Left(error)            => InternalServerError(startErrorPage(error))
-          case Right((session, next)) => Redirect(next.value).withSession(session)
-        }
+        startForm =>
+          startService.start(startForm).map {
+            case Left(error)            => InternalServerError(startErrorPage(error))
+            case Right((session, next)) => Redirect(next.value).withSession(session)
+          }
       )
   }
 

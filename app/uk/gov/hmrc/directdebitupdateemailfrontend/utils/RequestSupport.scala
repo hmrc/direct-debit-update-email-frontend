@@ -23,12 +23,11 @@ import uk.gov.hmrc.http.SessionKeys
 
 import javax.inject.Inject
 
-/**
- * I'm repeating a pattern which was brought originally by play-framework
- * and putting some more data which can be derived from a request
- *
- * Use it to provide HeaderCarrier, Lang, or Messages
- */
+/** I'm repeating a pattern which was brought originally by play-framework and putting some more data which can be
+  * derived from a request
+  *
+  * Use it to provide HeaderCarrier, Lang, or Messages
+  */
 class RequestSupport @Inject() (i18nSupport: I18nSupport) {
 
   implicit def language(implicit requestHeader: RequestHeader): Language = {
@@ -36,11 +35,9 @@ class RequestSupport @Inject() (i18nSupport: I18nSupport) {
     Language(lang)
   }
 
-  implicit def legacyMessages(implicit requestHeader: RequestHeader): Messages = {
+  implicit def legacyMessages(implicit requestHeader: RequestHeader): Messages =
     i18nSupport.request2Messages(requestHeader)
-  }
 
   def isLoggedIn(implicit request: RequestHeader): Boolean = request.session.get(SessionKeys.authToken).isDefined
 
 }
-

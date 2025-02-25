@@ -27,15 +27,17 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class DirectDebitBackendService @Inject() (connector: DirectDebitBackendConnector)(
-    implicit
-    ec: ExecutionContext
-) {
+class DirectDebitBackendService @Inject() (connector: DirectDebitBackendConnector)(using ExecutionContext) {
 
-  def updateEmailAndBouncedFlag(ddiNumber: DDINumber, email: Email, isBounced: Boolean)(implicit hc: HeaderCarrier): Future[Unit] =
-    connector.updateEmailAndBouncedFlag(ddiNumber, email, isBounced).map{ response =>
+  def updateEmailAndBouncedFlag(ddiNumber: DDINumber, email: Email, isBounced: Boolean)(using
+    HeaderCarrier
+  ): Future[Unit] =
+    connector.updateEmailAndBouncedFlag(ddiNumber, email, isBounced).map { response =>
       if (response.status === NO_CONTENT) ()
-      else Errors.throwServerErrorException(s"Got unexpected http response status to update email and bounced flag: ${response.status.toString}")
+      else
+        Errors.throwServerErrorException(
+          s"Got unexpected http response status to update email and bounced flag: ${response.status.toString}"
+        )
     }
 
 }

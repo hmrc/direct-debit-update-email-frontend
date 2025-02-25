@@ -25,19 +25,19 @@ import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, SessionKeys, StringContextOps}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import play.api.libs.ws.WSBodyWritables.writeableOf_JsValue
 
 import java.time.Clock
 import java.util.UUID.randomUUID
 import scala.concurrent.{ExecutionContext, Future}
 
-/**
- * Test Login Service.
- */
+/** Test Login Service.
+  */
 @Singleton
 class AuthLoginApiService @Inject() (
-    httpClient:     HttpClientV2,
-    servicesConfig: ServicesConfig
-)(implicit ec: ExecutionContext) {
+  httpClient:     HttpClientV2,
+  servicesConfig: ServicesConfig
+)(using ExecutionContext) {
 
   def logIn(testUser: TestUser): Future[Session] = for {
     authToken: AuthToken <- callAuthLoginApi(makeLoginRequestBody(testUser))
@@ -45,22 +45,23 @@ class AuthLoginApiService @Inject() (
 
   private def makeLoginRequestBody(testUser: TestUser): JsObject =
     Json.obj(
-      "credId" -> testUser.authorityId.value,
-      "affinityGroup" -> testUser.affinityGroup.toString,
-      "confidenceLevel" -> testUser.confidenceLevel,
-      "credentialStrength" -> "strong",
-      "credentialRole" -> "User",
-      "usersName" -> JsNull,
-      "enrolments" -> Json.arr(),
+      "credId"              -> testUser.authorityId.value,
+      "affinityGroup"       -> testUser.affinityGroup.toString,
+      "confidenceLevel"     -> testUser.confidenceLevel,
+      "credentialStrength"  -> "strong",
+      "credentialRole"      -> "User",
+      "usersName"           -> JsNull,
+      "enrolments"          -> Json.arr(),
       "delegatedEnrolments" -> Json.arr(),
-      "email" -> "user@test.com",
-      "gatewayInformation" -> Json.obj()
+      "email"               -> "user@test.com",
+      "gatewayInformation"  -> Json.obj()
     )
 
   private def callAuthLoginApi(requestBody: JsObject): Future[AuthToken] = {
-    implicit val hc: HeaderCarrier = HeaderCarrier()
+    given HeaderCarrier = HeaderCarrier()
 
-    httpClient.post(url"$authLoginApiUrl/government-gateway/session/login")
+    httpClient
+      .post(url"$authLoginApiUrl/government-gateway/session/login")
       .withBody(Json.toJson(requestBody))
       .execute[HttpResponse]
       .map(r =>
@@ -68,18 +69,20 @@ class AuthLoginApiService @Inject() (
           r
             .header(HeaderNames.AUTHORIZATION)
             .getOrElse(throw new RuntimeException(s"missing 'AUTHORIZATION' header: ${r.toString()}"))
-        ))
+        )
+      )
   }
 
   private def buildAuthenticatedSession(authToken: AuthToken) =
-    Session(Map(
-      SessionKeys.sessionId -> s"session-${randomUUID.toString}",
-      SessionKeys.authToken -> authToken.value,
-      SessionKeys.lastRequestTimestamp -> realClock.millis().toString
-    ))
+    Session(
+      Map(
+        SessionKeys.sessionId            -> s"session-${randomUUID.toString}",
+        SessionKeys.authToken            -> authToken.value,
+        SessionKeys.lastRequestTimestamp -> realClock.millis().toString
+      )
+    )
 
   private val realClock: Clock = Clock.systemUTC()
 
   private val authLoginApiUrl = servicesConfig.baseUrl("auth-login-api")
 }
-

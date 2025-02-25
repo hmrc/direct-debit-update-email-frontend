@@ -20,15 +20,12 @@ import uk.gov.hmrc.auth.core.{AffinityGroup, ConfidenceLevel}
 import uk.gov.hmrc.directdebitupdateemailfrontend.testOnly.models.forms.{SignInAs, StartJourneyForm}
 import uk.gov.hmrc.directdebitupdateemailfrontend.testOnly.utils.RandomDataGenerator
 
-/**
- * Definition of a test user.
- * We use that data to
- * log user in with defined enrolments.
- */
+/** Definition of a test user. We use that data to log user in with defined enrolments.
+  */
 final case class TestUser(
-    authorityId:     AuthorityId,
-    affinityGroup:   AffinityGroup,
-    confidenceLevel: ConfidenceLevel
+  authorityId:     AuthorityId,
+  affinityGroup:   AffinityGroup,
+  confidenceLevel: ConfidenceLevel
 )
 
 object TestUser {
@@ -40,8 +37,8 @@ object TestUser {
     }
 
     TestUser(
-      authorityId     = RandomDataGenerator.nextAuthorityId(),
-      affinityGroup   = affinityGroup,
+      authorityId = RandomDataGenerator.nextAuthorityId(),
+      affinityGroup = affinityGroup,
       confidenceLevel = ConfidenceLevel.L50
     )
 
