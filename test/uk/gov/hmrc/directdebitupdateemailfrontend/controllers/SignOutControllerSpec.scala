@@ -35,7 +35,7 @@ class SignOutControllerSpec extends ItSpec {
   "signOut should" - {
     val signOutUrl = "https://www.gov.uk"
     s"redirect to $signOutUrl" in {
-      val result: Future[Result] = controller.signOut(FakeRequest())
+      val result: Future[Result] = controller.signedOut(FakeRequest())
       status(result) shouldBe SEE_OTHER
       redirectLocation(result) shouldBe Some(signOutUrl)
 
@@ -47,7 +47,7 @@ class SignOutControllerSpec extends ItSpec {
     "return the timed out page" in {
 
       val request                = TestData.fakeRequestWithAuthorization
-      val result: Future[Result] = controller.signOutFromTimeout(request)
+      val result: Future[Result] = controller.timedOut(request)
       val pageContent: String    = contentAsString(result)
       val doc: Document          = Jsoup.parse(pageContent)
 
@@ -67,7 +67,7 @@ class SignOutControllerSpec extends ItSpec {
     "return the timed out page in Welsh" in {
 
       val request                = TestData.fakeRequestWithAuthorization.withLang(Language.Welsh)
-      val result: Future[Result] = controller.signOutFromTimeout(request)
+      val result: Future[Result] = controller.timedOut(request)
       val pageContent: String    = contentAsString(result)
       val doc: Document          = Jsoup.parse(pageContent)
 

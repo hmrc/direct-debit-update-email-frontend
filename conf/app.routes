@@ -3,7 +3,7 @@
 ->         /hmrc-frontend                                  hmrcfrontend.Routes
 GET        /assets/*file                                   controllers.Assets.versioned(path = "/public", file: Asset)
 
-GET        /timed-out                                      uk.gov.hmrc.directdebitupdateemailfrontend.controllers.SignOutController.signOutFromTimeout
+GET        /timed-out                                      uk.gov.hmrc.directdebitupdateemailfrontend.controllers.SignOutController.timedOut
 GET        /check-or-change-email-address                  uk.gov.hmrc.directdebitupdateemailfrontend.controllers.EmailController.selectEmail
 POST       /check-or-change-email-address                  uk.gov.hmrc.directdebitupdateemailfrontend.controllers.EmailController.selectEmailSubmit
 
@@ -15,5 +15,5 @@ GET       /email-verification-code-entered-too-many-times  uk.gov.hmrc.directdeb
 GET       /tried-to-verify-email-address-too-many-times    uk.gov.hmrc.directdebitupdateemailfrontend.controllers.EmailVerificationResultController.tooManyPasscodeJourneysStarted
 GET       /tried-to-verify-too-many-email-addresses        uk.gov.hmrc.directdebitupdateemailfrontend.controllers.EmailVerificationResultController.tooManyDifferentEmailAddresses
 
-GET       /sign-out                                        uk.gov.hmrc.directdebitupdateemailfrontend.controllers.SignOutController.signOut
 GET       /page-unavailable                                uk.gov.hmrc.directdebitupdateemailfrontend.controllers.PageUnavailableController.pageUnavailable
+GET       /sign-out                                        uk.gov.hmrc.directdebitupdateemailfrontend.controllers.SignOutController.signedOut
