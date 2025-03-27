@@ -51,12 +51,15 @@
 
 @showSignOut = @{ requestSupport.isLoggedIn }
 
+@signOutContinue = @{ s"${appConfig.BaseUrl.ddUpdateEmailFrontend}${routes.SignOutController.signedOut.url}"  }
+@timedOutContinue = @{ s"${appConfig.BaseUrl.ddUpdateEmailFrontend}${routes.SignOutController.timedOut.url}"  }
+
 @head = {
   @if(showSignOut) {
    @hmrcTimeoutDialogHelper(
     title = Some(Messages.TimeOut.`You’re about to be signed out`.show),
-    signOutUrl = appConfig.signOutUrl(routes.SignOutController.signedOut.absoluteURL()),
-    timeoutUrl = Some(appConfig.signOutUrl(routes.SignOutController.timedOut.absoluteURL())),
+    signOutUrl = appConfig.signOutUrl(signOutContinue),
+    timeoutUrl = Some(appConfig.signOutUrl(timedOutContinue)),
     countdown = Some(appConfig.authTimeoutCountdownSeconds),
     timeout = Some(appConfig.authTimeoutSeconds)
    )
@@ -109,7 +112,7 @@
   hmrcStandardHeader(
    serviceName =  Some(serviceName),
    serviceUrl = Some(routes.EmailController.selectEmail.url),
-   signOutUrl = if(showSignOut) Some(appConfig.signOutUrl(routes.SignOutController.signedOut.absoluteURL())) else None
+   signOutUrl = if(showSignOut) Some(appConfig.signOutUrl(signOutContinue)) else None
   )
 }
 
