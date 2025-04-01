@@ -39,7 +39,7 @@ requestSupport: RequestSupport
         bouncedEmail: Email,
         backUrl: BackUrl,
         form: Form[ChooseEmailForm]
-)(implicit request: Request[_])
+)(implicit request: Request[?])
 
 @import requestSupport._
 

@@ -20,7 +20,7 @@ lazy val microservice = Project("direct-debit-update-email-frontend", file("."))
   .settings(DefaultBuildSettings.defaultSettings() *)
   .settings(
     majorVersion        := 1,
-    scalaVersion        := "3.3.4",
+    scalaVersion        := "3.5.1",
     PlayKeys.playDefaultPort := 10801,
     libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
     scalacOptions ++= scalaCompilerOptions,

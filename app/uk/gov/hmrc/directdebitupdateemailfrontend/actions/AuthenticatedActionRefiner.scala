@@ -68,7 +68,7 @@ class AuthenticatedActionRefiner @Inject() (
       }
   }
 
-  private def redirectToLoginPage(request: Request[_]): Result =
+  private def redirectToLoginPage(request: Request[?]): Result =
     Redirect(
       appConfig.BaseUrl.gg,
       Map(

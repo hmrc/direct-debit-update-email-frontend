@@ -28,7 +28,7 @@ layout: Layout,
 requestSupport: RequestSupport
 )
 
-@(lockoutExpiryDateTime: LocalDateTime,  continueUrl: BackUrl)(implicit request: Request[_])
+@(lockoutExpiryDateTime: LocalDateTime,  continueUrl: BackUrl)(implicit request: Request[?])
 
 @import requestSupport._
 
