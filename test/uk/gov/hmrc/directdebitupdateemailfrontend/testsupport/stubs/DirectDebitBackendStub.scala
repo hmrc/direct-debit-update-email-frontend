@@ -43,14 +43,16 @@ object DirectDebitBackendStub {
   ): Unit =
     verify(
       postRequestedFor(urlPathEqualTo(updateEmailAndBouncedFlagUrl(ddiNumber)))
-        withRequestBody (equalToJson(
-          s"""
+        .withRequestBody(
+          equalToJson(
+            s"""
            |{
            |  "email": "${email.value.decryptedValue}",
            |  "isBounced": ${isBounced.toString}
            |}
            |""".stripMargin
-        ))
+          )
+        )
     )
 
 }

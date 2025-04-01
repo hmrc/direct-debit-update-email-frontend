@@ -43,7 +43,7 @@ class ItSpec extends UnitSpec, GuiceOneServerPerSuite, WireMockSupport, HttpRead
 
   protected lazy val configOverrides: Map[String, Any] = Map()
 
-  implicit val testCrypto: Encrypter with Decrypter = new AesCrypto {
+  implicit val testCrypto: Encrypter & Decrypter = new AesCrypto {
     override protected val encryptionKey: String = "P5xsJ9Nt+quxGZzB4DeLfw=="
   }
 
@@ -68,7 +68,7 @@ class ItSpec extends UnitSpec, GuiceOneServerPerSuite, WireMockSupport, HttpRead
 
   // in tests use `app`
   override def fakeApplication(): Application = new GuiceApplicationBuilder()
-    .overrides(modules: _*)
+    .overrides(modules*)
     .disable(classOf[ddUpdateEmail.module.CryptoModule])
     .configure(configMap)
     .build()

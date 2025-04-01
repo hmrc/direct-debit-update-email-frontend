@@ -54,7 +54,7 @@
         govukErrorSummary: GovukErrorSummary,
         govukInput: GovukInput
 )
-@(form: Form[StartJourneyForm])(implicit request: Request[_])
+@(form: Form[StartJourneyForm])(implicit request: Request[?])
 
 @import requestSupport._
 

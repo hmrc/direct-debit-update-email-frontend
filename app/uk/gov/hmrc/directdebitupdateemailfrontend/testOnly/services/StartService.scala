@@ -39,7 +39,7 @@ class StartService @Inject() (
 
   def start(
     formData: StartJourneyForm
-  )(using request: Request[_]): Future[Either[SjResponse.Error, (Session, NextUrl)]] = {
+  )(using request: Request[?]): Future[Either[SjResponse.Error, (Session, NextUrl)]] = {
     lazy val ddiNumber = RandomDataGenerator.nextDdiNumber()
 
     lazy val directDebitRecord = {

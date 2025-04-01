@@ -39,7 +39,7 @@ class EmailControllerSpec extends ItSpec {
   lazy val controller = app.injector.instanceOf[EmailController]
 
   s"GET ${routes.EmailController.selectEmail.url}" - {
-    def checkPageContents(doc: Document)(implicit request: Request[_]): Unit = {
+    def checkPageContents(doc: Document)(implicit request: Request[?]): Unit = {
       ContentAssertions.commonPageChecks(
         doc,
         "Check or change your email address",
@@ -202,7 +202,7 @@ class EmailControllerSpec extends ItSpec {
             val request =
               TestData.fakeRequestWithAuthorization
                 .withMethod("POST")
-                .withFormUrlEncodedBody(formData: _*)
+                .withFormUrlEncodedBody(formData*)
                 .withLang(lang)
             val result  = controller.selectEmailSubmit(request)
 

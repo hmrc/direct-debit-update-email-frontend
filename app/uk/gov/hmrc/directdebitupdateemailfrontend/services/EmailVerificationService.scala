@@ -44,7 +44,7 @@ class EmailVerificationService @Inject() (
 
   def startEmailVerificationJourney(
     email: Email
-  )(using r: AuthenticatedJourneyRequest[_], hc: HeaderCarrier): Future[StartEmailVerificationJourneyResult] = {
+  )(using r: AuthenticatedJourneyRequest[?], hc: HeaderCarrier): Future[StartEmailVerificationJourneyResult] = {
     val lang = requestSupport.language(r)
 
     val startRequest = StartEmailVerificationJourneyRequest(
@@ -68,7 +68,7 @@ class EmailVerificationService @Inject() (
 
   def getVerificationResult(
     email: Email
-  )(using r: AuthenticatedJourneyRequest[_], hc: HeaderCarrier): Future[EmailVerificationResult] = {
+  )(using r: AuthenticatedJourneyRequest[?], hc: HeaderCarrier): Future[EmailVerificationResult] = {
     val request = GetEmailVerificationResultRequest(PaymentsEmailVerificationEmail(email.value.decryptedValue))
     emailVerificationConnector.getEmailVerificationResult(request).map { response =>
       val result = toEmailVerificationResult(response)

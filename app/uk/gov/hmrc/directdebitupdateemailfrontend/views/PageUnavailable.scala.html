@@ -24,7 +24,7 @@ layout: Layout,
 requestSupport: RequestSupport
 )
 
-@(url: String)(implicit request: Request[_])
+@(url: String)(implicit request: Request[?])
 
 @import requestSupport._
 
