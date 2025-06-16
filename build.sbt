@@ -1,4 +1,4 @@
-import uk.gov.hmrc.DefaultBuildSettings
+
 
 lazy val scalaCompilerOptions = Seq(
     "-Xfatal-warnings",
@@ -16,8 +16,6 @@ lazy val scalaCompilerOptions = Seq(
 lazy val microservice = Project("direct-debit-update-email-frontend", file("."))
   .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)
   .disablePlugins(JUnitXmlReportPlugin) //Required to prevent https://github.com/scalatest/scalatest/issues/1427
-  .settings(DefaultBuildSettings.scalaSettings *)
-  .settings(DefaultBuildSettings.defaultSettings() *)
   .settings(
     majorVersion        := 1,
     scalaVersion        := "3.5.1",
