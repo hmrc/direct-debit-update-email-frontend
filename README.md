@@ -2,7 +2,7 @@
 # direct-debit-update-email-frontend
 
 This repository contains the frontend microservice for direct debit update email.
-It is built using Scala (2.13.10) and the Play framework (2.8). We use linting tools such as WartRemover and Sclariform.
+It is built using Scala and the Play framework. We use linting tools such as WartRemover and Scalafmt.
 This microservice facilitates users updating their email address if it is in a bounced status in direct-debit-backend.
 
 Current tax regimes supported:
