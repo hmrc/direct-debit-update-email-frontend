@@ -34,7 +34,6 @@
         hmrcStandardHeader: HmrcStandardHeader,
         hmrcStandardFooter: HmrcStandardFooter,
         hmrcScripts: HmrcScripts,
-        hmrcLanguageSelectHelper: HmrcLanguageSelectHelper,
         hmrcReportTechnicalIssueHelper: HmrcReportTechnicalIssueHelper,
         hmrcTimeoutDialogHelper: HmrcTimeoutDialogHelper,
         requestSupport: RequestSupport,
@@ -82,7 +81,6 @@
    content = HtmlContent(Messages.ServicePhase.bannerText(appConfig.BaseUrl.betaFeedbackUrl).show)
   ))
 
-  @hmrcLanguageSelectHelper()
 
   @if(showBackLink) {
    @backLinkUrlOverride.fold {
