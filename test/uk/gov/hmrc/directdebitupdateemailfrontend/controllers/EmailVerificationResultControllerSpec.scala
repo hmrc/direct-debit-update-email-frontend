@@ -75,7 +75,6 @@ class EmailVerificationResultControllerSpec extends ItSpec {
       status(result) shouldBe OK
 
       val doc = Jsoup.parse(contentAsString(result))
-
       ContentAssertions.commonPageChecks(
         doc,
         "Email address verified",

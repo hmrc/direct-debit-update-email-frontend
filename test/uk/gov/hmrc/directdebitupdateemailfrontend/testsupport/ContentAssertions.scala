@@ -21,7 +21,6 @@ import org.jsoup.nodes.{Document, Element}
 import org.jsoup.select.Elements
 import org.scalatest.Assertion
 import play.api.mvc.Request
-import uk.gov.hmrc.directdebitupdateemailfrontend.controllers.routes
 import uk.gov.hmrc.directdebitupdateemailfrontend.models.Language
 
 import scala.annotation.nowarn
@@ -41,7 +40,8 @@ object ContentAssertions extends RichMatchers {
   }
 
   def languageToggleExists(document: Document, selectedLanguage: Language): Assertion = {
-    val langToggleItems: List[Element] = document.select(".hmrc-language-select__list-item").asScala.toList
+    val langToggleItems: List[Element] =
+      document.select(".hmrc-service-navigation-language-select__list-item").asScala.toList
     langToggleItems.size shouldBe 2
 
     val englishOption = langToggleItems(0)
@@ -49,18 +49,16 @@ object ContentAssertions extends RichMatchers {
 
     selectedLanguage match {
       case Language.English =>
-        englishOption.text() shouldBe "English"
+        englishOption.text() shouldBe "ENG"
 
         welshOption.select("a").attr("hreflang") shouldBe "cy"
-        welshOption.select("span.govuk-visually-hidden").text() shouldBe "Newid yr iaith i’r Gymraeg"
-        welshOption.select("span[aria-hidden=true]").text() shouldBe "Cymraeg"
+        welshOption.select("span.govuk-visually-hidden").text() shouldBe "– Newid yr iaith i’r Gymraeg"
 
       case Language.Welsh =>
         englishOption.select("a").attr("hreflang") shouldBe "en"
-        englishOption.select("span.govuk-visually-hidden").text() shouldBe "Change the language to English"
-        englishOption.select("span[aria-hidden=true]").text() shouldBe "English"
+        englishOption.select("span.govuk-visually-hidden").text() shouldBe "– Change the language to English"
 
-        welshOption.text() shouldBe "Cymraeg"
+        welshOption.text() shouldBe "CYM"
 
     }
 
@@ -91,9 +89,8 @@ object ContentAssertions extends RichMatchers {
 
     page.title() shouldBe s"$titlePrefix$expectedH1 - $expectedServiceName - GOV.UK"
 
-    val serviceName = page.select("a.govuk-header__service-name")
-    serviceName.text() shouldBe expectedServiceName
-    serviceName.attr("href") shouldBe routes.EmailController.selectEmail.url
+    val serviceName = page.getElementsByClass("govuk-service-navigation__text")
+    serviceName.first().text() shouldBe expectedServiceName
 
     page.select("h1").text() shouldBe expectedH1
 

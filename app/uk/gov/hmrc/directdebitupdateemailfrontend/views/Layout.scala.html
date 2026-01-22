@@ -21,6 +21,7 @@
 @import uk.gov.hmrc.directdebitupdateemailfrontend.utils.RequestSupport
 @import uk.gov.hmrc.govukfrontend.views.html.components._
 @import uk.gov.hmrc.hmrcfrontend.views.html.helpers._
+@import uk.gov.hmrc.govukfrontend.views.html.components.implicits._
 @import views.html.helper.CSPNonce
 @import uk.gov.hmrc.directdebitupdateemailfrontend.config.AppConfig
 @import uk.gov.hmrc.directdebitupdateemailfrontend.controllers.routes
@@ -33,7 +34,6 @@
         hmrcStandardHeader: HmrcStandardHeader,
         hmrcStandardFooter: HmrcStandardFooter,
         hmrcScripts: HmrcScripts,
-        hmrcLanguageSelectHelper: HmrcLanguageSelectHelper,
         hmrcReportTechnicalIssueHelper: HmrcReportTechnicalIssueHelper,
         hmrcTimeoutDialogHelper: HmrcTimeoutDialogHelper,
         requestSupport: RequestSupport,
@@ -81,7 +81,6 @@
    content = HtmlContent(Messages.ServicePhase.bannerText(appConfig.BaseUrl.betaFeedbackUrl).show)
   ))
 
-  @hmrcLanguageSelectHelper()
 
   @if(showBackLink) {
    @backLinkUrlOverride.fold {
@@ -112,8 +111,9 @@
   hmrcStandardHeader(
    serviceName =  Some(serviceName),
    serviceUrl = Some(routes.EmailController.selectEmail.url),
-   signOutUrl = if(showSignOut) Some(appConfig.signOutUrl(signOutContinue)) else None
-  )
+   signOutUrl = if(showSignOut) Some(appConfig.signOutUrl(signOutContinue)) else None,
+   isWelshTranslationAvailable = true,
+   serviceNavigation = Some(ServiceNavigation(serviceName = Some(serviceName)).withLanguageToggle()))
 }
 
 @govukLayout(
