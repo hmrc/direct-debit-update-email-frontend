@@ -12,7 +12,7 @@ object AppDependencies {
     "com.beachape"    %% "enumeratum-play"                               % "1.9.8",
     "org.typelevel"   %% "cats-core"                                     % "2.13.0",
     "uk.gov.hmrc"     %% "direct-debit-update-email-backend-cor-journey" % "1.6.0",
-    "uk.gov.hmrc"     %% "payments-email-verification-cor-play-30"       % "4.9.0"
+    "uk.gov.hmrc"     %% "payments-email-verification-cor-play-30"       % "4.10.0"
   // format: ON
   )
 
