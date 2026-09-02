@@ -143,7 +143,7 @@ object ContentAssertions extends RichMatchers {
     }
     val accessibilityStatementLink     = footerLinks.find(_.text().eqv(accessibilityStatementLinkText))
     accessibilityStatementLink.map(_.attr("href")) shouldBe Some(
-      "http://localhost:12346/accessibility-statement/direct-debit-verify-email?referrerUrl=%2F"
+      "http://localhost:12346/accessibility-statement/direct-debit-verify-email?referrerUrl=%2F&useServiceNavigation"
     )
 
     val form = page.select("form")
