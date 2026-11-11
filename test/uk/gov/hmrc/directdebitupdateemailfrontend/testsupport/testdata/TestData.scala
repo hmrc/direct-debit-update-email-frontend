@@ -72,6 +72,7 @@ object TestData {
             case _: TaxId.Vrn    => "Vrn"
             case _: TaxId.Zppt   => "Zppt"
             case _: TaxId.Zsdl   => "Zsdl"
+            case _: TaxId.Zccl   => "Zccl"
           }
           s"""
              |    "taxId": {
