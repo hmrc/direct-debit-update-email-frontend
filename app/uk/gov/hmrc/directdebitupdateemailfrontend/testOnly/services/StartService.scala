@@ -49,6 +49,7 @@ class StartService @Inject() (
         case TaxRegime.Ppt  => TaxId("zppt", RandomDataGenerator.nextZpptRef())
         case TaxRegime.Zsdl => TaxId("zsdl", RandomDataGenerator.nextZsdlRef())
         case TaxRegime.VatC => TaxId("vrn", RandomDataGenerator.nextVrn())
+        case TaxRegime.Ccl  => TaxId("zccl", RandomDataGenerator.nextZccl())
       }
 
       DirectDebitRecord(

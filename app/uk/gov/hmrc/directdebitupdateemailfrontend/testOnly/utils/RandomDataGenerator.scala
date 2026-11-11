@@ -46,6 +46,8 @@ object RandomDataGenerator {
 
   def nextVrn(): String = nextNumber(9)
 
+  def nextZccl(): String = s"ZACCL${nextNumber(10)}"
+
   def nextZpptRef(): String = s"X${nextAlpha(1)}PPT000${nextNumber(7)}"
 
   def nextDdiNumber(): DDINumber = DDINumber(nextNumber(18))

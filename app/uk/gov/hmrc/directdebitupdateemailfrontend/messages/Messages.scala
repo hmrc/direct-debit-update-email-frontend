@@ -105,6 +105,13 @@ object Messages {
         case TaxRegime.VatC => notHandledError
         case TaxRegime.Cds  => notHandledError
         case TaxRegime.Ppt  => notHandledError
+        case TaxRegime.Ccl  =>
+          Message(
+            english =
+              s"We cannot contact you about your Climate Change Levy Direct Debit using ${bouncedEmail.value.decryptedValue}.",
+            welsh =
+              s"Ni allwn gysylltu â chi am eich Debyd Uniongyrchol ar gyfer Ardoll Newid yn yr Hinsawdd gan ddefnyddio ${bouncedEmail.value.decryptedValue}."
+          )
       }
     }
 
