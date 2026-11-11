@@ -7,6 +7,7 @@ This microservice facilitates users updating their email address if it is in a b
 
 Current tax regimes supported:
 * PAYE
+* CCL
 
 ---
 
